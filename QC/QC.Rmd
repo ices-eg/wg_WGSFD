@@ -1,6 +1,6 @@
 ---
-title: "ICES WGSFD quality check report - Iceland"
-date: "April 21, 2016"
+title: "ICES WGSFD quality check report"
+date: "April, 2017"
 output: word_document
 ---
 
@@ -9,54 +9,115 @@ output: word_document
 library(plyr)
 library(knitr)
 
-ICES_LE <- read.csv("C:\\joeg\\WGSFD\\2016\\Exchange_data\\log_IS.csv",sep=',')
-ICES_VE <- read.csv("C:\\joeg\\WGSFD\\2016\\Exchange_data\\vms_IS.csv",sep=',')
+#- Set paths
+dataPath                  <- "D:/Repository/WGSFD/"
 
-country <- unique(ICES_VE$country)
-rows_VE <- nrow(ICES_VE)
-csquares_count_VE <- length(unique(ICES_VE$c_square))
-metier_count_VE <- length(unique(ICES_VE$LE_MET_level6))
-avg_fishing_speed_min_VE <- min(ICES_VE$avg_fishing_speed)
-avg_fishing_speed_max_VE <- max(ICES_VE$avg_fishing_speed)
-fishing_hour_min_VE <- round(min(ICES_VE$fishing_hour), digits=1)
-fishing_hour_max_VE <- round(max(ICES_VE$fishing_hour), digits=1)
-avg_oal_min_VE <- min(ICES_VE$avg_oal)
-avg_oal_max_VE <- max(ICES_VE$avg_oal)
-avg_kw_min_VE <- min(ICES_VE$kw)
-avg_kw_max_VE <- max(ICES_VE$kw)
-kw_fishinghour_min_VE <- round(min(ICES_VE$kw_fishinghours), digits=1)
-kw_fishinghour_max_VE <- round(max(ICES_VE$kw_fishinghours), digits=1)
-totweight_min_VE <- round(min(ICES_VE$totweight), digits=1)
-totweight_max_VE <- round(max(ICES_VE$totweight), digits=1)
+#-------------------------------------------------------------------------------
+# Data handling
+#-------------------------------------------------------------------------------
+
+#- Read in latest submission
+ICES_LE                   <- read.csv(file.path(dataPath,"log_IS.csv",stringsAsFactors=F)
+ICES_VE                   <- read.csv(file.path(dataPath,"vms_IS.csv",stringsAsFactors=F)
+
+#- Read in previous submission
+ICES_LEP                  <- read.csv(file.path(dataPath,"log_ISP.csv",stringsAsFactors=F)
+ICES_VEP                  <- read.csv(file.path(dataPath,"VMS_ISP.csv",stringsAsFactors=F)
+
+
+#-------------------------------------------------------------------------------
+# Pre-calculations
+#-------------------------------------------------------------------------------
+
+#-------------------------
+#- Checks for VMS data
+#-------------------------
+
+#- Most recent submission
+country                   <- unique(ICES_VE$country)
+rows_VE                   <- nrow(ICES_VE)
+csquares_count_VE         <- length(unique(ICES_VE$c_square))
+metier_count_VE           <- length(unique(ICES_VE$LE_MET_level6))
+avg_fishing_speed_min_VE  <- min(ICES_VE$avg_fishing_speed,na.rm=T)
+avg_fishing_speed_max_VE  <- max(ICES_VE$avg_fishing_speed,na.rm=T)
+fishing_hour_sum_VE       <- round(sum(ICES_VE$fishing_hour,na.rm=T), digits=1)
+fishing_hour_min_VE       <- round(min(ICES_VE$fishing_hour,na.rm=T), digits=1)
+fishing_hour_max_VE       <- round(max(ICES_VE$fishing_hour,na.rm=T), digits=1)
+avg_oal_min_VE            <- min(ICES_VE$avg_oal,na.rm=T)
+avg_oal_max_VE            <- max(ICES_VE$avg_oal,na.rm=T)
+avg_kw_min_VE             <- min(ICES_VE$kw,na.rm=T)
+avg_kw_max_VE             <- max(ICES_VE$kw,na.rm=T)
+kw_fishinghour_sum_VE     <- round(sum(ICES_VE$kw_fishinghours,na.rm=T), digits=1)
+kw_fishinghour_min_VE     <- round(min(ICES_VE$kw_fishinghours,na.rm=T), digits=1)
+kw_fishinghour_max_VE     <- round(max(ICES_VE$kw_fishinghours,na.rm=T), digits=1)
+totweight_min_VE          <- round(min(ICES_VE$totweight,na.rm=T), digits=1)
+totweight_max_VE          <- round(max(ICES_VE$totweight,na.rm=T), digits=1)
 mean_landing_per_fishing_hour_VE <- round(with(ICES_VE,sum(ICES_VE$totweight)/sum(ICES_VE$fishing_hour)),digits=1)
-totvalue_min_VE <- round(min(ICES_VE$totvalue, na.rm=TRUE), digits=1)
-totvalue_max_VE <- round(max(ICES_VE$totvalue, na.rm=TRUE), digits=1)
-mean_price_VE <- round(mean(ICES_VE$totvalue, na.rm=TRUE)/mean(ICES_VE$totweight, na.rm=TRUE), digits=2)
+totvalue_min_VE           <- round(min(ICES_VE$totvalue, na.rm=TRUE), digits=1)
+totvalue_max_VE           <- round(max(ICES_VE$totvalue, na.rm=TRUE), digits=1)
+mean_price_VE             <- round(mean(ICES_VE$totvalue, na.rm=TRUE)/mean(ICES_VE$totweight, na.rm=TRUE), digits=2)
 
+#- Previous submission
+rows_VEP                  <- nrow(ICES_VEP)
+csquares_count_VEP        <- length(unique(ICES_VEP$c_square))
+metier_count_VEP          <- length(unique(ICES_VEP$LE_MET_level6))
+fishing_hour_sum_VEP      <- round(sum(ICES_VEP$fishing_hour,na.rm=T), digits=1)
+totweight_min_VEP         <- round(min(ICES_VEP$totweight,na.rm=T), digits=1)
+totweight_max_VEP         <- round(max(ICES_VEP$totweight,na.rm=T), digits=1)
+mean_landing_per_fishing_hour_VEP <- round(with(ICES_VEP,sum(ICES_VEP$totweight)/sum(ICES_VEP$fishing_hour)),digits=1)
+totvalue_min_VEP          <- round(min(ICES_VEP$totvalue, na.rm=TRUE), digits=1)
+totvalue_max_VEP          <- round(max(ICES_VEP$totvalue, na.rm=TRUE), digits=1)
+mean_price_VEP            <- round(mean(ICES_VEP$totvalue, na.rm=TRUE)/mean(ICES_VEP$totweight, na.rm=TRUE), digits=2)
 
-rows_LE <- nrow(ICES_LE)
-years_LE <- unique(ICES_LE$year)
-months_LE <- unique(ICES_LE$month)
+#-------------------------
+# Checks for logbook data
+#-------------------------
+
+#- Most recent submission
+rows_LE                   <- nrow(ICES_LE)
+years_LE                  <- unique(ICES_LE$year)
+months_LE                 <- unique(ICES_LE$month)
 vessel_length_category_LE <- unique(ICES_LE$vessel_length_category)
-gear_LE <- sort(unique(ICES_LE$gear_code))
-metier_count_LE <- length(unique(ICES_LE$LE_MET_level6))
-metier_LE <- head(unique(ICES_LE$LE_MET_level6),5)
+gear_LE                   <- sort(unique(ICES_LE$gear_code))
+metier_count_LE           <- length(unique(ICES_LE$LE_MET_level6))
+metier_LE                 <- head(unique(ICES_LE$LE_MET_level6),5)
 Number_ICES_rectangles_LE <- length(unique(ICES_LE$ICES_rectangle))
-ICES_rectangles_LE <- head(unique(ICES_LE$ICES_rectangle),5)
-fishing_days_min_LE <- round(min(ICES_LE$fishing_days), digits=1)
-fishing_days_max_LE <- round(max(ICES_LE$fishing_days), digits=1)
-kw_fishing_days_min_LE <- round(min(ICES_LE$kw_fishing_days, na.rm=TRUE), digits=1)
-kw_fishing_days_max_LE <- round(max(ICES_LE$kw_fishing_days, na.rm=TRUE), digits=1)
-totweight_min_LE <- round(min(ICES_LE$totweight), digits=1)
-totweight_max_LE <- round(max(ICES_LE$totweight), digits=1)
-mean_landings_per_day_LE <- round(with(subset(ICES_LE,!is.na(ICES_LE$fishing_days)),sum(as.numeric(ICES_LE$totweigh))/sum(ICES_LE$fishing_days)), digits=1)
-totvalue_min_LE <- round(min(ICES_LE$totvalue, na.rm=TRUE), digits=1)
-totvalue_max_LE <- round(max(ICES_LE$totvalue, na.rm=TRUE), digits=1)
-mean_price_LE <- round(mean(ICES_LE$totvalue, na.rm=TRUE)/mean(ICES_LE$totweight, na.rm=TRUE), digits=2)
+ICES_rectangles_LE        <- head(unique(ICES_LE$ICES_rectangle),5)
+fishing_days_sum_LE       <- round(sum(ICES_LE$fishing_days,na.rm=T), digits=1)
+fishing_days_min_LE       <- round(min(ICES_LE$fishing_days,na.rm=T), digits=1)
+fishing_days_max_LE       <- round(max(ICES_LE$fishing_days,na.rm=T), digits=1)
+kw_fishing_days_sum_LE    <- round(sum(ICES_LE$kw_fishing_days, na.rm=TRUE), digits=1)
+kw_fishing_days_min_LE    <- round(min(ICES_LE$kw_fishing_days, na.rm=TRUE), digits=1)
+kw_fishing_days_max_LE    <- round(max(ICES_LE$kw_fishing_days, na.rm=TRUE), digits=1)
+totweight_min_LE          <- round(min(ICES_LE$totweight,na.rm=T), digits=1)
+totweight_max_LE          <- round(max(ICES_LE$totweight,na.rm=T), digits=1)
+mean_landings_per_day_LE  <- round(with(subset(ICES_LE,!is.na(ICES_LE$fishing_days)),sum(as.numeric(ICES_LE$totweigh))/sum(ICES_LE$fishing_days)), digits=1)
+totvalue_min_LE           <- round(min(ICES_LE$totvalue, na.rm=TRUE), digits=1)
+totvalue_max_LE           <- round(max(ICES_LE$totvalue, na.rm=TRUE), digits=1)
+mean_price_LE             <- round(mean(ICES_LE$totvalue, na.rm=TRUE)/mean(ICES_LE$totweight, na.rm=TRUE), digits=2)
+
+#- Previous submission
+years_LEP                 <- unique(ICES_LEP$year)
+months_LEP                <- unique(ICES_LEP$month)
+vessel_LEPngth_category_LEP <- unique(ICES_LEP$vessel_LEPngth_category)
+gear_LEP                  <- sort(unique(ICES_LEP$gear_code))
+metier_count_LEP          <- length(unique(ICES_LEP$LE_MET_LEPvel6))
+fishing_days_sum_LEP      <- round(sum(ICES_LEP$fishing_days,na.rm=T), digits=1)
+kw_fishing_days_sum_LEP   <- round(sum(ICES_LEP$kw_fishing_days, na.rm=TRUE), digits=1)
+totweight_min_LEP         <- round(min(ICES_LEP$totweight,na.rm=T), digits=1)
+totweight_max_LEP         <- round(max(ICES_LEP$totweight,na.rm=T), digits=1)
+mean_landings_per_day_LEP <- round(with(subset(ICES_LEP,!is.na(ICES_LEP$fishing_days)),sum(as.numeric(ICES_LEP$totweigh))/sum(ICES_LEP$fishing_days)), digits=1)
+totvalue_min_LEP          <- round(min(ICES_LEP$totvalue, na.rm=TRUE), digits=1)
+totvalue_max_LEP          <- round(max(ICES_LEP$totvalue, na.rm=TRUE), digits=1)
+mean_price_LEP            <- round(mean(ICES_LEP$totvalue, na.rm=TRUE)/mean(ICES_LEP$totweight, na.rm=TRUE), digits=2)
+
+
+
 ```
 
-#Country: `r country`
-##VMS file
+#-------------------------------------------------------------------------------
+# Tables & Figures VMS
+#-------------------------------------------------------------------------------
 
 Total number of rows in submitted VMS data file: `r rows_VE`
 
@@ -149,7 +210,10 @@ Total value maximum: `r totvalue_max_VE`
 
 Mean price: `r mean_price_VE`
 
-##Logbook file
+#-------------------------------------------------------------------------------
+# Tables & Figures logbook
+#-------------------------------------------------------------------------------
+
 
 Total number of rows in submitted Logbook data file: `r rows_LE`
 
@@ -219,6 +283,13 @@ Total value minimum: `r totvalue_min_LE`
 Total value maximum: `r totvalue_max_LE`
 
 Mean price: `r mean_price_LE`
+
+
+#-------------------------------------------------------------------------------
+# Comparison with previous submission
+#-------------------------------------------------------------------------------
+
+
 
 
 ```{r, echo=FALSE, include=FALSE}
