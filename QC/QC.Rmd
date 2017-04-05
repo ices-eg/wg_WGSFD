@@ -1,39 +1,58 @@
 ---
-title: "ICES WGSFD quality check report"
-date: "April, 2017"
-output: word_document
+title: "ICES VMS datacall quality check report"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: pdf_document
 ---
 
-```{r, echo=FALSE, include=FALSE}
-
-library(plyr)
+```{r, eval=TRUE, echo=FALSE}
 library(knitr)
 
-#- Set paths
+opts_chunk$set(comment=NA,
+               warning=FALSE,
+               message=FALSE,
+               error  =FALSE,
+               echo   =FALSE,
+               eval   =TRUE,
+               fig.align='left',
+               tab.align='left')
+
+library(plyr)
+
+library(ggplot2)
+library(vmstools)
+library(RColorBrewer)
+
+
 dataPath                  <- "D:/Repository/WGSFD/"
+load(file.path(dataPath,"eurPols.Rdata"))
+```
+<!------------------------------------------------------------------------------
+Data handling
+---------------------------------------------------------------------------- -->
+```{r, echo=FALSE, results='asis'}
+compareSubmission         <- F
 
-#-------------------------------------------------------------------------------
-# Data handling
-#-------------------------------------------------------------------------------
+#Read in latest submission -->
+#ICES_LE                   <- read.csv(file.path(dataPath,"ICES_LE_pt_2016.csv"),stringsAsFactors=F,sep=";")
+#ICES_VE                   <- read.csv(file.path(dataPath,"ICES_VMS_pt_2016.csv"),stringsAsFactors=F,sep=";")
+load(file.path(dataPath,"PRT_LOG_2016.RData"))
+load(file.path(dataPath,"PRT_VMS_2016.RData"))
 
-#- Read in latest submission
-ICES_LE                   <- read.csv(file.path(dataPath,"log_IS.csv",stringsAsFactors=F)
-ICES_VE                   <- read.csv(file.path(dataPath,"vms_IS.csv",stringsAsFactors=F)
+#Read in previous submission (P) -->
+#if(compareSubmission){
+#  ICES_LEP                <- read.csv(file.path(dataPath,"log_ISP.csv",stringsAsFactors=F)
+#  ICES_VEP                <- read.csv(file.path(dataPath,"VMS_ISP.csv",stringsAsFactors=F)
+#}
+```
+<!------------------------------------------------------------------------------
+Pre-calculations
+---------------------------------------------------------------------------- -->
 
-#- Read in previous submission
-ICES_LEP                  <- read.csv(file.path(dataPath,"log_ISP.csv",stringsAsFactors=F)
-ICES_VEP                  <- read.csv(file.path(dataPath,"VMS_ISP.csv",stringsAsFactors=F)
-
-
-#-------------------------------------------------------------------------------
-# Pre-calculations
-#-------------------------------------------------------------------------------
-
-#-------------------------
-#- Checks for VMS data
-#-------------------------
-
-#- Most recent submission
+<!--------------------------
+Checks for VMS data
+------------------------ -->
+```{r, echo=FALSE, results='asis'}
+#Most recent submission -->
 country                   <- unique(ICES_VE$country)
 rows_VE                   <- nrow(ICES_VE)
 csquares_count_VE         <- length(unique(ICES_VE$c_square))
@@ -53,27 +72,32 @@ kw_fishinghour_max_VE     <- round(max(ICES_VE$kw_fishinghours,na.rm=T), digits=
 totweight_min_VE          <- round(min(ICES_VE$totweight,na.rm=T), digits=1)
 totweight_max_VE          <- round(max(ICES_VE$totweight,na.rm=T), digits=1)
 mean_landing_per_fishing_hour_VE <- round(with(ICES_VE,sum(ICES_VE$totweight)/sum(ICES_VE$fishing_hour)),digits=1)
+ICES_VE$totvalue          <- ifelse(class(ICES_VE$totvalue) != "numeric",NA,ICES_VE$totvalue)
 totvalue_min_VE           <- round(min(ICES_VE$totvalue, na.rm=TRUE), digits=1)
 totvalue_max_VE           <- round(max(ICES_VE$totvalue, na.rm=TRUE), digits=1)
 mean_price_VE             <- round(mean(ICES_VE$totvalue, na.rm=TRUE)/mean(ICES_VE$totweight, na.rm=TRUE), digits=2)
+ICES_VE                   <- cbind(ICES_VE,CSquare2LonLat(ICES_VE$c_square,degrees=0.05))
+spatBound                 <- list(xrange=range(ICES_VE$SI_LONG,na.rm=T),yrange=range(ICES_VE$SI_LATI,na.rm=T))
 
-#- Previous submission
-rows_VEP                  <- nrow(ICES_VEP)
-csquares_count_VEP        <- length(unique(ICES_VEP$c_square))
-metier_count_VEP          <- length(unique(ICES_VEP$LE_MET_level6))
-fishing_hour_sum_VEP      <- round(sum(ICES_VEP$fishing_hour,na.rm=T), digits=1)
-totweight_min_VEP         <- round(min(ICES_VEP$totweight,na.rm=T), digits=1)
-totweight_max_VEP         <- round(max(ICES_VEP$totweight,na.rm=T), digits=1)
-mean_landing_per_fishing_hour_VEP <- round(with(ICES_VEP,sum(ICES_VEP$totweight)/sum(ICES_VEP$fishing_hour)),digits=1)
-totvalue_min_VEP          <- round(min(ICES_VEP$totvalue, na.rm=TRUE), digits=1)
-totvalue_max_VEP          <- round(max(ICES_VEP$totvalue, na.rm=TRUE), digits=1)
-mean_price_VEP            <- round(mean(ICES_VEP$totvalue, na.rm=TRUE)/mean(ICES_VEP$totweight, na.rm=TRUE), digits=2)
-
-#-------------------------
-# Checks for logbook data
-#-------------------------
-
-#- Most recent submission
+#Previous submission -->
+if(compareSubmission){
+  rows_VEP                <- nrow(ICES_VEP)
+  csquares_count_VEP      <- length(unique(ICES_VEP$c_square))
+  metier_count_VEP        <- length(unique(ICES_VEP$LE_MET_level6))
+  fishing_hour_sum_VEP    <- round(sum(ICES_VEP$fishing_hour,na.rm=T), digits=1)
+  totweight_min_VEP       <- round(min(ICES_VEP$totweight,na.rm=T), digits=1)
+  totweight_max_VEP       <- round(max(ICES_VEP$totweight,na.rm=T), digits=1)
+  mean_landing_per_fishing_hour_VEP <- round(with(ICES_VEP,sum(ICES_VEP$totweight)/sum(ICES_VEP$fishing_hour)),digits=1)
+  totvalue_min_VEP        <- round(min(ICES_VEP$totvalue, na.rm=TRUE), digits=1)
+  totvalue_max_VEP        <- round(max(ICES_VEP$totvalue, na.rm=TRUE), digits=1)
+  mean_price_VEP          <- round(mean(ICES_VEP$totvalue, na.rm=TRUE)/mean(ICES_VEP$totweight, na.rm=TRUE), digits=2)
+}
+```
+<!--------------------------
+Checks for logbook data
+------------------------ -->
+```{r, echo=FALSE, results='asis'}
+#Most recent submission -->
 rows_LE                   <- nrow(ICES_LE)
 years_LE                  <- unique(ICES_LE$year)
 months_LE                 <- unique(ICES_LE$month)
@@ -86,212 +110,352 @@ ICES_rectangles_LE        <- head(unique(ICES_LE$ICES_rectangle),5)
 fishing_days_sum_LE       <- round(sum(ICES_LE$fishing_days,na.rm=T), digits=1)
 fishing_days_min_LE       <- round(min(ICES_LE$fishing_days,na.rm=T), digits=1)
 fishing_days_max_LE       <- round(max(ICES_LE$fishing_days,na.rm=T), digits=1)
-kw_fishing_days_sum_LE    <- round(sum(ICES_LE$kw_fishing_days, na.rm=TRUE), digits=1)
-kw_fishing_days_min_LE    <- round(min(ICES_LE$kw_fishing_days, na.rm=TRUE), digits=1)
-kw_fishing_days_max_LE    <- round(max(ICES_LE$kw_fishing_days, na.rm=TRUE), digits=1)
-totweight_min_LE          <- round(min(ICES_LE$totweight,na.rm=T), digits=1)
-totweight_max_LE          <- round(max(ICES_LE$totweight,na.rm=T), digits=1)
+kw_fishing_days_sum_LE    <- round(sum(an(ICES_LE$kw_fishing_days), na.rm=TRUE), digits=1)
+kw_fishing_days_min_LE    <- round(min(an(ICES_LE$kw_fishing_days), na.rm=TRUE), digits=1)
+kw_fishing_days_max_LE    <- round(max(an(ICES_LE$kw_fishing_days), na.rm=TRUE), digits=1)
+totweight_min_LE          <- round(min(an(ICES_LE$totweight),na.rm=T), digits=1)
+totweight_max_LE          <- round(max(an(ICES_LE$totweight),na.rm=T), digits=1)
 mean_landings_per_day_LE  <- round(with(subset(ICES_LE,!is.na(ICES_LE$fishing_days)),sum(as.numeric(ICES_LE$totweigh))/sum(ICES_LE$fishing_days)), digits=1)
-totvalue_min_LE           <- round(min(ICES_LE$totvalue, na.rm=TRUE), digits=1)
-totvalue_max_LE           <- round(max(ICES_LE$totvalue, na.rm=TRUE), digits=1)
-mean_price_LE             <- round(mean(ICES_LE$totvalue, na.rm=TRUE)/mean(ICES_LE$totweight, na.rm=TRUE), digits=2)
+ICES_LE$totvalue          <- ifelse(class(ICES_LE$totvalue) != "numeric",NA,ICES_LE$totvalue)
+totvalue_min_LE           <- round(min(an(ICES_LE$totvalue), na.rm=TRUE), digits=1)
+totvalue_max_LE           <- round(max(an(ICES_LE$totvalue), na.rm=TRUE), digits=1)
+mean_price_LE             <- round(mean(an(ICES_LE$totvalue), na.rm=TRUE)/mean(ICES_LE$totweight, na.rm=TRUE), digits=2)
 
-#- Previous submission
-years_LEP                 <- unique(ICES_LEP$year)
-months_LEP                <- unique(ICES_LEP$month)
-vessel_LEPngth_category_LEP <- unique(ICES_LEP$vessel_LEPngth_category)
-gear_LEP                  <- sort(unique(ICES_LEP$gear_code))
-metier_count_LEP          <- length(unique(ICES_LEP$LE_MET_LEPvel6))
-fishing_days_sum_LEP      <- round(sum(ICES_LEP$fishing_days,na.rm=T), digits=1)
-kw_fishing_days_sum_LEP   <- round(sum(ICES_LEP$kw_fishing_days, na.rm=TRUE), digits=1)
-totweight_min_LEP         <- round(min(ICES_LEP$totweight,na.rm=T), digits=1)
-totweight_max_LEP         <- round(max(ICES_LEP$totweight,na.rm=T), digits=1)
-mean_landings_per_day_LEP <- round(with(subset(ICES_LEP,!is.na(ICES_LEP$fishing_days)),sum(as.numeric(ICES_LEP$totweigh))/sum(ICES_LEP$fishing_days)), digits=1)
-totvalue_min_LEP          <- round(min(ICES_LEP$totvalue, na.rm=TRUE), digits=1)
-totvalue_max_LEP          <- round(max(ICES_LEP$totvalue, na.rm=TRUE), digits=1)
-mean_price_LEP            <- round(mean(ICES_LEP$totvalue, na.rm=TRUE)/mean(ICES_LEP$totweight, na.rm=TRUE), digits=2)
-
-
+#Previous submission -->
+if(compareSubmission){
+  years_LEP               <- unique(ICES_LEP$year)
+  months_LEP              <- unique(ICES_LEP$month)
+  vessel_LEPngth_category_LEP <- unique(ICES_LEP$vessel_LEPngth_category)
+  gear_LEP                <- sort(unique(ICES_LEP$gear_code))
+  metier_count_LEP        <- length(unique(ICES_LEP$LE_MET_LEPvel6))
+  fishing_days_sum_LEP    <- round(sum(ICES_LEP$fishing_days,na.rm=T), digits=1)
+  kw_fishing_days_sum_LEP <- round(sum(ICES_LEP$kw_fishing_days, na.rm=TRUE), digits=1)
+  totweight_min_LEP       <- round(min(ICES_LEP$totweight,na.rm=T), digits=1)
+  totweight_max_LEP       <- round(max(ICES_LEP$totweight,na.rm=T), digits=1)
+  mean_landings_per_day_LEP <- round(with(subset(ICES_LEP,!is.na(ICES_LEP$fishing_days)),sum(as.numeric(ICES_LEP$totweigh))/sum(ICES_LEP$fishing_days)), digits=1)
+  totvalue_min_LEP        <- round(min(ICES_LEP$totvalue, na.rm=TRUE), digits=1)
+  totvalue_max_LEP        <- round(max(ICES_LEP$totvalue, na.rm=TRUE), digits=1)
+  mean_price_LEP          <- round(mean(ICES_LEP$totvalue, na.rm=TRUE)/mean(ICES_LEP$totweight, na.rm=TRUE), digits=2)
+}
 
 ```
 
-#-------------------------------------------------------------------------------
-# Tables & Figures VMS
-#-------------------------------------------------------------------------------
+<!------------------------------------------------------------------------------
+Tables & Figures VMS
+---------------------------------------------------------------------------- -->
 
-Total number of rows in submitted VMS data file: `r rows_VE`
-
-Frequency by year
-```{r, echo=FALSE, results='asis'} 
+# Quality of the VMS data
+Years & number of records for which data has been submitted:
+```{r, echo=FALSE, results='asis'}
 kable(count(ICES_VE,'year'))
+
+dat2plot <- data.frame(table(ICES_VE$year))
+colnames(dat2plot) <- c("Year","Freq")
+ggplot(dat2plot,aes(x=Year,y=Freq)) +
+  geom_bar(stat="identity") + xlab("Year") + ylab("Number of records") +
+  theme(axis.title=element_text(size=14,face="bold"),
+        panel.background = element_blank(),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(),
+              axis.line = element_line(colour = "black"),
+              panel.border = element_rect(colour = "black", fill=NA))
 ```
 
-Frequency by month
+Distribution of pings by month:
+```{r, echo=FALSE, results='asis'}
+kable(table(ICES_VE$month,ICES_VE$year))
+
+qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(month)) +
+  xlab("Years") + ylab ("Count") + scale_fill_grey(guide=guide_legend(title="Month")) +
+  theme(axis.title=element_text(size=14,face="bold"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
+```
+
+Area extend of data submitted by year:
+```{r, echo=FALSE, results='asis'}
+dat2tab <- as.matrix(aggregate(ICES_VE$SI_LONG,by=list(ICES_VE$year),FUN=range))
+dat2tab <- cbind(dat2tab,as.matrix(aggregate(ICES_VE$SI_LATI,by=list(ICES_VE$year),FUN=range)[,-1]))
+colnames(dat2tab) <- c("Year","min lon","max lon","min lat","max lat")
+kable(dat2tab)
+```
+
+Area for which data has been submitted:
+```{r, echo=FALSE, results='asis', out.width="800px"}
+polLand         <- fortify(eurPols)
+polLand         <- subset(polLand,long >= spatBound$xrange[1] & long <= spatBound$xrange[2] &
+                                   lat >= spatBound$yrange[1] & lat  <= spatBound$yrange[2])
+coordGrd        <- unique(ICES_VE[,c("SI_LONG","SI_LATI","year")])
+grdAll          <- lonLat2SpatialPolygons(lst=lapply(as.list(1:nrow(coordGrd)),
+                                          function(x){data.frame(SI_LONG=c(coordGrd[x,"SI_LONG"]-0.05/2,rep(coordGrd[x,"SI_LONG"]+0.05/2,2),coordGrd[x,"SI_LONG"]-0.05/2),
+                                                                 SI_LATI=c(rep(coordGrd[x,"SI_LATI"]-0.05/2,2),rep(coordGrd[x,"SI_LATI"]+0.05/2,2)))}))
+polVMS          <- fortify(grdAll)
+polVMS$year     <- rep(coordGrd$year,each=5)
+polVMS$cols     <- "red"
+
+                                   
+ggplot(polLand,aes(long,lat)) +
+  geom_polygon(aes(group=group)) +
+  coord_fixed(ratio=lonLatRatio(mean(spatBound$xrange),mean(spatBound$yrange)),xlim=spatBound$xrange, ylim=spatBound$yrange) +
+  geom_polygon(data=polVMS,aes(long,lat,group=group,fill=cols)) +
+  geom_polygon(data=polLand,aes(long,lat,group=group)) +
+  facet_wrap(~year,ncol=2,scales='free') +
+  labs(x = "Longitude", y = "Latitude") +
+  theme(axis.text.y   = element_text(colour="black"),
+        axis.text.x   = element_text(colour="black"),
+        axis.title.y  = element_text(size=14,face="bold"),
+        axis.title.x  = element_text(size=14,face="bold"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
+```
+
+Frequency of vessel length categories by year:
 ```{r, echo=FALSE, results='asis'} 
-kable(count(ICES_VE,'month'))
+kable(table(ICES_VE$vessel_length_category,ICES_VE$year))
+
+qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(vessel_length_category)) +
+  xlab("Years") + ylab ("Count") + scale_fill_grey(guide=guide_legend(title="Length category")) +
+  theme(axis.title=element_text(size=14,face="bold"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
 ```
 
-Number of unique c-squares: `r csquares_count_VE`
-
-Example of 5 c-squares
+Frequency of gear codes by year:
 ```{r, echo=FALSE, results='asis'} 
-kable(head(unique(ICES_VE$c_square),5))
+kable(table(ICES_VE$gear_code,ICES_VE$year))
+
+qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(gear_code)) +
+  xlab("Years") + ylab ("Count") + scale_fill_grey(guide=guide_legend(title="Gear code")) +
+  theme(axis.title=element_text(size=14,face="bold"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
 ```
 
-Frequency of vessel length categories
+Number of unique DCF Level 6 codes by year:
+```{r, echo=FALSE, results='asis'}
+kable(count(unique(ICES_VE[,c("LE_MET_level6","year")]),"year"))
+```
+
+Top 5 DCF Level 6 codes by year:
 ```{r, echo=FALSE, results='asis'} 
-kable(count(ICES_VE,'vessel_length_category'))
+top5Met6 <- names(rev(sort(table(ICES_VE$LE_MET_level6)))[1:5])
+kable(table(ICES_VE$LE_MET_level6,ICES_VE$year)[top5Met6,])
+
+qplot(factor(year),data=subset(ICES_VE,LE_MET_level6 %in% top5Met6), geom="bar",fill=factor(LE_MET_level6)) +
+  xlab("Years") + ylab ("Count") + scale_fill_grey(guide=guide_legend(title="Level 6")) +
+  theme(axis.title=element_text(size=14,face="bold"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
 ```
 
-Frequency of gear codes
-```{r, echo=FALSE, results='asis'} 
-kable(count(ICES_VE,'gear_code'))
+Average fishing speed:
+```{r, echo=FALSE, results='asis'}
+dat2plot  <- ICES_VE[,c("year","avg_fishing_speed")]
+dat2plot$avg_fishing_speed <- an(dat2plot$avg_fishing_speed)
+ggplot(dat2plot,aes(x=avg_fishing_speed))+
+  geom_histogram() +
+  xlab("Average fishing speed") + ylab ("Count") +
+  facet_wrap(~year,ncol=3) +
+  theme(axis.title=element_text(size=14,face="bold"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
 ```
 
-Number of unique DCF Level 6 codes: `r metier_count_VE`
-
-Example of 5 DCF Level 6 codes 
-```{r, echo=FALSE, results='asis'} 
-kable(head(unique(ICES_VE$LE_MET_level6),5))
+Average fishing hours:
+```{r, echo=FALSE, results='asis'}
+dat2plot  <- ICES_VE[,c("year","fishing_hours")]
+dat2plot$fishing_hours <- an(dat2plot$fishing_hours)
+ggplot(dat2plot,aes(x=fishing_hours))+
+  geom_histogram() +
+  xlab("Average fishing hours") + ylab ("Count") +
+  facet_wrap(~year,ncol=3) +
+  theme(axis.title=element_text(size=14,face="bold"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
 ```
 
-Average fishing speed minimum: `r avg_fishing_speed_min_VE`
 
-Average fishing speed maximum: `r avg_fishing_speed_max_VE`
-
-#```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, fig.height=3} 
-#with(ICES_VE,hist(ICES_VE$avg_fishing_speed, main="Average fishing speeds", xlab="Average fishing speed", col="lightgreen", cex.main=0.8))
-#```
-
-
-Fishing hours minimum: `r fishing_hour_min_VE`
-
-Fishing hours maximum: `r fishing_hour_max_VE`
-
-Average vessel length minimum: `r avg_oal_min_VE`
-
-Average vessel length maximum: `r avg_oal_max_VE`
-
-#```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, fig.height=3} 
-#with(ICES_VE,hist(ICES_VE$avg_oal, main="Average Vessel Lengths", xlab="Average vessel length", col="lightgreen", cex.main=0.8))
-#```
-
-Average kW minimum: `r avg_kw_min_VE`
-
-Average kW maximum: `r avg_kw_max_VE`
-
-#```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, fig.height=3} 
-#with(ICES_VE,hist(ICES_VE$avg_kw, main="Average kW", xlab="Average kW", col="lightgreen", cex.main=0.8))
-#```
-
-#```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, fig.height=3}  
-#with(ICES_VE,plot(ICES_VE$avg_oal,ICES_VE$avg_kw,cex=0.1,log='xy',main="Relationship between vessel lengths and vessel kW (VE)", xlab="Average vessel length", ylab="Average kW", cex.main=0.8))
-#```
-
-KW*Fishinghours minimum: `r kw_fishinghour_min_VE` 
-
-KW*Fishinghours maximum: `r kw_fishinghour_max_VE` 
-
-#```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, fig.height=3}  
-#with(ICES_VE,plot(ICES_VE$fishing_hour,ICES_VE$kw_fishinghours,cex=0.1,log='xy',main="Relationship between Fishinghour and kW*Fishinghour (VE)", xlab="Fishing hour", ylab="kW*Fishing hour", cex.main=0.8))
-#```
-
-
-Mean landing per fishing hours: `r mean_landing_per_fishing_hour_VE`
-
-#```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, fig.height=3} 
-#with(ICES_VE,plot(ICES_VE$kw_fishinghours,ICES_VE$totweight,cex=0.1,log='xy',main="Relationship between kW*Fishing hour and total weight (VE)", xlab="kW*Fishing hours", ylab="Total weight", cex.main=0.8))
-#```
-
-
-Total value minimum: `r totvalue_min_VE`
-
-Total value maximum: `r totvalue_max_VE`
-
-Mean price: `r mean_price_VE`
-
-#-------------------------------------------------------------------------------
-# Tables & Figures logbook
-#-------------------------------------------------------------------------------
-
-
-Total number of rows in submitted Logbook data file: `r rows_LE`
-
-Frequency by year
-```{r, echo=FALSE, results='asis'} 
-kable(count(ICES_LE,'year'))
+Average length:
+```{r, echo=FALSE, results='asis'}
+dat2plot  <- ICES_VE[,c("year","avg_oal")]
+dat2plot$avg_oal <- an(dat2plot$avg_oal)
+ggplot(dat2plot,aes(x=avg_oal))+
+  geom_histogram() +
+  xlab("Average vessel length") + ylab ("Count") +
+  facet_wrap(~year,ncol=3) +
+  theme(axis.title=element_text(size=14,face="bold"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
 ```
 
-Frequency by month
-```{r, echo=FALSE, results='asis'} 
-kable(count(ICES_LE,'month'))
+Average KW:
+```{r, echo=FALSE, results='asis'}
+dat2plot  <- ICES_VE[,c("year","avg_kw")]
+dat2plot$avg_kw <- an(dat2plot$avg_kw)
+ggplot(dat2plot,aes(x=avg_kw))+
+  geom_histogram() +
+  xlab("Average vessel length") + ylab ("Count") +
+  facet_wrap(~year,ncol=3) +
+  theme(axis.title=element_text(size=14,face="bold"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
+```
+Average KW-hours:
+```{r, echo=FALSE, results='asis'}
+dat2plot  <- ICES_VE[,c("year","kw_fishinghours")]
+dat2plot$kw_fishinghours <- an(dat2plot$kw_fishinghours)
+ggplot(dat2plot,aes(x=kw_fishinghours))+
+  geom_histogram() +
+  xlab("Average KW-hours") + ylab ("Count") +
+  facet_wrap(~year,ncol=3) +
+  theme(axis.title=element_text(size=14,face="bold"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
 ```
 
-Number of unique ICES rectangles: `r Number_ICES_rectangles_LE` 
+Landings by gear by year:
+```{r, echo=FALSE, results='asis'}
+dat2tab <- as.matrix(aggregate(ICES_VE$totweight,by=list(ICES_VE$year,ICES_VE$gear_code),FUN=sum))
+colnames(dat2tab) <- c("Year","Gear_code","KG_landed")
+dat2tab <- as.data.frame(orderBy(~Year,data=dat2tab),stringsAsFactors=F)
+dat2tab$KG_landed <- an(dat2tab$KG_landed)
+dat2tab <- acast(dat2tab,Year ~ Gear_code,value.var="KG_landed")
+kable(dat2tab)
 
-Example of 5 ICES rectangles
-```{r, echo=FALSE, results='asis'} 
-kable(head(unique(ICES_LE$ICES_rectangle),5))
+dat2plot  <- melt(dat2tab)
+colnames(dat2plot) <- c("Year","Gear_code","KG_landed")
+dat2plot$cols      <- an(af(dat2plot$Gear_code))
+
+ggplot(dat2plot,aes(x=Year,y=KG_landed)) +
+  geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
+  xlab("Year") + ylab ("KG landed") +
+  theme(axis.title=element_text(size=14,face="bold"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
 ```
 
-Frequency of vessel length categories
-```{r, echo=FALSE, results='asis'} 
-kable(count(ICES_LE,'vessel_length_category'))
+Mean landing per fishing hours by year:
+
+```{r, echo=FALSE, results='asis'}
+dat2tab <- as.matrix(aggregate(ICES_VE$totweight/ICES_VE$kw_fishinghours,by=list(ICES_VE$year,ICES_VE$gear_code),FUN=median))
+colnames(dat2tab) <- c("Year","Gear_code","KGkwH")
+dat2tab <- as.data.frame(orderBy(~Year,data=dat2tab),stringsAsFactors=F)
+dat2tab$KGkwH <- an(dat2tab$KGkwH)
+dat2tab <- acast(dat2tab,Year ~ Gear_code,value.var="KGkwH")
+kable(dat2tab)
+
+dat2plot  <- melt(dat2tab)
+colnames(dat2plot) <- c("Year","Gear_code","KGkwH")
+dat2plot$cols      <- an(af(dat2plot$Gear_code))
+
+ggplot(dat2plot,aes(x=Year,y=KGkwH)) +
+  geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
+  xlab("Year") + ylab ("KG/kwH") +
+  theme(axis.title=element_text(size=14,face="bold"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
+```
+Value by gear by year:
+```{r, echo=FALSE, results='asis'}
+dat2tab <- as.matrix(aggregate(ICES_VE$totvalue,by=list(ICES_VE$year,ICES_VE$gear_code),FUN=sum))
+colnames(dat2tab) <- c("Year","Gear_code","EUR_landed")
+dat2tab <- as.data.frame(orderBy(~Year,data=dat2tab),stringsAsFactors=F)
+dat2tab$EUR_landed <- an(dat2tab$EUR_landed)
+dat2tab <- acast(dat2tab,Year ~ Gear_code,value.var="EUR_landed")
+kable(dat2tab)
+
+dat2plot  <- melt(dat2tab)
+colnames(dat2plot) <- c("Year","Gear_code","EUR_landed")
+dat2plot$cols      <- an(af(dat2plot$Gear_code))
+
+ggplot(dat2plot,aes(x=Year,y=EUR_landed)) +
+  geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
+  xlab("Year") + ylab ("EUR landed") +
+  theme(axis.title=element_text(size=14,face="bold"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
 ```
 
-Frequency of gear codes
-```{r, echo=FALSE, results='asis'} 
-kable(count(ICES_LE,'gear_code'))
+Mean value per fishing hours by year:
+
+```{r, echo=FALSE, results='asis'}
+dat2tab <- as.matrix(aggregate(ICES_VE$totvalue/ICES_VE$kw_fishinghours,by=list(ICES_VE$year,ICES_VE$gear_code),FUN=median))
+colnames(dat2tab) <- c("Year","Gear_code","EURkwH")
+dat2tab <- as.data.frame(orderBy(~Year,data=dat2tab),stringsAsFactors=F)
+dat2tab$EURkwH <- an(dat2tab$EURkwH)
+dat2tab <- acast(dat2tab,Year ~ Gear_code,value.var="EURkwH")
+kable(dat2tab)
+
+dat2plot  <- melt(dat2tab)
+colnames(dat2plot) <- c("Year","Gear_code","EURkwH")
+dat2plot$cols      <- an(af(dat2plot$Gear_code))
+
+ggplot(dat2plot,aes(x=Year,y=EURkwH)) +
+  geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
+  xlab("Year") + ylab ("EUR/kwH") +
+  theme(axis.title=element_text(size=14,face="bold"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
 ```
 
-Number of unique DCF Level 6 codes: `r metier_count_LE`
 
-Example of 5 DCF Level 6 codes 
-```{r, echo=FALSE, results='asis'} 
-kable(head(unique(ICES_LE$LE_MET_level6),5))
+Average price:
+
+```{r, echo=FALSE, results='asis'}
+  dat2plot  <- aggregate(ICES_VE$totvalue/ICES_VE$totweight,by=list(ICES_VE$year),FUN=median)
+  dat2plot$x <- an(dat2plot$x)
+  colnames(dat2plot) <- c("Year","MeanPrice")
+  ggplot(dat2plot,aes(x=Year,y=MeanPrice))+
+    geom_line(lwd=1.5) +
+    xlab("Year") + ylab ("EUR/kwH") +
+    theme(axis.title=element_text(size=14,face="bold"),
+          panel.background = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.line = element_line(colour = "black"),
+          panel.border = element_rect(colour = "black", fill=NA))
 ```
 
-Frequency of VMS enabled category
-```{r, echo=FALSE, results='asis'} 
-kable(count(ICES_LE,'vms_enabled'))
-```
 
-Minimum number of fishing days: `r fishing_days_min_LE`
-
-Maximum number of fishing days: `r fishing_days_max_LE`
-
-Minumum number of kW*fishing days: `r kw_fishing_days_min_LE`
-
-Maximum number of kW*fishing days: `r kw_fishing_days_max_LE`
-
-```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, fig.height=3} 
-with(ICES_LE,plot(ICES_LE$fishing_days,ICES_LE$kw_fishing_days,cex=0.1,log='xy', main="Relationship between Fishing days and kW*Fishing days (LE)", xlab="Fishing days", ylab="kW*Fishing days", cex.main=0.8))
-```
-
-Total weight minumum: `r totweight_min_LE`
-
-Total weight maximum: `r totweight_max_LE`
-
-Mean landings per day: `r mean_landings_per_day_LE`
-
-````{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, fig.height=3} 
-with(ICES_LE,plot(ICES_LE$kw_fishing_days,ICES_LE$totweight,cex=0.1,log='xy', main="Relationship between kW*Fishing days and Total weight (LE)", xlab="kW*Fishing days", ylab="Total weight", cex.main=0.8))
-```
-
-Total value minimum: `r totvalue_min_LE`
-
-Total value maximum: `r totvalue_max_LE`
-
-Mean price: `r mean_price_LE`
-
-
-#-------------------------------------------------------------------------------
-# Comparison with previous submission
-#-------------------------------------------------------------------------------
-
-
-
-
-```{r, echo=FALSE, include=FALSE}
-
-```
