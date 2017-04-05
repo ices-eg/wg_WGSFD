@@ -1,0 +1,226 @@
+---
+title: "ICES WGSFD quality check report - Iceland"
+date: "April 21, 2016"
+output: word_document
+---
+
+```{r, echo=FALSE, include=FALSE}
+
+library(plyr)
+library(knitr)
+
+ICES_LE <- read.csv("C:\\joeg\\WGSFD\\2016\\Exchange_data\\log_IS.csv",sep=',')
+ICES_VE <- read.csv("C:\\joeg\\WGSFD\\2016\\Exchange_data\\vms_IS.csv",sep=',')
+
+country <- unique(ICES_VE$country)
+rows_VE <- nrow(ICES_VE)
+csquares_count_VE <- length(unique(ICES_VE$c_square))
+metier_count_VE <- length(unique(ICES_VE$LE_MET_level6))
+avg_fishing_speed_min_VE <- min(ICES_VE$avg_fishing_speed)
+avg_fishing_speed_max_VE <- max(ICES_VE$avg_fishing_speed)
+fishing_hour_min_VE <- round(min(ICES_VE$fishing_hour), digits=1)
+fishing_hour_max_VE <- round(max(ICES_VE$fishing_hour), digits=1)
+avg_oal_min_VE <- min(ICES_VE$avg_oal)
+avg_oal_max_VE <- max(ICES_VE$avg_oal)
+avg_kw_min_VE <- min(ICES_VE$kw)
+avg_kw_max_VE <- max(ICES_VE$kw)
+kw_fishinghour_min_VE <- round(min(ICES_VE$kw_fishinghours), digits=1)
+kw_fishinghour_max_VE <- round(max(ICES_VE$kw_fishinghours), digits=1)
+totweight_min_VE <- round(min(ICES_VE$totweight), digits=1)
+totweight_max_VE <- round(max(ICES_VE$totweight), digits=1)
+mean_landing_per_fishing_hour_VE <- round(with(ICES_VE,sum(ICES_VE$totweight)/sum(ICES_VE$fishing_hour)),digits=1)
+totvalue_min_VE <- round(min(ICES_VE$totvalue, na.rm=TRUE), digits=1)
+totvalue_max_VE <- round(max(ICES_VE$totvalue, na.rm=TRUE), digits=1)
+mean_price_VE <- round(mean(ICES_VE$totvalue, na.rm=TRUE)/mean(ICES_VE$totweight, na.rm=TRUE), digits=2)
+
+
+rows_LE <- nrow(ICES_LE)
+years_LE <- unique(ICES_LE$year)
+months_LE <- unique(ICES_LE$month)
+vessel_length_category_LE <- unique(ICES_LE$vessel_length_category)
+gear_LE <- sort(unique(ICES_LE$gear_code))
+metier_count_LE <- length(unique(ICES_LE$LE_MET_level6))
+metier_LE <- head(unique(ICES_LE$LE_MET_level6),5)
+Number_ICES_rectangles_LE <- length(unique(ICES_LE$ICES_rectangle))
+ICES_rectangles_LE <- head(unique(ICES_LE$ICES_rectangle),5)
+fishing_days_min_LE <- round(min(ICES_LE$fishing_days), digits=1)
+fishing_days_max_LE <- round(max(ICES_LE$fishing_days), digits=1)
+kw_fishing_days_min_LE <- round(min(ICES_LE$kw_fishing_days, na.rm=TRUE), digits=1)
+kw_fishing_days_max_LE <- round(max(ICES_LE$kw_fishing_days, na.rm=TRUE), digits=1)
+totweight_min_LE <- round(min(ICES_LE$totweight), digits=1)
+totweight_max_LE <- round(max(ICES_LE$totweight), digits=1)
+mean_landings_per_day_LE <- round(with(subset(ICES_LE,!is.na(ICES_LE$fishing_days)),sum(as.numeric(ICES_LE$totweigh))/sum(ICES_LE$fishing_days)), digits=1)
+totvalue_min_LE <- round(min(ICES_LE$totvalue, na.rm=TRUE), digits=1)
+totvalue_max_LE <- round(max(ICES_LE$totvalue, na.rm=TRUE), digits=1)
+mean_price_LE <- round(mean(ICES_LE$totvalue, na.rm=TRUE)/mean(ICES_LE$totweight, na.rm=TRUE), digits=2)
+```
+
+#Country: `r country`
+##VMS file
+
+Total number of rows in submitted VMS data file: `r rows_VE`
+
+Frequency by year
+```{r, echo=FALSE, results='asis'} 
+kable(count(ICES_VE,'year'))
+```
+
+Frequency by month
+```{r, echo=FALSE, results='asis'} 
+kable(count(ICES_VE,'month'))
+```
+
+Number of unique c-squares: `r csquares_count_VE`
+
+Example of 5 c-squares
+```{r, echo=FALSE, results='asis'} 
+kable(head(unique(ICES_VE$c_square),5))
+```
+
+Frequency of vessel length categories
+```{r, echo=FALSE, results='asis'} 
+kable(count(ICES_VE,'vessel_length_category'))
+```
+
+Frequency of gear codes
+```{r, echo=FALSE, results='asis'} 
+kable(count(ICES_VE,'gear_code'))
+```
+
+Number of unique DCF Level 6 codes: `r metier_count_VE`
+
+Example of 5 DCF Level 6 codes 
+```{r, echo=FALSE, results='asis'} 
+kable(head(unique(ICES_VE$LE_MET_level6),5))
+```
+
+Average fishing speed minimum: `r avg_fishing_speed_min_VE`
+
+Average fishing speed maximum: `r avg_fishing_speed_max_VE`
+
+#```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, fig.height=3} 
+#with(ICES_VE,hist(ICES_VE$avg_fishing_speed, main="Average fishing speeds", xlab="Average fishing speed", col="lightgreen", cex.main=0.8))
+#```
+
+
+Fishing hours minimum: `r fishing_hour_min_VE`
+
+Fishing hours maximum: `r fishing_hour_max_VE`
+
+Average vessel length minimum: `r avg_oal_min_VE`
+
+Average vessel length maximum: `r avg_oal_max_VE`
+
+#```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, fig.height=3} 
+#with(ICES_VE,hist(ICES_VE$avg_oal, main="Average Vessel Lengths", xlab="Average vessel length", col="lightgreen", cex.main=0.8))
+#```
+
+Average kW minimum: `r avg_kw_min_VE`
+
+Average kW maximum: `r avg_kw_max_VE`
+
+#```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, fig.height=3} 
+#with(ICES_VE,hist(ICES_VE$avg_kw, main="Average kW", xlab="Average kW", col="lightgreen", cex.main=0.8))
+#```
+
+#```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, fig.height=3}  
+#with(ICES_VE,plot(ICES_VE$avg_oal,ICES_VE$avg_kw,cex=0.1,log='xy',main="Relationship between vessel lengths and vessel kW (VE)", xlab="Average vessel length", ylab="Average kW", cex.main=0.8))
+#```
+
+KW*Fishinghours minimum: `r kw_fishinghour_min_VE` 
+
+KW*Fishinghours maximum: `r kw_fishinghour_max_VE` 
+
+#```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, fig.height=3}  
+#with(ICES_VE,plot(ICES_VE$fishing_hour,ICES_VE$kw_fishinghours,cex=0.1,log='xy',main="Relationship between Fishinghour and kW*Fishinghour (VE)", xlab="Fishing hour", ylab="kW*Fishing hour", cex.main=0.8))
+#```
+
+
+Mean landing per fishing hours: `r mean_landing_per_fishing_hour_VE`
+
+#```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, fig.height=3} 
+#with(ICES_VE,plot(ICES_VE$kw_fishinghours,ICES_VE$totweight,cex=0.1,log='xy',main="Relationship between kW*Fishing hour and total weight (VE)", xlab="kW*Fishing hours", ylab="Total weight", cex.main=0.8))
+#```
+
+
+Total value minimum: `r totvalue_min_VE`
+
+Total value maximum: `r totvalue_max_VE`
+
+Mean price: `r mean_price_VE`
+
+##Logbook file
+
+Total number of rows in submitted Logbook data file: `r rows_LE`
+
+Frequency by year
+```{r, echo=FALSE, results='asis'} 
+kable(count(ICES_LE,'year'))
+```
+
+Frequency by month
+```{r, echo=FALSE, results='asis'} 
+kable(count(ICES_LE,'month'))
+```
+
+Number of unique ICES rectangles: `r Number_ICES_rectangles_LE` 
+
+Example of 5 ICES rectangles
+```{r, echo=FALSE, results='asis'} 
+kable(head(unique(ICES_LE$ICES_rectangle),5))
+```
+
+Frequency of vessel length categories
+```{r, echo=FALSE, results='asis'} 
+kable(count(ICES_LE,'vessel_length_category'))
+```
+
+Frequency of gear codes
+```{r, echo=FALSE, results='asis'} 
+kable(count(ICES_LE,'gear_code'))
+```
+
+Number of unique DCF Level 6 codes: `r metier_count_LE`
+
+Example of 5 DCF Level 6 codes 
+```{r, echo=FALSE, results='asis'} 
+kable(head(unique(ICES_LE$LE_MET_level6),5))
+```
+
+Frequency of VMS enabled category
+```{r, echo=FALSE, results='asis'} 
+kable(count(ICES_LE,'vms_enabled'))
+```
+
+Minimum number of fishing days: `r fishing_days_min_LE`
+
+Maximum number of fishing days: `r fishing_days_max_LE`
+
+Minumum number of kW*fishing days: `r kw_fishing_days_min_LE`
+
+Maximum number of kW*fishing days: `r kw_fishing_days_max_LE`
+
+```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, fig.height=3} 
+with(ICES_LE,plot(ICES_LE$fishing_days,ICES_LE$kw_fishing_days,cex=0.1,log='xy', main="Relationship between Fishing days and kW*Fishing days (LE)", xlab="Fishing days", ylab="kW*Fishing days", cex.main=0.8))
+```
+
+Total weight minumum: `r totweight_min_LE`
+
+Total weight maximum: `r totweight_max_LE`
+
+Mean landings per day: `r mean_landings_per_day_LE`
+
+````{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, fig.height=3} 
+with(ICES_LE,plot(ICES_LE$kw_fishing_days,ICES_LE$totweight,cex=0.1,log='xy', main="Relationship between kW*Fishing days and Total weight (LE)", xlab="kW*Fishing days", ylab="Total weight", cex.main=0.8))
+```
+
+Total value minimum: `r totvalue_min_LE`
+
+Total value maximum: `r totvalue_max_LE`
+
+Mean price: `r mean_price_LE`
+
+
+```{r, echo=FALSE, include=FALSE}
+
+```
