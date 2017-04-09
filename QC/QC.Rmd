@@ -21,6 +21,7 @@ library(plyr)
 library(ggplot2)
 library(vmstools)
 library(RColorBrewer)
+library(doBy)
 
 
 dataPath                  <- "D:/Repository/WGSFD/"
@@ -258,6 +259,110 @@ qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(gear_code)) +
 ```
 
 \newpage
+
+## Spatial extend of 3 most dominant gears:
+```{r, echo=FALSE, results='asis'}
+top3gears <- orderBy(~x,data=aggregate(ICES_VE$fishing_hours,by=list(ICES_VE$gear_code),FUN=sum,na.rm=T))$Group.1[1:3]
+
+polLand         <- fortify(eurPols)
+spatCore        <- list(xrange=quantile(ICES_VE$SI_LONG,probs=c(0.025,0.975)),
+                        yrange=quantile(ICES_VE$SI_LATI,probs=c(0.025,0.975)))
+polLand         <- subset(polLand,long >= spatCore$xrange[1] & long <= spatCore$xrange[2] &
+                                   lat >= spatCore$yrange[1] & lat  <= spatCore$yrange[2])
+idx             <- which(ICES_VE$gear_code %in% top3gears)
+coordGrd        <- unique(ICES_VE[idx,c("SI_LONG","SI_LATI","year","c_square","gear_code")])
+grdAll          <- lonLat2SpatialPolygons(lst=lapply(as.list(1:nrow(coordGrd)),
+                                          function(x){data.frame(SI_LONG=c(coordGrd[x,"SI_LONG"]-0.05/2,rep(coordGrd[x,"SI_LONG"]+0.05/2,2),coordGrd[x,"SI_LONG"]-0.05/2),
+                                                                 SI_LATI=c(rep(coordGrd[x,"SI_LATI"]-0.05/2,2),rep(coordGrd[x,"SI_LATI"]+0.05/2,2)))}))
+polVMS          <- fortify(grdAll)
+polVMS$year     <- rep(coordGrd$year,each=5)
+polVMS$c_square <- rep(coordGrd$c_square,each=5)
+polVMS$gear_code<- rep(coordGrd$gear_code,each=5)
+dat             <- aggregate(ICES_VE$fishing_hours[idx],by=list(ICES_VE$year[idx],ICES_VE$c_square[idx],ICES_VE$gear_code[idx]),FUN=sum,na.rm=T)
+
+steps               <- ceiling(max(dat$x,na.rm=T)/250/24)
+cutbreaksval        <- c(-1,0,steps*c(1,2.5,5,10,25,50,100,250))
+legval              <- outer(ac(cutbreaksval),ac(cutbreaksval),function(x,y){return(paste(x,"<=",y))})
+legval              <- c("0",diag(legval[-1,-c(1,2)]))
+colintens           <- brewer.pal(length(cutbreaksval)-2,"YlOrRd")  #colour for fishing intensity
+cols                <- c("white",colintens)[cut(dat$x/24,breaks=cutbreaksval)]
+cols                <- cbind(cols,id=1:length(cols),year=dat$Group.1,c_square=dat$Group.2,gear_code=dat$Group.3)
+polVMS              <- merge(polVMS,cols,by=c("year","c_square","gear_code"))
+
+ggplot(polLand,aes(long,lat)) +
+  geom_polygon(aes(group=group)) +
+  coord_fixed(ratio=lonLatRatio(mean(spatCore$xrange),mean(spatCore$yrange)),xlim=spatCore$xrange, ylim=spatCore$yrange) +
+  guides(fill=guide_legend(title="Days@Sea")) +
+  geom_polygon(data=subset(polVMS,gear_code==top3gears[1]),aes(long,lat,group=group,fill=cols)) +
+  scale_fill_manual(values = c(colorRampPalette(rev(brewer.pal(length(cutbreaksval)-2,"YlOrRd")))(length(cutbreaksval)-2),"white"),labels=rev(legval)) +
+  geom_polygon(data=subset(polVMS,gear_code==top3gears[1]),aes(long,lat,group=group,fill=cols)) +
+  geom_polygon(data=polLand,aes(long,lat,group=group)) +
+  facet_wrap(~year*gear_code,ncol=2) +
+  labs(x = "Longitude", y = "Latitude") +
+  theme(axis.text.y   = element_text(colour="black"),
+        axis.text.x   = element_text(colour="black"),
+        axis.title.y  = element_text(size=14,face="bold"),
+        axis.title.x  = element_text(size=14,face="bold"),
+        legend.position="top",
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
+```
+
+\newpage
+
+```{r, echo=FALSE, results='asis'}
+ggplot(polLand,aes(long,lat)) +
+  geom_polygon(aes(group=group)) +
+  coord_fixed(ratio=lonLatRatio(mean(spatCore$xrange),mean(spatCore$yrange)),xlim=spatCore$xrange, ylim=spatCore$yrange) +
+  guides(fill=guide_legend(title="Days@Sea")) +
+  geom_polygon(data=subset(polVMS,gear_code==top3gears[2]),aes(long,lat,group=group,fill=cols)) +
+  scale_fill_manual(values = c(colorRampPalette(rev(brewer.pal(length(cutbreaksval)-2,"YlOrRd")))(length(cutbreaksval)-2),"white"),labels=rev(legval)) +
+  geom_polygon(data=subset(polVMS,gear_code==top3gears[2]),aes(long,lat,group=group,fill=cols)) +
+  geom_polygon(data=polLand,aes(long,lat,group=group)) +
+  facet_wrap(~year*gear_code,ncol=2) +
+  labs(x = "Longitude", y = "Latitude") +
+  theme(axis.text.y   = element_text(colour="black"),
+        axis.text.x   = element_text(colour="black"),
+        axis.title.y  = element_text(size=14,face="bold"),
+        axis.title.x  = element_text(size=14,face="bold"),
+        legend.position="top",
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
+```
+
+\newpage
+        
+```{r, echo=FALSE, results='asis'}
+ggplot(polLand,aes(long,lat)) +
+  geom_polygon(aes(group=group)) +
+  coord_fixed(ratio=lonLatRatio(mean(spatCore$xrange),mean(spatCore$yrange)),xlim=spatCore$xrange, ylim=spatCore$yrange) +
+  guides(fill=guide_legend(title="Days@Sea")) +
+  geom_polygon(data=subset(polVMS,gear_code==top3gears[3]),aes(long,lat,group=group,fill=cols)) +
+  scale_fill_manual(values = c(colorRampPalette(rev(brewer.pal(length(cutbreaksval)-2,"YlOrRd")))(length(cutbreaksval)-2),"white"),labels=rev(legval)) +
+  geom_polygon(data=subset(polVMS,gear_code==top3gears[3]),aes(long,lat,group=group,fill=cols)) +
+  geom_polygon(data=polLand,aes(long,lat,group=group)) +
+  facet_wrap(~year*gear_code,ncol=2) +
+  labs(x = "Longitude", y = "Latitude") +
+  theme(axis.text.y   = element_text(colour="black"),
+        axis.text.x   = element_text(colour="black"),
+        axis.title.y  = element_text(size=14,face="bold"),
+        axis.title.x  = element_text(size=14,face="bold"),
+        legend.position="top",
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
+```
+
+\newpage
+
 
 ## Number of unique DCF Level 6 codes by year:
 ```{r, echo=FALSE, results='asis'}
