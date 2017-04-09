@@ -22,6 +22,7 @@ library(ggplot2)
 library(vmstools)
 library(RColorBrewer)
 library(doBy)
+library(reshape2)
 
 
 dataPath                  <- "D:/Repository/WGSFD/"
@@ -194,7 +195,7 @@ kable(dat2tab)
 ```
 
 ## Area for which data has been submitted:
-```{r, echo=FALSE, results='asis'}
+```{r, echo=FALSE, results='asis',fig.width = 5.5, fig.height = 9}
 polLand         <- fortify(eurPols)
 polLand         <- subset(polLand,long >= spatBound$xrange[1] & long <= spatBound$xrange[2] &
                                    lat >= spatBound$yrange[1] & lat  <= spatBound$yrange[2])
@@ -229,7 +230,7 @@ ggplot(polLand,aes(long,lat)) +
 \newpage
 
 ## Frequency of vessel length categories by year:
-```{r, echo=FALSE, results='asis'} 
+```{r, echo=FALSE, results='asis'}
 kable(table(ICES_VE$vessel_length_category,ICES_VE$year))
 
 qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(vessel_length_category)) +
@@ -245,7 +246,7 @@ qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(vessel_length_category))
 \newpage
 
 ## Frequency of gear codes by year:
-```{r, echo=FALSE, results='asis'} 
+```{r, echo=FALSE, results='asis'}
 kable(table(ICES_VE$gear_code,ICES_VE$year))
 
 qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(gear_code)) +
@@ -261,7 +262,7 @@ qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(gear_code)) +
 \newpage
 
 ## Spatial extend of 3 most dominant gears:
-```{r, echo=FALSE, results='asis'}
+```{r, echo=FALSE, results='asis',fig.width = 5.5, fig.height = 9}
 top3gears <- orderBy(~x,data=aggregate(ICES_VE$fishing_hours,by=list(ICES_VE$gear_code),FUN=sum,na.rm=T))$Group.1[1:3]
 
 polLand         <- fortify(eurPols)
@@ -313,7 +314,7 @@ ggplot(polLand,aes(long,lat)) +
 
 \newpage
 
-```{r, echo=FALSE, results='asis'}
+```{r, echo=FALSE, results='asis',fig.width = 5.5, fig.height = 9}
 ggplot(polLand,aes(long,lat)) +
   geom_polygon(aes(group=group)) +
   coord_fixed(ratio=lonLatRatio(mean(spatCore$xrange),mean(spatCore$yrange)),xlim=spatCore$xrange, ylim=spatCore$yrange) +
@@ -338,7 +339,7 @@ ggplot(polLand,aes(long,lat)) +
 
 \newpage
         
-```{r, echo=FALSE, results='asis'}
+```{r, echo=FALSE, results='asis',fig.width = 5.5, fig.height = 9}
 ggplot(polLand,aes(long,lat)) +
   geom_polygon(aes(group=group)) +
   coord_fixed(ratio=lonLatRatio(mean(spatCore$xrange),mean(spatCore$yrange)),xlim=spatCore$xrange, ylim=spatCore$yrange) +
@@ -552,7 +553,7 @@ ggplot(polLand,aes(long,lat)) +
 \newpage
 
 ## Spatial difference of effort `r tempBound[1]`:`r (tempBound[2]-1)` vs `r tempBound[2]`
-```{r, echo=FALSE, results='asis'}
+```{r, echo=FALSE, results='asis',fig.width = 5.5, fig.height = 9}
 base            <- subset(ICES_VE,year < (tempBound[2]-1))
 recent          <- subset(ICES_VE,year == tempBound[2])
 datbase         <- aggregate(base$fishing_hours,by=list(base$c_square,base$year),FUN=sum,na.rm=T)
@@ -605,7 +606,7 @@ ggplot(polLand,aes(long,lat)) +
 
 ## Spatial difference of effort `r tempBound[2]-1` vs `r tempBound[2]`
 
-```{r, echo=FALSE, results='asis'}
+```{r, echo=FALSE, results='asis',fig.width = 5.5, fig.height = 9}
 base            <- subset(ICES_VE,year == (tempBound[2]-1))
 recent          <- subset(ICES_VE,year == tempBound[2])
 datbase         <- aggregate(base$fishing_hours,  by=list(base$c_square),  FUN=sum,na.rm=T)
@@ -791,7 +792,7 @@ qplot(factor(year),data=ICES_LE, geom="bar",fill=factor(month)) +
 \newpage
 
 ## Area extend of data submitted by year:
-```{r, echo=FALSE, results='asis'}
+```{r, echo=FALSE, results='asis',fig.width = 5.5, fig.height = 9}
 dat2tab <- as.matrix(aggregate(ICES_LE$SI_LONG,by=list(ICES_LE$year),FUN=range))
 dat2tab <- cbind(dat2tab,as.matrix(aggregate(ICES_LE$SI_LATI,by=list(ICES_LE$year),FUN=range)[,-1]))
 colnames(dat2tab) <- c("Year","min lon","max lon","min lat","max lat")
