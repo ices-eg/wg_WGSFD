@@ -55,18 +55,14 @@ for (country in countries) {
   cat(makeQCRmd(country, qc), sep = "\n", file = fname)
 
   # run template
-  rmarkdown::render(fname)
-  file.copy(fname, file.path("QC/reports", fname))
+  ret <- try(rmarkdown::render(fname))
+  if (inherits(ret, "try-error")) next
+  
+  # clean up
+  file.copy(fname, file.path("QC/reports", fname), overwrite = TRUE)
   repname <- gsub(".Rmd", ".pdf", fname)
-  file.copy(repname, file.path("QC/reports", repname))
+  file.copy(repname, file.path("QC/reports", repname), overwrite = TRUE)
   unlink(fname); unlink(repname)
 }
   
-
-
-
-
-
-
-
 
