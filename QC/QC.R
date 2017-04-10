@@ -39,17 +39,20 @@ qc <- list(yaml = qc[1:(loc1-1)],
 
 countries <- gsub("ICES_VE_|[.]csv", "", dir("data", pattern = "ICES_VE_*"))
 
+# create directories
+if (!dir.exists("QC/reports")) dir.create("QC/reports")
+
 for (country in countries) {
   cat("Running QC for ... ", country, "\n")
   
   # set up file names
-  fname <- paste0("QC/QC_", country,".Rmd")
+  fname <- paste0("QC/reports/QC_", country,".Rmd")
 
   # fillin and write template
   cat(makeQCRmd(country, qc), sep = "\n", file = fname)
 
   # run template
-  rmarkdown::render(fname, knit_root_dir = "../")
+  rmarkdown::render(fname, knit_root_dir = getwd(), output_dir = "QC/reports")
 }
   
 

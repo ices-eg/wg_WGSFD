@@ -40,3 +40,6 @@ vignettes/*.pdf
 
 # ignore data
 data/*
+
+# ignore reports
+QC/reports/*
