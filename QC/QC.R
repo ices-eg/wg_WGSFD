@@ -13,7 +13,7 @@ makeQCRmd <- function(country, qc) {
       paste("<!------------------------------------------------------------------------------",
             "Data handling",
             "---------------------------------------------------------------------------- -->",
-            "```{r, echo=FALSE, results='asis'}",
+            "```{r data}",
             "#Read in latest submission -->",
             "ICES_LE <- read.csv('%s', stringsAsFactors=FALSE, na.strings = 'NULL')",
             "ICES_VE <- read.csv('%s', stringsAsFactors=FALSE, na.strings = 'NULL')",
@@ -49,13 +49,17 @@ for (country in countries) {
   cat("Running QC for ... ", country, "\n")
   
   # setup file name
-  fname <- paste0("QC/reports/QC_", country,".Rmd")
+  fname <- paste0("QC_", country,".Rmd")
 
   # fillin and write template
   cat(makeQCRmd(country, qc), sep = "\n", file = fname)
 
   # run template
-  rmarkdown::render(fname, knit_root_dir = getwd(), output_dir = "QC/reports")
+  rmarkdown::render(fname)
+  file.copy(fname, file.path("QC/reports", fname))
+  repname <- gsub(".Rmd", ".pdf", fname)
+  file.copy(repname, file.path("QC/reports", repname))
+  unlink(fname); unlink(repname)
 }
   
 

@@ -5,7 +5,7 @@ output: pdf_document
 ---
 
 <!-- QCTEMPLATE: header -->
-```{r, eval=TRUE, echo=FALSE}
+```{r header, eval=TRUE, echo=FALSE}
 library(knitr)
 
 opts_chunk$set(comment=NA,
