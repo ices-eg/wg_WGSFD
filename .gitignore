@@ -35,3 +35,4 @@ vignettes/*.pdf
 # MVS and Rstudi proj files
 *.rproj
 *.rxproj
+.Rproj.user
