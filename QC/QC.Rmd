@@ -214,9 +214,18 @@ polLand         <- fortify(eurPols)
 polLand         <- subset(polLand,long >= spatBound$xrange[1] & long <= spatBound$xrange[2] &
                                    lat >= spatBound$yrange[1] & lat  <= spatBound$yrange[2])
 coordGrd        <- unique(ICES_VE[,c("SI_LONG","SI_LATI","year")])
-grdAll          <- lonLat2SpatialPolygons(lst=lapply(as.list(1:nrow(coordGrd)),
-                                          function(x){data.frame(SI_LONG=c(coordGrd[x,"SI_LONG"]-0.05/2,rep(coordGrd[x,"SI_LONG"]+0.05/2,2),coordGrd[x,"SI_LONG"]-0.05/2),
-                                                                 SI_LATI=c(rep(coordGrd[x,"SI_LATI"]-0.05/2,2),rep(coordGrd[x,"SI_LATI"]+0.05/2,2)))}))
+
+grdAll <- 
+  lapply(1:nrow(coordGrd),
+         function(i) {
+           out <- list(SI_LONG = coordGrd[i, "SI_LONG"] + c(-1, 1, 1, -1) * 0.05/2,
+                       SI_LATI = coordGrd[i, "SI_LATI"] + c(-1, -1, 1, 1) * 0.05/2)
+           attr(out, "row.names") <- paste(1:4)
+           attr(out, "class") <- "data.frame"
+           out
+         })
+grdAll <- lonLat2SpatialPolygons(lst = grdAll)
+
 polVMS          <- fortify(grdAll)
 polVMS$year     <- rep(coordGrd$year,each=5)
 polVMS$cols     <- "red"
@@ -286,9 +295,18 @@ polLand         <- subset(polLand,long >= spatCore$xrange[1] & long <= spatCore$
                                    lat >= spatCore$yrange[1] & lat  <= spatCore$yrange[2])
 idx             <- which(ICES_VE$gear_code %in% top3gears)
 coordGrd        <- unique(ICES_VE[idx,c("SI_LONG","SI_LATI","year","c_square","gear_code")])
-grdAll          <- lonLat2SpatialPolygons(lst=lapply(as.list(1:nrow(coordGrd)),
-                                          function(x){data.frame(SI_LONG=c(coordGrd[x,"SI_LONG"]-0.05/2,rep(coordGrd[x,"SI_LONG"]+0.05/2,2),coordGrd[x,"SI_LONG"]-0.05/2),
-                                                                 SI_LATI=c(rep(coordGrd[x,"SI_LATI"]-0.05/2,2),rep(coordGrd[x,"SI_LATI"]+0.05/2,2)))}))
+
+grdAll <- 
+  lapply(1:nrow(coordGrd),
+         function(i) {
+           out <- list(SI_LONG = coordGrd[i, "SI_LONG"] + c(-1, 1, 1, -1) * 0.05/2,
+                       SI_LATI = coordGrd[i, "SI_LATI"] + c(-1, -1, 1, 1) * 0.05/2)
+           attr(out, "row.names") <- paste(1:4)
+           attr(out, "class") <- "data.frame"
+           out
+         })
+grdAll <- lonLat2SpatialPolygons(lst = grdAll)
+
 polVMS          <- fortify(grdAll)
 polVMS$year     <- rep(coordGrd$year,each=5)
 polVMS$c_square <- rep(coordGrd$c_square,each=5)
@@ -525,9 +543,18 @@ spatCore        <- list(xrange=quantile(ICES_VE$SI_LONG,probs=c(0.025,0.975)),
 polLand         <- subset(polLand,long >= spatCore$xrange[1] & long <= spatCore$xrange[2] &
                                    lat >= spatCore$yrange[1] & lat  <= spatCore$yrange[2])
 coordGrd        <- unique(ICES_VE[,c("SI_LONG","SI_LATI","year","c_square")])
-grdAll          <- lonLat2SpatialPolygons(lst=lapply(as.list(1:nrow(coordGrd)),
-                                          function(x){data.frame(SI_LONG=c(coordGrd[x,"SI_LONG"]-0.05/2,rep(coordGrd[x,"SI_LONG"]+0.05/2,2),coordGrd[x,"SI_LONG"]-0.05/2),
-                                                                 SI_LATI=c(rep(coordGrd[x,"SI_LATI"]-0.05/2,2),rep(coordGrd[x,"SI_LATI"]+0.05/2,2)))}))
+
+grdAll <- 
+  lapply(1:nrow(coordGrd),
+         function(i) {
+           out <- list(SI_LONG = coordGrd[i, "SI_LONG"] + c(-1, 1, 1, -1) * 0.05/2,
+                       SI_LATI = coordGrd[i, "SI_LATI"] + c(-1, -1, 1, 1) * 0.05/2)
+           attr(out, "row.names") <- paste(1:4)
+           attr(out, "class") <- "data.frame"
+           out
+         })
+grdAll <- lonLat2SpatialPolygons(lst = grdAll)
+
 polVMS          <- fortify(grdAll)
 polVMS$year     <- rep(coordGrd$year,each=5)
 polVMS$c_square <- rep(coordGrd$c_square,each=5)
@@ -583,9 +610,18 @@ dat2plot        <- cbind(dat2plot,CSquare2LonLat(dat2plot$c_square,degrees=0.05)
 dat2plot$ratio[which(is.infinite(dat2plot$ratio) & dat2plot$fishing_hours == 0)] <- 9
 dat2plot$ratio[which(is.infinite(dat2plot$ratio) & dat2plot$fishing_hours_median == 0)] <- -9
 dat2plot$ratio[is.nan(dat2plot$ratio)] <- 0
-grdAll          <- lonLat2SpatialPolygons(lst=lapply(as.list(1:nrow(dat2plot)),
-                                          function(x){data.frame(SI_LONG=c(dat2plot[x,"SI_LONG"]-0.05/2,rep(dat2plot[x,"SI_LONG"]+0.05/2,2),dat2plot[x,"SI_LONG"]-0.05/2),
-                                                                 SI_LATI=c(rep(dat2plot[x,"SI_LATI"]-0.05/2,2),rep(dat2plot[x,"SI_LATI"]+0.05/2,2)))}))
+
+grdAll <- 
+  lapply(1:nrow(dat2plot),
+         function(i) {
+           out <- list(SI_LONG = dat2plot[i, "SI_LONG"] + c(-1, 1, 1, -1) * 0.05/2,
+                       SI_LATI = dat2plot[i, "SI_LATI"] + c(-1, -1, 1, 1) * 0.05/2)
+           attr(out, "row.names") <- paste(1:4)
+           attr(out, "class") <- "data.frame"
+           out
+         })
+grdAll <- lonLat2SpatialPolygons(lst = grdAll)
+
 polVMS          <- fortify(grdAll)
 polVMS$c_square <- rep(dat2plot$c_square,each=5)
 
@@ -635,9 +671,18 @@ dat2plot        <- cbind(dat2plot,CSquare2LonLat(dat2plot$c_square,degrees=0.05)
 dat2plot$ratio[which(is.infinite(dat2plot$ratio) & dat2plot$fishing_hours == 0)] <- 9
 dat2plot$ratio[which(is.infinite(dat2plot$ratio) & dat2plot$fishing_hours_median == 0)] <- -9
 dat2plot$ratio[is.nan(dat2plot$ratio)] <- 0
-grdAll          <- lonLat2SpatialPolygons(lst=lapply(as.list(1:nrow(dat2plot)),
-                                          function(x){data.frame(SI_LONG=c(dat2plot[x,"SI_LONG"]-0.05/2,rep(dat2plot[x,"SI_LONG"]+0.05/2,2),dat2plot[x,"SI_LONG"]-0.05/2),
-                                                                 SI_LATI=c(rep(dat2plot[x,"SI_LATI"]-0.05/2,2),rep(dat2plot[x,"SI_LATI"]+0.05/2,2)))}))
+
+grdAll <- 
+  lapply(1:nrow(dat2plot),
+         function(i) {
+           out <- list(SI_LONG = dat2plot[i, "SI_LONG"] + c(-1, 1, 1, -1) * 0.05/2,
+                       SI_LATI = dat2plot[i, "SI_LATI"] + c(-1, -1, 1, 1) * 0.05/2)
+           attr(out, "row.names") <- paste(1:4)
+           attr(out, "class") <- "data.frame"
+           out
+         })
+grdAll <- lonLat2SpatialPolygons(lst = grdAll)
+
 polVMS          <- fortify(grdAll)
 polVMS$c_square <- rep(dat2plot$c_square,each=5)
 
@@ -819,9 +864,18 @@ polLand         <- fortify(eurPols)
 polLand         <- subset(polLand,long >= spatBoundLog$xrange[1] & long <= spatBoundLog$xrange[2] &
                                    lat >= spatBoundLog$yrange[1] & lat  <= spatBoundLog$yrange[2])
 coordGrd        <- unique(ICES_LE[,c("SI_LONG","SI_LATI","year")])
-grdAll          <- lonLat2SpatialPolygons(lst=lapply(as.list(1:nrow(coordGrd)),
-                                          function(x){data.frame(SI_LONG=c(coordGrd[x,"SI_LONG"]-1/2,rep(coordGrd[x,"SI_LONG"]+1/2,2),coordGrd[x,"SI_LONG"]-1/2),
-                                                                 SI_LATI=c(rep(coordGrd[x,"SI_LATI"]-0.5/2,2),rep(coordGrd[x,"SI_LATI"]+0.5/2,2)))}))
+
+grdAll <- 
+  lapply(1:nrow(coordGrd),
+         function(i) {
+           out <- list(SI_LONG = coordGrd[i, "SI_LONG"] + c(-1, 1, 1, -1) * 1/2,
+                       SI_LATI = coordGrd[i, "SI_LATI"] + c(-1, -1, 1, 1) * 1/2)
+           attr(out, "row.names") <- paste(1:4)
+           attr(out, "class") <- "data.frame"
+           out
+         })
+grdAll <- lonLat2SpatialPolygons(lst = grdAll)
+
 polRect         <- fortify(grdAll)
 polRect$year    <- rep(coordGrd$year,each=5)
 polRect$cols    <- "red"
@@ -977,9 +1031,18 @@ spatCore        <- list(xrange=quantile(ICES_LE$SI_LONG,probs=c(0.025,0.975)),
 polLand         <- subset(polLand,long >= spatCore$xrange[1] & long <= spatCore$xrange[2] &
                                    lat >= spatCore$yrange[1] & lat  <= spatCore$yrange[2])
 coordGrd        <- unique(ICES_LE[,c("SI_LONG","SI_LATI","year","ICES_rectangle")])
-grdAll          <- lonLat2SpatialPolygons(lst=lapply(as.list(1:nrow(coordGrd)),
-                                          function(x){data.frame(SI_LONG=c(coordGrd[x,"SI_LONG"]-1/2,rep(coordGrd[x,"SI_LONG"]+1/2,2),coordGrd[x,"SI_LONG"]-1/2),
-                                                                 SI_LATI=c(rep(coordGrd[x,"SI_LATI"]-0.5/2,2),rep(coordGrd[x,"SI_LATI"]+0.5/2,2)))}))
+
+grdAll <- 
+  lapply(1:nrow(coordGrd),
+         function(i) {
+           out <- list(SI_LONG = coordGrd[i, "SI_LONG"] + c(-1, 1, 1, -1) * 1/2,
+                       SI_LATI = coordGrd[i, "SI_LATI"] + c(-1, -1, 1, 1) * 1/2)
+           attr(out, "row.names") <- paste(1:4)
+           attr(out, "class") <- "data.frame"
+           out
+         })
+grdAll <- lonLat2SpatialPolygons(lst = grdAll)
+
 polRect         <- fortify(grdAll)
 polRect$year    <- rep(coordGrd$year,each=5)
 polRect$ICES_rectangle <- rep(coordGrd$ICES_rectangle,each=5)
@@ -1035,9 +1098,18 @@ dat2plot        <- cbind(dat2plot,ICESrectangle2LonLat(dat2plot$ICES_rectangle,m
 dat2plot$ratio[which(is.infinite(dat2plot$ratio) & dat2plot$fishing_days == 0)] <- 9
 dat2plot$ratio[which(is.infinite(dat2plot$ratio) & dat2plot$fishing_days_median == 0)] <- -9
 dat2plot$ratio[is.nan(dat2plot$ratio)] <- 0
-grdAll          <- lonLat2SpatialPolygons(lst=lapply(as.list(1:nrow(dat2plot)),
-                                          function(x){data.frame(SI_LONG=c(dat2plot[x,"SI_LONG"]-1/2,rep(dat2plot[x,"SI_LONG"]+1/2,2),dat2plot[x,"SI_LONG"]-1/2),
-                                                                 SI_LATI=c(rep(dat2plot[x,"SI_LATI"]-0.5/2,2),rep(dat2plot[x,"SI_LATI"]+0.5/2,2)))}))
+
+grdAll <- 
+  lapply(1:nrow(dat2plot),
+         function(i) {
+           out <- list(SI_LONG = dat2plot[i, "SI_LONG"] + c(-1, 1, 1, -1) * 1/2,
+                       SI_LATI = dat2plot[i, "SI_LATI"] + c(-1, -1, 1, 1) * 1/2)
+           attr(out, "row.names") <- paste(1:4)
+           attr(out, "class") <- "data.frame"
+           out
+         })
+grdAll <- lonLat2SpatialPolygons(lst = grdAll)
+
 polRect          <- fortify(grdAll)
 polRect$ICES_rectangle <- rep(dat2plot$ICES_rectangle,each=5)
 
@@ -1087,9 +1159,18 @@ dat2plot        <- cbind(dat2plot,ICESrectangle2LonLat(dat2plot$ICES_rectangle,m
 dat2plot$ratio[which(is.infinite(dat2plot$ratio) & dat2plot$fishing_days == 0)] <- 9
 dat2plot$ratio[which(is.infinite(dat2plot$ratio) & dat2plot$fishing_days_median == 0)] <- -9
 dat2plot$ratio[is.nan(dat2plot$ratio)] <- 0
-grdAll          <- lonLat2SpatialPolygons(lst=lapply(as.list(1:nrow(dat2plot)),
-                                          function(x){data.frame(SI_LONG=c(dat2plot[x,"SI_LONG"]-1/2,rep(dat2plot[x,"SI_LONG"]+1/2,2),dat2plot[x,"SI_LONG"]-1/2),
-                                                                 SI_LATI=c(rep(dat2plot[x,"SI_LATI"]-0.5/2,2),rep(dat2plot[x,"SI_LATI"]+0.5/2,2)))}))
+
+grdAll <- 
+  lapply(1:nrow(dat2plot),
+         function(i) {
+           out <- list(SI_LONG = dat2plot[i, "SI_LONG"] + c(-1, 1, 1, -1) * 1/2,
+                       SI_LATI = dat2plot[i, "SI_LATI"] + c(-1, -1, 1, 1) * 1/2)
+           attr(out, "row.names") <- paste(1:4)
+           attr(out, "class") <- "data.frame"
+           out
+         })
+grdAll <- lonLat2SpatialPolygons(lst = grdAll)
+
 polRect          <- fortify(grdAll)
 polRect$ICES_rectangle <- rep(dat2plot$ICES_rectangle,each=5)
 
