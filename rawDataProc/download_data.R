@@ -10,9 +10,7 @@ if (!dir.exists("data")) dir.create("data")
 # connect to DB
 db <- DBI::dbConnect(RSQLServer::SQLServer(), "SQL06", database = 'VMS')
 
-#submitted_countries <- c('DNK', 'BEL', 'SWE', 'NLD', 'FRA', 'FIN', 'LTU', 'POL', 'Latvia', 'PRT','IRL')
-
-submitted_countries <- c('DNK', 'BEL', 'SWE', 'NLD', 'FIN', 'LTU', 'POL', 'Latvia', 'PRT','IRL')
+submitted_countries <- c('DNK', 'BEL', 'SWE', 'NLD', 'FRA', 'FIN', 'LTU', 'POL', 'Latvia', 'PRT','IRL')
 
 for (country in submitted_countries) {
   cat("downloading LE data for ... ", country, "\n")
@@ -31,7 +29,8 @@ for (country in submitted_countries) {
   while (!DBI::dbHasCompleted(res)) {
     out <- DBI::dbFetch(res, n = 1e5)
     write.table(out, file = fname, 
-                row.names = FALSE, sep = ",",
+                row.names = FALSE, sep = ",", dec = ".",
+                col.names = FALSE,
                 append = TRUE)
   }
   DBI::dbClearResult(res)
@@ -41,9 +40,6 @@ for (country in submitted_countries) {
 for (country in submitted_countries) {
   cat("downloading VMS data for ... ", country, "\n")
   
-  # connect to databse
-  db <- DBI::dbConnect(RSQLServer::SQLServer(), "SQL06", database = 'VMS')
-
   # set up sql command
   sqlq <- sprintf("SELECT * FROM [dbo].[_2017_ICES_VMS_Datacall_VMS] WHERE country = '%s'", country)
   fname <- paste0("data/ICES_VE_", country, ".csv")
@@ -58,12 +54,12 @@ for (country in submitted_countries) {
   while (!DBI::dbHasCompleted(res)) {
     out <- DBI::dbFetch(res, n = 1e5)
     write.table(out, file = fname, 
-                row.names = FALSE, sep = ",",
+                row.names = FALSE, sep = ",", dec = ".",
+                col.names = FALSE,
                 append = TRUE)
   }
   DBI::dbClearResult(res)
-
 }
 
-
+# disconnect
 DBI::dbDisconnect(db)
