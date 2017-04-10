@@ -39,7 +39,7 @@ Data handling
 # NOTE:
 #   This chunk of code is replaced when a template is created.
 
-
+dataPath <- "D:/Repository/WGSFD/"
 #ICES_LE                   <- read.csv(file.path(dataPath,"ICES_LE_pt_2016.csv"),stringsAsFactors=F,sep=";")
 #ICES_VE                   <- read.csv(file.path(dataPath,"ICES_VMS_pt_2016.csv"),stringsAsFactors=F,sep=";")
 load(file.path(dataPath,"PRT_LOG_2016.RData"))
