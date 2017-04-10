@@ -50,7 +50,7 @@ for (country in submitted_countries) {
   
   # fetch
   res <- DBI::dbSendQuery(db, sqlq)
-  out <- DBI::dbFetch(res, n = -1)
+  out <- DBI::dbFetch(res, n = 1e5)
   # save to file
   write.csv(out, file = fname, row.names = FALSE)
 
