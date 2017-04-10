@@ -4,6 +4,7 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: pdf_document
 ---
 
+<!-- QCTEMPLATE: header -->
 ```{r, eval=TRUE, echo=FALSE}
 library(knitr)
 
@@ -24,17 +25,21 @@ library(RColorBrewer)
 library(doBy)
 library(reshape2)
 
+load("POLYGONS/eurPols.Rdata")
 
-dataPath                  <- "D:/Repository/WGSFD/"
-load(file.path(dataPath,"eurPols.Rdata"))
+# script setings
+compareSubmission <- FALSE
 ```
+<!-- QCTEMPLATE: data -->
 <!------------------------------------------------------------------------------
 Data handling
 ---------------------------------------------------------------------------- -->
 ```{r, echo=FALSE, results='asis'}
-compareSubmission         <- F
-
 #Read in latest submission -->
+# NOTE:
+#   This chunk of code is replaced when a template is created.
+
+
 #ICES_LE                   <- read.csv(file.path(dataPath,"ICES_LE_pt_2016.csv"),stringsAsFactors=F,sep=";")
 #ICES_VE                   <- read.csv(file.path(dataPath,"ICES_VMS_pt_2016.csv"),stringsAsFactors=F,sep=";")
 load(file.path(dataPath,"PRT_LOG_2016.RData"))
@@ -46,6 +51,7 @@ load(file.path(dataPath,"PRT_VMS_2016.RData"))
 #  ICES_VEP                <- read.csv(file.path(dataPath,"VMS_ISP.csv",stringsAsFactors=F)
 #}
 ```
+<!-- QCTEMPLATE: body -->
 <!------------------------------------------------------------------------------
 Pre-calculations
 ---------------------------------------------------------------------------- -->
