@@ -27,7 +27,7 @@ vignettes/*.pdf
 # knitr and R markdown default cache directories
 /*_cache/
 /cache/
-/QC/QC_*_files/*
+QC_*_files/*
 
 # Temporary files created by R markdown
 *.utf8.md
@@ -43,3 +43,4 @@ data/*
 
 # ignore reports
 QC/reports/*
+QC_old/*
