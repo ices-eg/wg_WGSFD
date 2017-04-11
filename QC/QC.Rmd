@@ -253,7 +253,7 @@ dat$cols <- palette[dat$colgrp]
 # make joining keys
 a_by <- apply(dat[c("year","c_square","gear_code")], 1, paste, collapse = ".")
 b_by <- apply(polVMS[c("year","c_square","gear_code")], 1, paste, collapse = ".")
-ib_by <- as.integer(as.factor(b_by, levels = a_by))
+ib_by <- as.integer(factor(b_by, levels = a_by))
 polVMS$cols <- dat$cols[ib_by]
 
 # do plots
@@ -435,12 +435,7 @@ dat2plot$fishing_hours_median[is.na(dat2plot$fishing_hours_median)] <- 0
 dat2plot$fishing_hours[is.na(dat2plot$fishing_hours)] <- 0
 
 # calculate ratio (with exceptions for zeros)
-dat2plot$ratio <- 
-  with(dat2plot,
-       ifelse(fishing_hours == 0, 9,
-         ifelse(fishing_hours_median == 0, -9,
-           ifelse(fishing_hours_median == 0 & fishing_hours_median == 0, 0,      
-             log10(fishing_hours_median) - log10(fishing_hours)))))
+dat2plot$ratio <- with(dat2plot, pmax(fishing_hours_median, 1e-9) / pmax(fishing_hours, 1e-9))
 
 # add back in lat and long
 dat2plot <- cbind(dat2plot, 
@@ -451,17 +446,27 @@ polVMS <- make_polVMS(dat2plot)
 polVMS$c_square <- rep(dat2plot$c_square, each = 5)
 
 # set up legend
-cutbreaksval        <- log10(rev(c(1e-10,0.5,2/3,0.8,0.952381,1,1.05,1.25,1.5,2,1e10)))
-legval              <- c("historic >>","historic> +100%","historic> +50%","historic> +25%","+/-5%","recent> +5%","recent> +25%","recent> +50%","recent> +100%","recent >>")
-colintens           <- brewer.pal(length(cutbreaksval)-1,"RdYlBu")  #colour for fishing intensity
-cols                <- colintens[cut(dat2plot$ratio,breaks=cutbreaksval)]
-cols                <- cbind(cols,c_square=dat2plot$c_square)
-polVMS              <- merge(polVMS,cols,by=c("c_square"))
+# This is not what the legend says.... there is no +/-5% break!
+breaks <- c(-Inf, 1/2, 1/1.5, 1/1.25, 1/1.05, 1, 1.05, 1.25, 1.5, 2, Inf)
+legval <- c("historic >>","historic> +100%","historic> +50%","historic> +25%",
+            "+/-5%",
+            "recent> +5%","recent> +25%","recent> +50%","recent> +100%","recent >>")
+palette <- RColorBrewer::brewer.pal(length(breaks)-1,"RdYlBu")  #colour for fishing intensity
+dat2plot$colgrp <- as.numeric(cut(dat2plot$ratio, breaks = breaks))
+dat2plot$cols <- palette[dat2plot$colgrp]
 
+# join dat onto polVMS (much faster than left_join or merge)
+# make joining keys
+a_by <- dat2plot$c_square
+b_by <- polVMS$c_square
+ib_by <- as.integer(factor(b_by, levels = a_by))
+polVMS$cols <- dat2plot$cols[ib_by]
+# NOTE dark blue here just means that nothing was observered before, and now there is something... 
+# - could be 1 hour of fishing
 spatialplot +
   guides(fill = guide_legend(title = "Days@Sea")) +
   geom_polygon(data = polVMS, aes(long, lat, group = group, fill = cols)) +
-  scale_fill_manual(values = colorRampPalette(rev(brewer.pal(length(cutbreaksval),"RdYlBu")))(length(cutbreaksval)-1),labels=legval) +
+  scale_fill_manual(values = rev(palette), labels = legval) +
   theme_icesqc(legend.position = "right")
 ```
 
@@ -470,52 +475,61 @@ spatialplot +
 ## Spatial difference of effort `r tempBound[2]-1` vs `r tempBound[2]`
 
 ```{r spatial-effort--difference2, results='asis', fig.height = 9}
-base            <- subset(ICES_VE,year == (tempBound[2]-1))
-recent          <- subset(ICES_VE,year == tempBound[2])
-datbase         <- aggregate(base$fishing_hours,  by=list(base$c_square),  FUN=sum,na.rm=T)
-datrecent       <- aggregate(recent$fishing_hours,by=list(recent$c_square),FUN=sum,na.rm=T)
-colnames(datbase)    <- c("c_square","fishing_hours_median")
-colnames(datrecent)   <- c("c_square","fishing_hours")
-dat2plot        <- merge(datbase,datrecent[,c("c_square","fishing_hours")],by=c("c_square"),all=T)
+base <- with(ICES_VE, 
+             aggregate(fishing_hours, 
+                       by = list(c_square = c_square, year = year),
+                       FUN = sum, na.rm = TRUE))
+base <- dplyr::rename(base, fishing_hours = x)
+
+# calculate total fishing hours for recent year
+recent <- base[base$year == tempBound[2],]
+
+# previous year
+base <- base[base$year == tempBound[2]-1,]
+base <- dplyr::rename(base, fishing_hours_median = fishing_hours)
+
+# join
+dat2plot <- dplyr::full_join(base,
+                             recent[,c("c_square","fishing_hours")])
+
+# set NAs to zero
 dat2plot$fishing_hours_median[is.na(dat2plot$fishing_hours_median)] <- 0
 dat2plot$fishing_hours[is.na(dat2plot$fishing_hours)] <- 0
-dat2plot$ratio  <- log10(dat2plot$fishing_hours_median / dat2plot$fishing_hours)
-dat2plot        <- cbind(dat2plot,CSquare2LonLat(dat2plot$c_square,degrees=0.05))
-dat2plot$ratio[which(is.infinite(dat2plot$ratio) & dat2plot$fishing_hours == 0)] <- 9
-dat2plot$ratio[which(is.infinite(dat2plot$ratio) & dat2plot$fishing_hours_median == 0)] <- -9
-dat2plot$ratio[is.nan(dat2plot$ratio)] <- 0
 
-grdAll <- 
-  lapply(1:nrow(dat2plot),
-         function(i) {
-           out <- list(SI_LONG = dat2plot[i, "SI_LONG"] + c(-1, 1, 1, -1) * 0.05/2,
-                       SI_LATI = dat2plot[i, "SI_LATI"] + c(-1, -1, 1, 1) * 0.05/2)
-           attr(out, "row.names") <- paste(1:4)
-           attr(out, "class") <- "data.frame"
-           out
-         })
-grdAll <- lonLat2SpatialPolygons(lst = grdAll)
+# calculate ratio (with exceptions for zeros)
+dat2plot$ratio <- with(dat2plot, pmax(fishing_hours_median, 1e-9) / pmax(fishing_hours, 1e-9))
 
-polVMS          <- fortify(grdAll)
-polVMS$c_square <- rep(dat2plot$c_square,each=5)
+# add back in lat and long
+dat2plot <- cbind(dat2plot, 
+                  vmstools::CSquare2LonLat(dat2plot$c_square, degrees = 0.05))
 
-cutbreaksval        <- log10(rev(c(1e-10,0.5,2/3,0.8,0.952381,1,1.05,1.25,1.5,2,1e10)))
-legval              <- c("historic >>","historic> +100%","historic> +50%","historic> +25%","+/-5%","recent> +5%","recent> +25%","recent> +50%","recent> +100%","recent >>")
-colintens           <- brewer.pal(length(cutbreaksval)-1,"RdYlBu")  #colour for fishing intensity
-cols                <- colintens[cut(dat2plot$ratio,breaks=cutbreaksval)]
-cols                <- cbind(cols,c_square=dat2plot$c_square)
-polVMS              <- merge(polVMS,cols,by=c("c_square"))
+# make 'fortified' data frame
+polVMS <- make_polVMS(dat2plot)
+polVMS$c_square <- rep(dat2plot$c_square, each = 5)
 
-ggplot(polLand,aes(long,lat)) +
-  geom_polygon(aes(group=group)) +
-  coord_fixed(ratio=lonLatRatio(mean(spatCore$xrange),mean(spatCore$yrange)),xlim=spatCore$xrange, ylim=spatCore$yrange) +
-  guides(fill=guide_legend(title="Days@Sea")) +
-  geom_polygon(data=polVMS,aes(long,lat,group=group,fill=cols)) +
-  scale_fill_manual(values = colorRampPalette(rev(brewer.pal(length(cutbreaksval),"RdYlBu")))(length(cutbreaksval)-1),labels=legval) +
-  geom_polygon(data=polVMS,aes(long,lat,group=group,fill=cols)) +
-  geom_polygon(data=polLand,aes(long,lat,group=group)) +
-  labs(x = "Longitude", y = "Latitude") +
-  theme_icessq()
+# set up legend
+# This is not what the legend says.... there is no +/-5% break!
+breaks <- c(-Inf, 1/2, 1/1.5, 1/1.25, 1/1.05, 1, 1.05, 1.25, 1.5, 2, Inf)
+legval <- c("historic >>","historic> +100%","historic> +50%","historic> +25%",
+            "+/-5%",
+            "recent> +5%","recent> +25%","recent> +50%","recent> +100%","recent >>")
+palette <- RColorBrewer::brewer.pal(length(breaks)-1,"RdYlBu")  #colour for fishing intensity
+dat2plot$colgrp <- as.numeric(cut(dat2plot$ratio, breaks = breaks))
+dat2plot$cols <- palette[dat2plot$colgrp]
+
+# join dat onto polVMS (much faster than left_join or merge)
+# make joining keys
+a_by <- dat2plot$c_square
+b_by <- polVMS$c_square
+ib_by <- as.integer(factor(b_by, levels = a_by))
+polVMS$cols <- dat2plot$cols[ib_by]
+# NOTE dark blue here just means that nothing was observered before, and now there is something... 
+# - could be 1 hour of fishing
+spatialplot +
+  guides(fill = guide_legend(title = "Days@Sea")) +
+  geom_polygon(data = polVMS, aes(long, lat, group = group, fill = cols)) +
+  scale_fill_manual(values = rev(palette), labels = legval) +
+  theme_icesqc(legend.position = "right")
 ```
 
 \newpage
