@@ -17,11 +17,12 @@ opts_chunk$set(comment   = NA,
                dev = "my_png",
                fig.ext = "png",
                fig.align = 'left',
-               tab.align = 'left')
+               tab.align = 'left',
+               fig.width = 5.5)
 
 my_png <- function(file, width, height) {
   png(file, width = width, height = height, 
-      res = 600, units = "in", pointsize = 20)
+      res = 800, units = "in", pointsize = 20)
 }
 
 library(plyr)
@@ -34,9 +35,6 @@ library(reshape2)
 
 ```{r load-data}
 load("POLYGONS/eurPols.Rdata")
-
-# script setings
-compareSubmission <- FALSE
 ```
 <!-- QCTEMPLATE: data -->
 <!------------------------------------------------------------------------------
@@ -69,96 +67,21 @@ Checks for VMS data
 ------------------------ -->
 ```{r vms-checks}
 #Most recent submission -->
-country                   <- unique(ICES_VE$country)
-rows_VE                   <- nrow(ICES_VE)
-csquares_count_VE         <- length(unique(ICES_VE$c_square))
-metier_count_VE           <- length(unique(ICES_VE$LE_MET_level6))
-avg_fishing_speed_min_VE  <- min(ICES_VE$avg_fishing_speed,na.rm=T)
-avg_fishing_speed_max_VE  <- max(ICES_VE$avg_fishing_speed,na.rm=T)
-fishing_hour_sum_VE       <- round(sum(ICES_VE$fishing_hour,na.rm=T), digits=1)
-fishing_hour_min_VE       <- round(min(ICES_VE$fishing_hour,na.rm=T), digits=1)
-fishing_hour_max_VE       <- round(max(ICES_VE$fishing_hour,na.rm=T), digits=1)
-avg_oal_min_VE            <- min(ICES_VE$avg_oal,na.rm=T)
-avg_oal_max_VE            <- max(ICES_VE$avg_oal,na.rm=T)
-avg_kw_min_VE             <- min(ICES_VE$kw,na.rm=T)
-avg_kw_max_VE             <- max(ICES_VE$kw,na.rm=T)
-kw_fishinghour_sum_VE     <- round(sum(ICES_VE$kw_fishinghours,na.rm=T), digits=1)
-kw_fishinghour_min_VE     <- round(min(ICES_VE$kw_fishinghours,na.rm=T), digits=1)
-kw_fishinghour_max_VE     <- round(max(ICES_VE$kw_fishinghours,na.rm=T), digits=1)
-totweight_min_VE          <- round(min(ICES_VE$totweight,na.rm=T), digits=1)
-totweight_max_VE          <- round(max(ICES_VE$totweight,na.rm=T), digits=1)
-mean_landing_per_fishing_hour_VE <- round(with(ICES_VE,sum(ICES_VE$totweight)/sum(ICES_VE$fishing_hour)),digits=1)
-ICES_VE$totvalue          <- ifelse(class(ICES_VE$totvalue) != "numeric",NA,ICES_VE$totvalue)
-totvalue_min_VE           <- round(min(ICES_VE$totvalue, na.rm=TRUE), digits=1)
-totvalue_max_VE           <- round(max(ICES_VE$totvalue, na.rm=TRUE), digits=1)
-mean_price_VE             <- round(mean(ICES_VE$totvalue, na.rm=TRUE)/mean(ICES_VE$totweight, na.rm=TRUE), digits=2)
-ICES_VE                   <- cbind(ICES_VE,CSquare2LonLat(ICES_VE$c_square,degrees=0.05))
-spatBound                 <- list(xrange=range(ICES_VE$SI_LONG,na.rm=T),yrange=range(ICES_VE$SI_LATI,na.rm=T))
-tempBound                 <- range(ICES_VE$year,na.rm=T)
-
-#Previous submission -->
-if(compareSubmission){
-  rows_VEP                <- nrow(ICES_VEP)
-  csquares_count_VEP      <- length(unique(ICES_VEP$c_square))
-  metier_count_VEP        <- length(unique(ICES_VEP$LE_MET_level6))
-  fishing_hour_sum_VEP    <- round(sum(ICES_VEP$fishing_hour,na.rm=T), digits=1)
-  totweight_min_VEP       <- round(min(ICES_VEP$totweight,na.rm=T), digits=1)
-  totweight_max_VEP       <- round(max(ICES_VEP$totweight,na.rm=T), digits=1)
-  mean_landing_per_fishing_hour_VEP <- round(with(ICES_VEP,sum(ICES_VEP$totweight)/sum(ICES_VEP$fishing_hour)),digits=1)
-  totvalue_min_VEP        <- round(min(ICES_VEP$totvalue, na.rm=TRUE), digits=1)
-  totvalue_max_VEP        <- round(max(ICES_VEP$totvalue, na.rm=TRUE), digits=1)
-  mean_price_VEP          <- round(mean(ICES_VEP$totvalue, na.rm=TRUE)/mean(ICES_VEP$totweight, na.rm=TRUE), digits=2)
-}
+country <- ICES_VE$country[1]
+ICES_VE <- cbind(ICES_VE, CSquare2LonLat(ICES_VE$c_square, degrees=0.05))
+spatBound <- list(xrange = range(ICES_VE$SI_LONG, na.rm=TRUE),
+                  yrange = range(ICES_VE$SI_LATI, na.rm=TRUE))
+tempBound <- range(ICES_VE$year, na.rm=TRUE)
 ```
 <!--------------------------
 Checks for logbook data
 ------------------------ -->
 ```{r logbook-checks}
 #Most recent submission -->
-rows_LE                   <- nrow(ICES_LE)
-years_LE                  <- unique(ICES_LE$year)
-months_LE                 <- unique(ICES_LE$month)
-vessel_length_category_LE <- unique(ICES_LE$vessel_length_category)
-gear_LE                   <- sort(unique(ICES_LE$gear_code))
-metier_count_LE           <- length(unique(ICES_LE$LE_MET_level6))
-metier_LE                 <- head(unique(ICES_LE$LE_MET_level6),5)
-Number_ICES_rectangles_LE <- length(unique(ICES_LE$ICES_rectangle))
-ICES_rectangles_LE        <- head(unique(ICES_LE$ICES_rectangle),5)
-fishing_days_sum_LE       <- round(sum(ICES_LE$fishing_days,na.rm=T), digits=1)
-fishing_days_min_LE       <- round(min(ICES_LE$fishing_days,na.rm=T), digits=1)
-fishing_days_max_LE       <- round(max(ICES_LE$fishing_days,na.rm=T), digits=1)
-kw_fishing_days_sum_LE    <- round(sum(an(ICES_LE$kw_fishing_days), na.rm=TRUE), digits=1)
-kw_fishing_days_min_LE    <- round(min(an(ICES_LE$kw_fishing_days), na.rm=TRUE), digits=1)
-kw_fishing_days_max_LE    <- round(max(an(ICES_LE$kw_fishing_days), na.rm=TRUE), digits=1)
-totweight_min_LE          <- round(min(an(ICES_LE$totweight),na.rm=T), digits=1)
-totweight_max_LE          <- round(max(an(ICES_LE$totweight),na.rm=T), digits=1)
-mean_landings_per_day_LE  <- round(with(subset(ICES_LE,!is.na(ICES_LE$fishing_days)),sum(as.numeric(ICES_LE$totweigh))/sum(ICES_LE$fishing_days)), digits=1)
-ICES_LE$totvalue          <- ifelse(class(ICES_LE$totvalue) != "numeric",NA,ICES_LE$totvalue)
-totvalue_min_LE           <- round(min(an(ICES_LE$totvalue), na.rm=TRUE), digits=1)
-totvalue_max_LE           <- round(max(an(ICES_LE$totvalue), na.rm=TRUE), digits=1)
-mean_price_LE             <- round(mean(an(ICES_LE$totvalue), na.rm=TRUE)/mean(ICES_LE$totweight, na.rm=TRUE), digits=2)
-ICES_LE                   <- cbind(ICES_LE,ICESrectangle2LonLat(ICES_LE$ICES_rectangle,midpoint=T))
-spatBoundLog              <- list(xrange=range(ICES_LE$SI_LONG,na.rm=T),yrange=range(ICES_LE$SI_LATI,na.rm=T))
-tempBoundLog              <- range(ICES_LE$year,na.rm=T)
-
-
-#Previous submission -->
-if(compareSubmission){
-  years_LEP               <- unique(ICES_LEP$year)
-  months_LEP              <- unique(ICES_LEP$month)
-  vessel_LEPngth_category_LEP <- unique(ICES_LEP$vessel_LEPngth_category)
-  gear_LEP                <- sort(unique(ICES_LEP$gear_code))
-  metier_count_LEP        <- length(unique(ICES_LEP$LE_MET_LEPvel6))
-  fishing_days_sum_LEP    <- round(sum(ICES_LEP$fishing_days,na.rm=TRUE), digits=1)
-  kw_fishing_days_sum_LEP <- round(sum(ICES_LEP$kw_fishing_days, na.rm=TRUE), digits=1)
-  totweight_min_LEP       <- round(min(ICES_LEP$totweight,na.rm=TRUE), digits=1)
-  totweight_max_LEP       <- round(max(ICES_LEP$totweight,na.rm=TRUE), digits=1)
-  mean_landings_per_day_LEP <- round(with(subset(ICES_LEP,!is.na(ICES_LEP$fishing_days)),sum(as.numeric(ICES_LEP$totweigh))/sum(ICES_LEP$fishing_days)), digits=1)
-  totvalue_min_LEP        <- round(min(ICES_LEP$totvalue, na.rm=TRUE), digits=1)
-  totvalue_max_LEP        <- round(max(ICES_LEP$totvalue, na.rm=TRUE), digits=1)
-  mean_price_LEP          <- round(mean(ICES_LEP$totvalue, na.rm=TRUE)/mean(ICES_LEP$totweight, na.rm=TRUE), digits=2)
-}
-
+ICES_LE <- cbind(ICES_LE, ICESrectangle2LonLat(ICES_LE$ICES_rectangle, midpoint=TRUE))
+spatBoundLog <- list(xrange = range(ICES_LE$SI_LONG, na.rm=TRUE),
+                     yrange = range(ICES_LE$SI_LATI, na.rm=TRUE))
+tempBoundLog <- range(ICES_LE$year, na.rm=TRUE)
 ```
 
 <!------------------------------------------------------------------------------
@@ -204,16 +127,16 @@ qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(month)) +
 ```{r table-exent, results='asis'}
 dat2tab <- as.matrix(aggregate(ICES_VE$SI_LONG,by=list(ICES_VE$year),FUN=range))
 dat2tab <- cbind(dat2tab,as.matrix(aggregate(ICES_VE$SI_LATI,by=list(ICES_VE$year),FUN=range)[,-1]))
-colnames(dat2tab) <- c("Year","min lon","max lon","min lat","max lat")
+colnames(dat2tab) <- c("Year", "min lon", "max lon", "min lat", "max lat")
 kable(dat2tab)
 ```
 
 ## Area for which data has been submitted:
-```{r area-of-data, fig.width = 5.5, fig.height = 9}
-polLand         <- fortify(eurPols)
-polLand         <- subset(polLand,long >= spatBound$xrange[1] & long <= spatBound$xrange[2] &
-                                   lat >= spatBound$yrange[1] & lat  <= spatBound$yrange[2])
-coordGrd        <- unique(ICES_VE[,c("SI_LONG","SI_LATI","year")])
+```{r area-of-data,  fig.height = 9}
+polLand <- fortify(eurPols)
+polLand <- subset(polLand, long >= spatBound$xrange[1] & long <= spatBound$xrange[2] &
+                           lat >= spatBound$yrange[1] & lat  <= spatBound$yrange[2])
+coordGrd <- unique(ICES_VE[, c("SI_LONG", "SI_LATI", "year")])
 
 grdAll <- 
   lapply(1:nrow(coordGrd),
@@ -226,9 +149,9 @@ grdAll <-
          })
 grdAll <- lonLat2SpatialPolygons(lst = grdAll)
 
-polVMS          <- fortify(grdAll)
-polVMS$year     <- rep(coordGrd$year,each=5)
-polVMS$cols     <- "red"
+polVMS <- fortify(grdAll)
+polVMS$year <- rep(coordGrd$year,each=5)
+polVMS$cols <- "red"
 
 ggplot(polLand,aes(long,lat)) +
   geom_polygon(aes(group=group)) +
@@ -285,16 +208,16 @@ qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(gear_code)) +
 \newpage
 
 ## Spatial extend of 3 most dominant gears:
-```{r spatial-extent-dominant-gears, results='asis',fig.width = 5.5, fig.height = 9}
+```{r spatial-extent-dominant-gears, results='asis', fig.height = 9}
 top3gears <- orderBy(~x,data=aggregate(ICES_VE$fishing_hours,by=list(ICES_VE$gear_code),FUN=sum,na.rm=T))$Group.1[1:3]
 
-polLand         <- fortify(eurPols)
-spatCore        <- list(xrange=quantile(ICES_VE$SI_LONG,probs=c(0.025,0.975)),
-                        yrange=quantile(ICES_VE$SI_LATI,probs=c(0.025,0.975)))
-polLand         <- subset(polLand,long >= spatCore$xrange[1] & long <= spatCore$xrange[2] &
-                                   lat >= spatCore$yrange[1] & lat  <= spatCore$yrange[2])
-idx             <- which(ICES_VE$gear_code %in% top3gears)
-coordGrd        <- unique(ICES_VE[idx,c("SI_LONG","SI_LATI","year","c_square","gear_code")])
+polLand <- fortify(eurPols)
+spatCore <- list(xrange = quantile(ICES_VE$SI_LONG, c(0.025, 0.975)),
+                 yrange = quantile(ICES_VE$SI_LATI, c(0.025, 0.975)))
+polLand <- subset(polLand, long >= spatCore$xrange[1] & long <= spatCore$xrange[2] &
+                           lat >= spatCore$yrange[1] & lat  <= spatCore$yrange[2])
+idx <- which(ICES_VE$gear_code %in% top3gears)
+coordGrd <- unique(ICES_VE[idx,c("SI_LONG","SI_LATI","year","c_square","gear_code")])
 
 grdAll <- 
   lapply(1:nrow(coordGrd),
@@ -311,26 +234,32 @@ polVMS          <- fortify(grdAll)
 polVMS$year     <- rep(coordGrd$year,each=5)
 polVMS$c_square <- rep(coordGrd$c_square,each=5)
 polVMS$gear_code<- rep(coordGrd$gear_code,each=5)
-dat             <- aggregate(ICES_VE$fishing_hours[idx],by=list(ICES_VE$year[idx],ICES_VE$c_square[idx],ICES_VE$gear_code[idx]),FUN=sum,na.rm=T)
+dat <- aggregate(ICES_VE$fishing_hours[idx],
+                 by = list(ICES_VE$year[idx], ICES_VE$c_square[idx], ICES_VE$gear_code[idx]),
+                 FUN = sum, na.rm = TRUE)
 
-steps               <- ceiling(max(dat$x,na.rm=T)/250/24)
+steps               <- ceiling(max(dat$x, na.rm=TRUE)/250/24)
 cutbreaksval        <- c(-1,0,steps*c(1,2.5,5,10,25,50,100,250))
-legval              <- outer(ac(cutbreaksval),ac(cutbreaksval),function(x,y){return(paste(x,"<=",y))})
+legval              <- outer(cutbreaksval, cutbreaksval, function(x,y) paste(x, "<=", y))
 legval              <- c("0",diag(legval[-1,-c(1,2)]))
 colintens           <- brewer.pal(length(cutbreaksval)-2,"YlOrRd")  #colour for fishing intensity
 cols                <- c("white",colintens)[cut(dat$x/24,breaks=cutbreaksval)]
 cols                <- cbind(cols,id=1:length(cols),year=dat$Group.1,c_square=dat$Group.2,gear_code=dat$Group.3)
 polVMS              <- merge(polVMS,cols,by=c("year","c_square","gear_code"))
 
-ggplot(polLand,aes(long,lat)) +
+ggplot(polLand, aes(long, lat)) +
   geom_polygon(aes(group=group)) +
-  coord_fixed(ratio=lonLatRatio(mean(spatCore$xrange),mean(spatCore$yrange)),xlim=spatCore$xrange, ylim=spatCore$yrange) +
-  guides(fill=guide_legend(title="Days@Sea")) +
-  geom_polygon(data=subset(polVMS,gear_code==top3gears[1]),aes(long,lat,group=group,fill=cols)) +
-  scale_fill_manual(values = c(colorRampPalette(rev(brewer.pal(length(cutbreaksval)-2,"YlOrRd")))(length(cutbreaksval)-2),"white"),labels=rev(legval)) +
-  geom_polygon(data=subset(polVMS,gear_code==top3gears[1]),aes(long,lat,group=group,fill=cols)) +
-  geom_polygon(data=polLand,aes(long,lat,group=group)) +
-  facet_wrap(~year*gear_code,ncol=2) +
+  coord_fixed(ratio = lonLatRatio(mean(spatCore$xrange), mean(spatCore$yrange)), 
+              xlim = spatCore$xrange, ylim = spatCore$yrange) +
+  guides(fill = guide_legend(title = "Days@Sea")) +
+  geom_polygon(data = subset(polVMS, gear_code == top3gears[1]), 
+               aes(long, lat, group = group, fill = cols)) +
+  scale_fill_manual(values = c(colorRampPalette(rev(brewer.pal(length(cutbreaksval)-2, "YlOrRd")))(length(cutbreaksval)-2), "white"), 
+                    labels = rev(legval)) +
+  geom_polygon(data = subset(polVMS, gear_code == top3gears[1]), 
+               aes(long, lat, group = group, fill = cols)) +
+  geom_polygon(data = polLand, aes(long, lat, group = group)) +
+  facet_wrap(~ year * gear_code, ncol = 2) +
   labs(x = "Longitude", y = "Latitude") +
   theme(axis.text.y   = element_text(colour="black"),
         axis.text.x   = element_text(colour="black"),
@@ -341,12 +270,12 @@ ggplot(polLand,aes(long,lat)) +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+        panel.border = element_rect(colour = "black", fill = NA))
 ```
 
 \newpage
 
-```{r spatial-extent-dominant-gears2, results='asis',fig.width = 5.5, fig.height = 9}
+```{r spatial-extent-dominant-gears2, results='asis', fig.height = 9}
 ggplot(polLand,aes(long,lat)) +
   geom_polygon(aes(group=group)) +
   coord_fixed(ratio=lonLatRatio(mean(spatCore$xrange),mean(spatCore$yrange)),xlim=spatCore$xrange, ylim=spatCore$yrange) +
@@ -371,7 +300,7 @@ ggplot(polLand,aes(long,lat)) +
 
 \newpage
         
-```{r spatial-extent-dominant-gears3, results='asis',fig.width = 5.5, fig.height = 9}
+```{r spatial-extent-dominant-gears3, results='asis', fig.height = 9}
 ggplot(polLand,aes(long,lat)) +
   geom_polygon(aes(group=group)) +
   coord_fixed(ratio=lonLatRatio(mean(spatCore$xrange),mean(spatCore$yrange)),xlim=spatCore$xrange, ylim=spatCore$yrange) +
@@ -422,7 +351,7 @@ qplot(factor(year),data=subset(ICES_VE,LE_MET_level6 %in% top5Met6), geom="bar",
 ## Average fishing speed:
 ```{r , results='asis'}
 dat2plot  <- ICES_VE[,c("year","avg_fishing_speed")]
-dat2plot$avg_fishing_speed <- an(dat2plot$avg_fishing_speed)
+dat2plot$avg_fishing_speed <-  as.numeric(dat2plot$avg_fishing_speed)
 ggplot(dat2plot,aes(x=avg_fishing_speed))+
   geom_histogram() +
   xlab("Average fishing speed") + ylab ("Count") +
@@ -440,7 +369,7 @@ ggplot(dat2plot,aes(x=avg_fishing_speed))+
 ## Average fishing hours:
 ```{r Kw-hours}
 dat2plot  <- ICES_VE[,c("year","fishing_hours")]
-dat2plot$fishing_hours <- an(dat2plot$fishing_hours)
+dat2plot$fishing_hours <-  as.numeric(dat2plot$fishing_hours)
 ggplot(dat2plot,aes(x=fishing_hours))+
   geom_histogram() +
   xlab("Average fishing hours") + ylab ("Count") +
@@ -458,7 +387,7 @@ ggplot(dat2plot,aes(x=fishing_hours))+
 ## Average length:
 ```{r Kw}
 dat2plot  <- ICES_VE[,c("year","avg_oal")]
-dat2plot$avg_oal <- an(dat2plot$avg_oal)
+dat2plot$avg_oal <-  as.numeric(dat2plot$avg_oal)
 ggplot(dat2plot,aes(x=avg_oal))+
   geom_histogram() +
   xlab("Average vessel length") + ylab ("Count") +
@@ -476,7 +405,7 @@ ggplot(dat2plot,aes(x=avg_oal))+
 ## Average KW:
 ```{r average-length}
 dat2plot  <- ICES_VE[,c("year","avg_kw")]
-dat2plot$avg_kw <- an(dat2plot$avg_kw)
+dat2plot$avg_kw <-  as.numeric(dat2plot$avg_kw)
 ggplot(dat2plot,aes(x=avg_kw))+
   geom_histogram() +
   xlab("Average vessel length") + ylab ("Count") +
@@ -494,7 +423,7 @@ ggplot(dat2plot,aes(x=avg_kw))+
 ## Average KW-hours:
 ```{r fishing-speed}
 dat2plot  <- ICES_VE[,c("year","kw_fishinghours")]
-dat2plot$kw_fishinghours <- an(dat2plot$kw_fishinghours)
+dat2plot$kw_fishinghours <-  as.numeric(dat2plot$kw_fishinghours)
 ggplot(dat2plot,aes(x=kw_fishinghours))+
   geom_histogram() +
   xlab("Average KW-hours") + ylab ("Count") +
@@ -514,13 +443,13 @@ ggplot(dat2plot,aes(x=kw_fishinghours))+
 dat2tab <- as.matrix(aggregate(ICES_VE$totweight,by=list(ICES_VE$year,ICES_VE$gear_code),FUN=sum))
 colnames(dat2tab) <- c("Year","Gear_code","KG_landed")
 dat2tab <- as.data.frame(orderBy(~Year,data=dat2tab),stringsAsFactors=F)
-dat2tab$KG_landed <- an(dat2tab$KG_landed)
+dat2tab$KG_landed <-  as.numeric(dat2tab$KG_landed)
 dat2tab <- acast(dat2tab,Year ~ Gear_code,value.var="KG_landed")
 kable(dat2tab)
 
 dat2plot  <- melt(dat2tab)
 colnames(dat2plot) <- c("Year","Gear_code","KG_landed")
-dat2plot$cols      <- an(af(dat2plot$Gear_code))
+dat2plot$cols      <-  as.numeric(af(dat2plot$Gear_code))
 
 ggplot(dat2plot,aes(x=Year,y=KG_landed)) +
   geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
@@ -536,7 +465,7 @@ ggplot(dat2plot,aes(x=Year,y=KG_landed)) +
 \newpage
 
 ## Spatial distribution of effort by year:
-```{r , results='asis',fig.width = 5.5, fig.height = 9}
+```{r spatial-effort-year, results='asis', fig.height = 9}
 polLand         <- fortify(eurPols)
 spatCore        <- list(xrange=quantile(ICES_VE$SI_LONG,probs=c(0.025,0.975)),
                         yrange=quantile(ICES_VE$SI_LATI,probs=c(0.025,0.975)))
@@ -561,13 +490,13 @@ polVMS$c_square <- rep(coordGrd$c_square,each=5)
 dat             <- aggregate(ICES_VE$fishing_hours,by=list(ICES_VE$year,ICES_VE$c_square),FUN=sum,na.rm=T)
 
 steps               <- ceiling(max(dat$x,na.rm=T)/250/24)
-cutbreaksval        <- c(-1,0,steps*c(1,2.5,5,10,25,50,100,250))
-legval              <- outer(ac(cutbreaksval),ac(cutbreaksval),function(x,y){return(paste(x,"<=",y))})
-legval              <- c("0",diag(legval[-1,-c(1,2)]))
-colintens           <- brewer.pal(length(cutbreaksval)-2,"YlOrRd")  #colour for fishing intensity
-cols                <- c("white",colintens)[cut(dat$x/24,breaks=cutbreaksval)]
-cols                <- cbind(cols,id=1:length(cols),c_square=dat$Group.2,year=dat$Group.1)
-polVMS              <- merge(polVMS,cols,by=c("c_square","year"))
+cutbreaksval        <- c(-1, 0, steps * c(1,2.5,5,10,25,50,100,250))
+legval <- paste(cutbreaksval[-length(cutbreaksval)], "<=", cutbreaksval[-1])
+legval[1] <- "0"
+colintens <- brewer.pal(length(cutbreaksval) - 2,"YlOrRd")  #colour for fishing intensity
+cols <- c("white",colintens)[cut(dat$x/24,breaks=cutbreaksval)]
+cols <- cbind(cols, id = 1:length(cols), c_square = dat$Group.2, year = dat$Group.1)
+polVMS <- merge(polVMS, cols, by = c("c_square","year"))
 
 ggplot(polLand,aes(long,lat)) +
   geom_polygon(aes(group=group)) +
@@ -594,7 +523,7 @@ ggplot(polLand,aes(long,lat)) +
 \newpage
 
 ## Spatial difference of effort `r tempBound[1]`:`r (tempBound[2]-1)` vs `r tempBound[2]`
-```{r , results='asis',fig.width = 5.5, fig.height = 9}
+```{r spatial-effort--difference1, results='asis', fig.height = 9}
 base            <- subset(ICES_VE,year < (tempBound[2]-1))
 recent          <- subset(ICES_VE,year == tempBound[2])
 datbase         <- aggregate(base$fishing_hours,by=list(base$c_square,base$year),FUN=sum,na.rm=T)
@@ -656,7 +585,7 @@ ggplot(polLand,aes(long,lat)) +
 
 ## Spatial difference of effort `r tempBound[2]-1` vs `r tempBound[2]`
 
-```{r , results='asis',fig.width = 5.5, fig.height = 9}
+```{r spatial-effort--difference2, results='asis', fig.height = 9}
 base            <- subset(ICES_VE,year == (tempBound[2]-1))
 recent          <- subset(ICES_VE,year == tempBound[2])
 datbase         <- aggregate(base$fishing_hours,  by=list(base$c_square),  FUN=sum,na.rm=T)
@@ -721,13 +650,13 @@ ggplot(polLand,aes(long,lat)) +
 dat2tab <- as.matrix(aggregate(ICES_VE$totweight/ICES_VE$kw_fishinghours,by=list(ICES_VE$year,ICES_VE$gear_code),FUN=median))
 colnames(dat2tab) <- c("Year","Gear_code","KGkwH")
 dat2tab <- as.data.frame(orderBy(~Year,data=dat2tab),stringsAsFactors=F)
-dat2tab$KGkwH <- an(dat2tab$KGkwH)
+dat2tab$KGkwH <- as.numeric(dat2tab$KGkwH)
 dat2tab <- acast(dat2tab,Year ~ Gear_code,value.var="KGkwH")
 kable(dat2tab)
 
 dat2plot  <- melt(dat2tab)
 colnames(dat2plot) <- c("Year","Gear_code","KGkwH")
-dat2plot$cols      <- an(af(dat2plot$Gear_code))
+dat2plot$cols      <- as.numeric(af(dat2plot$Gear_code))
 
 ggplot(dat2plot,aes(x=Year,y=KGkwH)) +
   geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
@@ -743,17 +672,17 @@ ggplot(dat2plot,aes(x=Year,y=KGkwH)) +
 \newpage
 
 ## Value by gear by year:
-```{r , results='asis'}
+```{r value-by-gear-year, results='asis'}
 dat2tab <- as.matrix(aggregate(ICES_VE$totvalue,by=list(ICES_VE$year,ICES_VE$gear_code),FUN=sum))
 colnames(dat2tab) <- c("Year","Gear_code","EUR_landed")
 dat2tab <- as.data.frame(orderBy(~Year,data=dat2tab),stringsAsFactors=F)
-dat2tab$EUR_landed <- an(dat2tab$EUR_landed)
+dat2tab$EUR_landed <- as.numeric(dat2tab$EUR_landed)
 dat2tab <- acast(dat2tab,Year ~ Gear_code,value.var="EUR_landed")
 kable(dat2tab)
 
 dat2plot  <- melt(dat2tab)
 colnames(dat2plot) <- c("Year","Gear_code","EUR_landed")
-dat2plot$cols      <- an(af(dat2plot$Gear_code))
+dat2plot$cols      <- as.numeric(af(dat2plot$Gear_code))
 
 ggplot(dat2plot,aes(x=Year,y=EUR_landed)) +
   geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
@@ -770,17 +699,17 @@ ggplot(dat2plot,aes(x=Year,y=EUR_landed)) +
 
 ## Mean value per KW fishing hours by year:
 
-```{r , results='asis'}
+```{r mean-value-by-KWhours-year, results='asis'}
 dat2tab <- as.matrix(aggregate(ICES_VE$totvalue/ICES_VE$kw_fishinghours,by=list(ICES_VE$year,ICES_VE$gear_code),FUN=median))
 colnames(dat2tab) <- c("Year","Gear_code","EURkwH")
 dat2tab <- as.data.frame(orderBy(~Year,data=dat2tab),stringsAsFactors=F)
-dat2tab$EURkwH <- an(dat2tab$EURkwH)
+dat2tab$EURkwH <- as.numeric(dat2tab$EURkwH)
 dat2tab <- acast(dat2tab,Year ~ Gear_code,value.var="EURkwH")
 kable(dat2tab)
 
 dat2plot  <- melt(dat2tab)
 colnames(dat2plot) <- c("Year","Gear_code","EURkwH")
-dat2plot$cols      <- an(af(dat2plot$Gear_code))
+dat2plot$cols      <- as.numeric(af(dat2plot$Gear_code))
 
 ggplot(dat2plot,aes(x=Year,y=EURkwH)) +
   geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
@@ -797,9 +726,9 @@ ggplot(dat2plot,aes(x=Year,y=EURkwH)) +
 
 ##  Average price:
 
-```{r , results='asis'}
+```{r price, results='asis'}
   dat2plot  <- aggregate(ICES_VE$totvalue/ICES_VE$totweight,by=list(ICES_VE$year),FUN=median)
-  dat2plot$x <- an(dat2plot$x)
+  dat2plot$x <- as.numeric(dat2plot$x)
   colnames(dat2plot) <- c("Year","MeanPrice")
   ggplot(dat2plot,aes(x=Year,y=MeanPrice))+
     geom_line(lwd=1.5) +
@@ -817,7 +746,7 @@ ggplot(dat2plot,aes(x=Year,y=EURkwH)) +
 # Quality of the logbook
 
 ## Years & number of records for which data has been submitted:
-```{r , results='asis'}
+```{r logbook-records, results='asis'}
 kable(count(ICES_LE,'year'))
 
 dat2plot <- data.frame(table(ICES_LE$year))
@@ -835,7 +764,7 @@ ggplot(dat2plot,aes(x=Year,y=Freq)) +
 \newpage
 
 ## Distribution of pings by month:
-```{r , results='asis'}
+```{r logbook-pings-month, results='asis'}
 kable(table(ICES_LE$month,ICES_LE$year))
 
 qplot(factor(year),data=ICES_LE, geom="bar",fill=factor(month)) +
@@ -851,7 +780,7 @@ qplot(factor(year),data=ICES_LE, geom="bar",fill=factor(month)) +
 \newpage
 
 ## Area extend of data submitted by year:
-```{r , results='asis',fig.width = 5.5, fig.height = 9}
+```{r , results='asis', fig.height = 9}
 dat2tab <- as.matrix(aggregate(ICES_LE$SI_LONG,by=list(ICES_LE$year),FUN=range))
 dat2tab <- cbind(dat2tab,as.matrix(aggregate(ICES_LE$SI_LATI,by=list(ICES_LE$year),FUN=range)[,-1]))
 colnames(dat2tab) <- c("Year","min lon","max lon","min lat","max lat")
@@ -859,7 +788,7 @@ kable(dat2tab)
 ```
 
 ## Area for which data has been submitted:
-```{r , results='asis'}
+```{r , results='asis',fig.height = 9}
 polLand         <- fortify(eurPols)
 polLand         <- subset(polLand,long >= spatBoundLog$xrange[1] & long <= spatBoundLog$xrange[2] &
                                    lat >= spatBoundLog$yrange[1] & lat  <= spatBoundLog$yrange[2])
@@ -964,7 +893,7 @@ kable(table(ICES_LE$vms_enabled,ICES_LE$vessel_length_category))
 ## Average fishing days:
 ```{r , results='asis'}
 dat2plot  <- ICES_LE[,c("year","fishing_days")]
-dat2plot$fishing_hours <- an(dat2plot$fishing_days)
+dat2plot$fishing_hours <- as.numeric(dat2plot$fishing_days)
 ggplot(dat2plot,aes(x=fishing_days))+
   geom_histogram() +
   xlab("Average fishing days") + ylab ("Count") +
@@ -982,7 +911,7 @@ ggplot(dat2plot,aes(x=fishing_days))+
 ## Average KW-hours:
 ```{r , results='asis'}
 dat2plot  <- ICES_LE[,c("year","kw_fishing_days")]
-dat2plot$kw_fishing_days <- an(dat2plot$kw_fishing_days)
+dat2plot$kw_fishing_days <- as.numeric(dat2plot$kw_fishing_days)
 ggplot(dat2plot,aes(x=kw_fishing_days))+
   geom_histogram() +
   xlab("Average KW-days") + ylab ("Count") +
@@ -1002,13 +931,13 @@ ggplot(dat2plot,aes(x=kw_fishing_days))+
 dat2tab <- as.matrix(aggregate(ICES_LE$totweight,by=list(ICES_LE$year,ICES_LE$gear_code),FUN=sum))
 colnames(dat2tab) <- c("Year","Gear_code","KG_landed")
 dat2tab <- as.data.frame(orderBy(~Year,data=dat2tab),stringsAsFactors=F)
-dat2tab$KG_landed <- an(dat2tab$KG_landed)
+dat2tab$KG_landed <- as.numeric(dat2tab$KG_landed)
 dat2tab <- acast(dat2tab,Year ~ Gear_code,value.var="KG_landed")
 kable(dat2tab)
 
 dat2plot  <- melt(dat2tab)
 colnames(dat2plot) <- c("Year","Gear_code","KG_landed")
-dat2plot$cols      <- an(af(dat2plot$Gear_code))
+dat2plot$cols      <- as.numeric(af(dat2plot$Gear_code))
 
 ggplot(dat2plot,aes(x=Year,y=KG_landed)) +
   geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
@@ -1024,7 +953,7 @@ ggplot(dat2plot,aes(x=Year,y=KG_landed)) +
 \newpage
 
 ## Spatial distribution of effort by year:
-```{r , results='asis',fig.width = 5.5, fig.height = 9}
+```{r , results='asis', fig.height = 9}
 polLand         <- fortify(eurPols)
 spatCore        <- list(xrange=quantile(ICES_LE$SI_LONG,probs=c(0.025,0.975)),
                         yrange=quantile(ICES_LE$SI_LATI,probs=c(0.025,0.975)))
@@ -1223,17 +1152,17 @@ ggplot(subset(ICES_LE,year==tempBoundLog[2]),aes(x=fishing_days,y=totweight)) +
 ## Mean landing per KW fishing day by year:
 
 ```{r , results='asis'}
-ICES_LE$kw_fishing_days <- an(ICES_LE$kw_fishing_days)
+ICES_LE$kw_fishing_days <- as.numeric(ICES_LE$kw_fishing_days)
 dat2tab <- as.matrix(aggregate(ICES_LE$totweight/ICES_LE$kw_fishing_days,by=list(ICES_LE$year,ICES_LE$gear_code),FUN=median))
 colnames(dat2tab) <- c("Year","Gear_code","KGkwH")
 dat2tab <- as.data.frame(orderBy(~Year,data=dat2tab),stringsAsFactors=F)
-dat2tab$KGkwH <- an(dat2tab$KGkwH)
+dat2tab$KGkwH <- as.numeric(dat2tab$KGkwH)
 dat2tab <- acast(dat2tab,Year ~ Gear_code,value.var="KGkwH")
 kable(dat2tab)
 
 dat2plot  <- melt(dat2tab)
 colnames(dat2plot) <- c("Year","Gear_code","KGkwH")
-dat2plot$cols      <- an(af(dat2plot$Gear_code))
+dat2plot$cols      <- as.numeric(af(dat2plot$Gear_code))
 
 ggplot(dat2plot,aes(x=Year,y=KGkwH)) +
   geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
@@ -1250,17 +1179,17 @@ ggplot(dat2plot,aes(x=Year,y=KGkwH)) +
 
 ## Value by gear by year:
 ```{r , results='asis'}
-ICES_LE$totvalue <- an(ICES_LE$totvalue)
+ICES_LE$totvalue <- as.numeric(ICES_LE$totvalue)
 dat2tab <- as.matrix(aggregate(ICES_LE$totvalue,by=list(ICES_LE$year,ICES_LE$gear_code),FUN=sum))
 colnames(dat2tab) <- c("Year","Gear_code","EUR_landed")
 dat2tab <- as.data.frame(orderBy(~Year,data=dat2tab),stringsAsFactors=F)
-dat2tab$EUR_landed <- an(dat2tab$EUR_landed)
+dat2tab$EUR_landed <- as.numeric(dat2tab$EUR_landed)
 dat2tab <- acast(dat2tab,Year ~ Gear_code,value.var="EUR_landed")
 kable(dat2tab)
 
 dat2plot  <- melt(dat2tab)
 colnames(dat2plot) <- c("Year","Gear_code","EUR_landed")
-dat2plot$cols      <- an(af(dat2plot$Gear_code))
+dat2plot$cols      <- as.numeric(af(dat2plot$Gear_code))
 
 ggplot(dat2plot,aes(x=Year,y=EUR_landed)) +
   geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
@@ -1280,14 +1209,14 @@ ggplot(dat2plot,aes(x=Year,y=EUR_landed)) +
 ```{r , results='asis'}
 dat2tab <- as.matrix(aggregate(ICES_LE$totvalue/ICES_LE$kw_fishing_days,by=list(ICES_LE$year,ICES_LE$gear_code),FUN=median))
 colnames(dat2tab) <- c("Year","Gear_code","EURkwH")
-dat2tab <- as.data.frame(orderBy(~Year,data=dat2tab),stringsAsFactors=F)
-dat2tab$EURkwH <- an(dat2tab$EURkwH)
-dat2tab <- acast(dat2tab,Year ~ Gear_code,value.var="EURkwH")
+dat2tab <- as.data.frame(orderBy( ~ Year, data = dat2tab), stringsAsFactors = FALSE)
+dat2tab$EURkwH <- as.numeric(dat2tab$EURkwH)
+dat2tab <- acast(dat2tab, Year ~ Gear_code, value.var = "EURkwH")
 kable(dat2tab)
 
 dat2plot  <- melt(dat2tab)
 colnames(dat2plot) <- c("Year","Gear_code","EURkwH")
-dat2plot$cols      <- an(af(dat2plot$Gear_code))
+dat2plot$cols      <- as.numeric(af(dat2plot$Gear_code))
 
 ggplot(dat2plot,aes(x=Year,y=EURkwH)) +
   geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
@@ -1306,7 +1235,7 @@ ggplot(dat2plot,aes(x=Year,y=EURkwH)) +
 
 ```{r , results='asis'}
   dat2plot  <- aggregate(ICES_LE$totvalue/ICES_LE$totweight,by=list(ICES_LE$year),FUN=median)
-  dat2plot$x <- an(dat2plot$x)
+  dat2plot$x <- as.numeric(dat2plot$x)
   colnames(dat2plot) <- c("Year","MeanPrice")
   ggplot(dat2plot,aes(x=Year,y=MeanPrice))+
     geom_line(lwd=1.5) +

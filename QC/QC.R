@@ -17,6 +17,8 @@ makeQCRmd <- function(country, qc) {
             "#Read in latest submission -->",
             "ICES_LE <- read.csv('%s', stringsAsFactors=FALSE, na.strings = 'NULL')",
             "ICES_VE <- read.csv('%s', stringsAsFactors=FALSE, na.strings = 'NULL')",
+            "# fix erroneous types",
+            "ICES_LE$kw_fishing_days <- as.numeric(ICES_LE$kw_fishing_days)",
             "```",
             "", sep = "\n"),
      paste0("data/ICES_LE_", country, ".csv"), 
@@ -47,6 +49,7 @@ if (!dir.exists("QC/reports")) dir.create("QC/reports")
 # loop over countries
 for (country in countries) {
   cat("Running QC for ... ", country, "\n")
+  t0 <- proc.time()
   
   # setup file name
   fname <- paste0("QC_", country,".Rmd")
@@ -63,6 +66,6 @@ for (country in countries) {
   repname <- gsub(".Rmd", ".pdf", fname)
   file.copy(repname, file.path("QC/reports", repname), overwrite = TRUE)
   unlink(fname); unlink(repname)
-}
-  
 
+  cat("ellapsed:", (proc.time() - t0)[2], "\n\n")
+}
