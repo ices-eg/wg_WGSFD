@@ -35,6 +35,7 @@ library(reshape2)
 
 ```{r load-data}
 load("POLYGONS/eurPols.Rdata")
+polLand <- fortify(eurPols)
 ```
 <!-- QCTEMPLATE: data -->
 <!------------------------------------------------------------------------------
@@ -45,22 +46,17 @@ Data handling
 # NOTE:
 #   This chunk of code is replaced when a template is created.
 
-dataPath <- "D:/Repository/WGSFD/"
-#ICES_LE                   <- read.csv(file.path(dataPath,"ICES_LE_pt_2016.csv"),stringsAsFactors=F,sep=";")
-#ICES_VE                   <- read.csv(file.path(dataPath,"ICES_VMS_pt_2016.csv"),stringsAsFactors=F,sep=";")
-load(file.path(dataPath,"PRT_LOG_2016.RData"))
-load(file.path(dataPath,"PRT_VMS_2016.RData"))
-
-#Read in previous submission (P) -->
-#if(compareSubmission){
-#  ICES_LEP                <- read.csv(file.path(dataPath,"log_ISP.csv",stringsAsFactors=F)
-#  ICES_VEP                <- read.csv(file.path(dataPath,"VMS_ISP.csv",stringsAsFactors=F)
-#}
+#Read in latest submission -->
+ICES_LE <- read.csv('data/ICES_LE_BEL.csv', stringsAsFactors=FALSE, na.strings = 'NULL')
+ICES_VE <- read.csv('data/ICES_VE_BEL.csv', stringsAsFactors=FALSE, na.strings = 'NULL')
+# fix erroneous types
+ICES_LE$kw_fishing_days <- as.numeric(ICES_LE$kw_fishing_days)
 ```
 <!-- QCTEMPLATE: body -->
 <!------------------------------------------------------------------------------
 Pre-calculations
 ---------------------------------------------------------------------------- -->
+
 
 <!--------------------------
 Checks for VMS data
@@ -71,6 +67,8 @@ country <- ICES_VE$country[1]
 ICES_VE <- cbind(ICES_VE, CSquare2LonLat(ICES_VE$c_square, degrees=0.05))
 spatBound <- list(xrange = range(ICES_VE$SI_LONG, na.rm=TRUE),
                   yrange = range(ICES_VE$SI_LATI, na.rm=TRUE))
+spatCore  <- list(xrange = quantile(ICES_VE$SI_LONG, c(0.025, 0.975)),
+                  yrange = quantile(ICES_VE$SI_LATI, c(0.025, 0.975)))
 tempBound <- range(ICES_VE$year, na.rm=TRUE)
 ```
 <!--------------------------
@@ -84,6 +82,50 @@ spatBoundLog <- list(xrange = range(ICES_LE$SI_LONG, na.rm=TRUE),
 tempBoundLog <- range(ICES_LE$year, na.rm=TRUE)
 ```
 
+
+<!--------------------------
+Utility stuff
+------------------------ -->
+```{r ggplot settings}
+theme_icesqc <- function(legend.position = "none")
+  theme(axis.text.y   = element_text(colour="black"),
+        axis.text.x   = element_text(colour="black"),
+        axis.title.y  = element_text(size=14,face="bold"),
+        axis.title.x  = element_text(size=14,face="bold"),
+        legend.position = legend.position,
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill=NA))
+```
+
+```{r utility functions}
+make_polVMS <- function(coordGrd, resolution = 0.05) {
+  polVMS <- data.frame(long = rep(c(-1, -1, 1,  1, -1), nrow(coordGrd)) * resolution/2,
+                       lat  = rep(c(-1,  1, 1, -1, -1), nrow(coordGrd)) * resolution/2) 
+  polVMS$long <- polVMS$long + rep(coordGrd$SI_LONG, each = 5)
+  polVMS$lat <- polVMS$lat + rep(coordGrd$SI_LATI, each = 5)
+  polVMS$order <- rep(1:5, nrow(coordGrd))
+  polVMS$hole <- FALSE
+  polVMS$piece <- 1
+  polVMS$id <- rep(1:nrow(coordGrd), each = 5)
+  polVMS$group <- paste0(polVMS$id, ".", polVMS$piece)
+  
+  polVMS
+}
+```
+
+```{r default-spatial-ggplot}
+spatialplot <- 
+  ggplot(polLand, aes(long, lat)) +
+    geom_polygon(aes(group=group), fill = "light grey") +
+    coord_fixed(ratio = vmstools::lonLatRatio(mean(spatBound$xrange), mean(spatBound$yrange)),
+                xlim=spatBound$xrange, 
+                ylim=spatBound$yrange) +
+    labs(x = "Longitude", y = "Latitude")
+```
+
 <!------------------------------------------------------------------------------
 Tables & Figures VMS
 ---------------------------------------------------------------------------- -->
@@ -91,34 +133,25 @@ Tables & Figures VMS
 # Quality of the VMS data from `r country`
 ## Years & number of records for which data has been submitted:
 ```{r records-by-year, results='asis'}
-kable(count(ICES_VE,'year'))
+kable(plyr::count(ICES_VE,'year'))
 
 dat2plot <- data.frame(table(ICES_VE$year))
 colnames(dat2plot) <- c("Year","Freq")
+
 ggplot(dat2plot,aes(x=Year,y=Freq)) +
   geom_bar(stat="identity") + xlab("Year") + ylab("Number of records") +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-              panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(),
-              axis.line = element_line(colour = "black"),
-              panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
 
 ## Distribution of pings by month:
 ```{r pings-by-month}
-kable(table(ICES_VE$month,ICES_VE$year))
+kable(table(ICES_VE$month, ICES_VE$year))
 
 qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(month)) +
   xlab("Years") + ylab ("Count") + scale_fill_grey(guide=guide_legend(title="Month")) +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
@@ -133,43 +166,27 @@ kable(dat2tab)
 
 ## Area for which data has been submitted:
 ```{r area-of-data,  fig.height = 9}
-polLand <- fortify(eurPols)
-polLand <- subset(polLand, long >= spatBound$xrange[1] & long <= spatBound$xrange[2] &
-                           lat >= spatBound$yrange[1] & lat  <= spatBound$yrange[2])
 coordGrd <- unique(ICES_VE[, c("SI_LONG", "SI_LATI", "year")])
 
-grdAll <- 
-  lapply(1:nrow(coordGrd),
-         function(i) {
-           out <- list(SI_LONG = coordGrd[i, "SI_LONG"] + c(-1, 1, 1, -1) * 0.05/2,
-                       SI_LATI = coordGrd[i, "SI_LATI"] + c(-1, -1, 1, 1) * 0.05/2)
-           attr(out, "row.names") <- paste(1:4)
-           attr(out, "class") <- "data.frame"
-           out
-         })
-grdAll <- lonLat2SpatialPolygons(lst = grdAll)
-
-polVMS <- fortify(grdAll)
-polVMS$year <- rep(coordGrd$year,each=5)
+# create a fortied polygon of csquares : 0.39 secs
+polVMS <- make_polVMS(coordGrd)
+polVMS$year <- rep(coordGrd$year, each = 5)
 polVMS$cols <- "red"
 
-ggplot(polLand,aes(long,lat)) +
-  geom_polygon(aes(group=group)) +
-  coord_fixed(ratio=lonLatRatio(mean(spatBound$xrange),mean(spatBound$yrange)),xlim=spatBound$xrange, ylim=spatBound$yrange) +
-  geom_polygon(data=polVMS,aes(long,lat,group=group,fill=cols)) +
-  geom_polygon(data=polLand,aes(long,lat,group=group)) +
-  facet_wrap(~year,ncol=2) +
-  labs(x = "Longitude", y = "Latitude") +
-  theme(axis.text.y   = element_text(colour="black"),
-        axis.text.x   = element_text(colour="black"),
-        axis.title.y  = element_text(size=14,face="bold"),
-        axis.title.x  = element_text(size=14,face="bold"),
-        legend.position = "none",
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+# origional code: 190 secs for Belgium.
+#system.time({
+#  grdAll          <- lonLat2SpatialPolygons(lst=lapply(as.list(1:nrow(coordGrd)),
+#                                          #function(x){data.frame(SI_LONG=c(coordGrd[x,"SI_LONG"]-0.05/2,rep(coordGrd[x,"SI_LONG"]+0.05/2,2),coordGrd[x,#"SI_LONG"]-0.05/2),
+#                                                                 #SI_LATI=c(rep(coordGrd[x,"SI_LATI"]-0.05/2,2),rep(coordGrd[x,"SI_LATI"]+0.05/2,2)))}))
+#polVMS          <- fortify(grdAll)
+#polVMS$year     <- rep(coordGrd$year,each=5)
+#polVMS$cols     <- "red"
+#})
+
+spatialplot +
+  geom_polygon(data = polVMS, aes(long, lat, group = group, fill = cols)) +
+  facet_wrap(~ year, ncol = 2) +
+  theme_icesqc()
 ```
 
 \newpage
@@ -178,15 +195,10 @@ ggplot(polLand,aes(long,lat)) +
 ```{r records-by-vessel-length, results='asis'}
 kable(table(ICES_VE$vessel_length_category,ICES_VE$year))
 
-qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(vessel_length_category)) +
-      xlab("Years") + ylab ("Count") + 
-      scale_fill_grey(guide=guide_legend(title="Length category")) +
-      theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+qplot(factor(year), data = ICES_VE, geom = "bar", fill = factor(vessel_length_category)) +
+  xlab("Years") + ylab ("Count") + 
+  scale_fill_grey(guide = guide_legend(title = "Length category")) +
+  theme_icesqc(legend.position = "right")
 ```
 
 \newpage
@@ -195,135 +207,67 @@ qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(vessel_length_category))
 ```{r records-by-gear-code, results='asis'}
 kable(table(ICES_VE$gear_code,ICES_VE$year))
 
-qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(gear_code)) +
-  xlab("Years") + ylab ("Count") + scale_fill_grey(guide=guide_legend(title="Gear code")) +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+qplot(factor(year), data = ICES_VE, geom = "bar", fill = factor(gear_code)) +
+  xlab("Years") + ylab ("Count") + 
+  scale_fill_grey(guide = guide_legend(title = "Gear code")) +
+  theme_icesqc(legend.position = "right")
 ```
 
 \newpage
 
 ## Spatial extend of 3 most dominant gears:
-```{r spatial-extent-dominant-gears, results='asis', fig.height = 9}
-top3gears <- orderBy(~x,data=aggregate(ICES_VE$fishing_hours,by=list(ICES_VE$gear_code),FUN=sum,na.rm=T))$Group.1[1:3]
+```{r spatial-extent-dominant-gears, fig.height = 9}
+# get 3 main gears
+gear_table <- with(ICES_VE, aggregate(fishing_hours, list(gear_code = gear_code), sum, na.rm = TRUE))
+gear_table <- gear_table[order(gear_table$x, decreasing = TRUE),]
+top3gears <- gear_table$gear_code[1:3]
 
-polLand <- fortify(eurPols)
-spatCore <- list(xrange = quantile(ICES_VE$SI_LONG, c(0.025, 0.975)),
-                 yrange = quantile(ICES_VE$SI_LATI, c(0.025, 0.975)))
-polLand <- subset(polLand, long >= spatCore$xrange[1] & long <= spatCore$xrange[2] &
-                           lat >= spatCore$yrange[1] & lat  <= spatCore$yrange[2])
+# split by gear
 idx <- which(ICES_VE$gear_code %in% top3gears)
-coordGrd <- unique(ICES_VE[idx,c("SI_LONG","SI_LATI","year","c_square","gear_code")])
+coordGrd <- unique(ICES_VE[idx, c("SI_LONG", "SI_LATI", "year", "c_square", "gear_code")])
 
-grdAll <- 
-  lapply(1:nrow(coordGrd),
-         function(i) {
-           out <- list(SI_LONG = coordGrd[i, "SI_LONG"] + c(-1, 1, 1, -1) * 0.05/2,
-                       SI_LATI = coordGrd[i, "SI_LATI"] + c(-1, -1, 1, 1) * 0.05/2)
-           attr(out, "row.names") <- paste(1:4)
-           attr(out, "class") <- "data.frame"
-           out
-         })
-grdAll <- lonLat2SpatialPolygons(lst = grdAll)
-
-polVMS          <- fortify(grdAll)
-polVMS$year     <- rep(coordGrd$year,each=5)
+# create a fortied polygon of csquares : 0.39 secs
+polVMS <- make_polVMS(coordGrd)
+polVMS$year <- rep(coordGrd$year, each = 5)
 polVMS$c_square <- rep(coordGrd$c_square,each=5)
 polVMS$gear_code<- rep(coordGrd$gear_code,each=5)
-dat <- aggregate(ICES_VE$fishing_hours[idx],
-                 by = list(ICES_VE$year[idx], ICES_VE$c_square[idx], ICES_VE$gear_code[idx]),
-                 FUN = sum, na.rm = TRUE)
 
-steps               <- ceiling(max(dat$x, na.rm=TRUE)/250/24)
-cutbreaksval        <- c(-1,0,steps*c(1,2.5,5,10,25,50,100,250))
-legval              <- outer(cutbreaksval, cutbreaksval, function(x,y) paste(x, "<=", y))
-legval              <- c("0",diag(legval[-1,-c(1,2)]))
-colintens           <- brewer.pal(length(cutbreaksval)-2,"YlOrRd")  #colour for fishing intensity
-cols                <- c("white",colintens)[cut(dat$x/24,breaks=cutbreaksval)]
-cols                <- cbind(cols,id=1:length(cols),year=dat$Group.1,c_square=dat$Group.2,gear_code=dat$Group.3)
-polVMS              <- merge(polVMS,cols,by=c("year","c_square","gear_code"))
+# aggregate fishing days
+dat <- with(ICES_VE[idx,],
+            aggregate(fishing_hours/24,
+                 by = list(year = year, c_square = c_square, gear_code = gear_code),
+                 FUN = sum, na.rm = TRUE))
+dat <- dplyr::rename(dat, fishing_days = x)
 
-ggplot(polLand, aes(long, lat)) +
-  geom_polygon(aes(group=group)) +
-  coord_fixed(ratio = lonLatRatio(mean(spatCore$xrange), mean(spatCore$yrange)), 
-              xlim = spatCore$xrange, ylim = spatCore$yrange) +
-  guides(fill = guide_legend(title = "Days@Sea")) +
-  geom_polygon(data = subset(polVMS, gear_code == top3gears[1]), 
+# legend calculations
+steps <- ceiling(max(dat$fishing_days, na.rm = TRUE)/250)
+breaks <- c(-1, 0, steps * c(1, 2.5, 5, 10, 25, 50, 100, 250))
+legval <- paste(breaks[-length(breaks)], "<=", breaks[-1L])
+legval[1] <- "0"
+
+palette <- c("white", RColorBrewer::brewer.pal(length(breaks)-2, "YlOrRd"))  
+dat$colgrp <- as.numeric(cut(dat$fishing_days, breaks = breaks))
+dat$cols <- palette[dat$colgrp]
+
+# join dat onto polVMS (much faster than left_join or merge)
+# make joining keys
+a_by <- apply(dat[c("year","c_square","gear_code")], 1, paste, collapse = ".")
+b_by <- apply(polVMS[c("year","c_square","gear_code")], 1, paste, collapse = ".")
+ib_by <- as.integer(as.factor(b_by, levels = a_by))
+polVMS$cols <- dat$cols[ib_by]
+
+# do plots
+lapply(top3gears, function(gear) {
+spatialplot +
+  geom_polygon(data = polVMS[polVMS$gear_code == gear,], 
                aes(long, lat, group = group, fill = cols)) +
-  scale_fill_manual(values = c(colorRampPalette(rev(brewer.pal(length(cutbreaksval)-2, "YlOrRd")))(length(cutbreaksval)-2), "white"), 
-                    labels = rev(legval)) +
-  geom_polygon(data = subset(polVMS, gear_code == top3gears[1]), 
-               aes(long, lat, group = group, fill = cols)) +
-  geom_polygon(data = polLand, aes(long, lat, group = group)) +
-  facet_wrap(~ year * gear_code, ncol = 2) +
-  labs(x = "Longitude", y = "Latitude") +
-  theme(axis.text.y   = element_text(colour="black"),
-        axis.text.x   = element_text(colour="black"),
-        axis.title.y  = element_text(size=14,face="bold"),
-        axis.title.x  = element_text(size=14,face="bold"),
-        legend.position="top",
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill = NA))
+  scale_fill_manual(values = rev(palette), labels = rev(legval)) +
+  guides(fill = guide_legend(title = paste("Days@Sea", gear))) +
+  facet_wrap(~ year, ncol = 2) +
+  theme_icesqc(legend.position = "top")
+})
 ```
 
-\newpage
-
-```{r spatial-extent-dominant-gears2, results='asis', fig.height = 9}
-ggplot(polLand,aes(long,lat)) +
-  geom_polygon(aes(group=group)) +
-  coord_fixed(ratio=lonLatRatio(mean(spatCore$xrange),mean(spatCore$yrange)),xlim=spatCore$xrange, ylim=spatCore$yrange) +
-  guides(fill=guide_legend(title="Days@Sea")) +
-  geom_polygon(data=subset(polVMS,gear_code==top3gears[2]),aes(long,lat,group=group,fill=cols)) +
-  scale_fill_manual(values = c(colorRampPalette(rev(brewer.pal(length(cutbreaksval)-2,"YlOrRd")))(length(cutbreaksval)-2),"white"),labels=rev(legval)) +
-  geom_polygon(data=subset(polVMS,gear_code==top3gears[2]),aes(long,lat,group=group,fill=cols)) +
-  geom_polygon(data=polLand,aes(long,lat,group=group)) +
-  facet_wrap(~year*gear_code,ncol=2) +
-  labs(x = "Longitude", y = "Latitude") +
-  theme(axis.text.y   = element_text(colour="black"),
-        axis.text.x   = element_text(colour="black"),
-        axis.title.y  = element_text(size=14,face="bold"),
-        axis.title.x  = element_text(size=14,face="bold"),
-        legend.position="top",
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
-```
-
-\newpage
-        
-```{r spatial-extent-dominant-gears3, results='asis', fig.height = 9}
-ggplot(polLand,aes(long,lat)) +
-  geom_polygon(aes(group=group)) +
-  coord_fixed(ratio=lonLatRatio(mean(spatCore$xrange),mean(spatCore$yrange)),xlim=spatCore$xrange, ylim=spatCore$yrange) +
-  guides(fill=guide_legend(title="Days@Sea")) +
-  geom_polygon(data=subset(polVMS,gear_code==top3gears[3]),aes(long,lat,group=group,fill=cols)) +
-  scale_fill_manual(values = c(colorRampPalette(rev(brewer.pal(length(cutbreaksval)-2,"YlOrRd")))(length(cutbreaksval)-2),"white"),labels=rev(legval)) +
-  geom_polygon(data=subset(polVMS,gear_code==top3gears[3]),aes(long,lat,group=group,fill=cols)) +
-  geom_polygon(data=polLand,aes(long,lat,group=group)) +
-  facet_wrap(~year*gear_code,ncol=2) +
-  labs(x = "Longitude", y = "Latitude") +
-  theme(axis.text.y   = element_text(colour="black"),
-        axis.text.x   = element_text(colour="black"),
-        axis.title.y  = element_text(size=14,face="bold"),
-        axis.title.x  = element_text(size=14,face="bold"),
-        legend.position="top",
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
-```
-
-\newpage
 
 
 ## Number of unique DCF Level 6 codes by year:
@@ -333,227 +277,180 @@ kable(count(unique(ICES_VE[,c("LE_MET_level6","year")]),"year"))
 
 Top 5 DCF Level 6 codes by year:
 ```{r top5-met6} 
-top5Met6 <- names(rev(sort(table(ICES_VE$LE_MET_level6)))[1:5])
-kable(table(ICES_VE$LE_MET_level6,ICES_VE$year)[top5Met6,])
+top5Met6 <- names(sort(table(ICES_VE$LE_MET_level6), decreasing = TRUE)[1:5])
+kable(table(ICES_VE$LE_MET_level6, ICES_VE$year)[top5Met6,])
 
-qplot(factor(year),data=subset(ICES_VE,LE_MET_level6 %in% top5Met6), geom="bar",fill=factor(LE_MET_level6)) +
-  xlab("Years") + ylab ("Count") + scale_fill_grey(guide=guide_legend(title="Level 6")) +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+qplot(factor(year), 
+      data = ICES_VE[ICES_VE$LE_MET_level6 %in% top5Met6,],
+      geom = "bar", fill = factor(LE_MET_level6)) +
+  xlab("Years") + ylab ("Count") + 
+  scale_fill_grey(guide = guide_legend(title = "Level 6")) +
+  theme_icesqc(legend.position = "right")
 ```
 
 \newpage
 
 ## Average fishing speed:
-```{r , results='asis'}
-dat2plot  <- ICES_VE[,c("year","avg_fishing_speed")]
-dat2plot$avg_fishing_speed <-  as.numeric(dat2plot$avg_fishing_speed)
-ggplot(dat2plot,aes(x=avg_fishing_speed))+
+```{r average-fishing-speed}
+ggplot(ICES_VE, aes(x = avg_fishing_speed)) +
   geom_histogram() +
   xlab("Average fishing speed") + ylab ("Count") +
-  facet_wrap(~year,ncol=2) +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  facet_wrap( ~ year, ncol = 2) +
+  theme_icesqc()
 ```
 
 \newpage
 
 ## Average fishing hours:
-```{r Kw-hours}
-dat2plot  <- ICES_VE[,c("year","fishing_hours")]
-dat2plot$fishing_hours <-  as.numeric(dat2plot$fishing_hours)
-ggplot(dat2plot,aes(x=fishing_hours))+
+```{r fishing-hours}
+ggplot(ICES_VE, aes(x = fishing_hours)) +
   geom_histogram() +
   xlab("Average fishing hours") + ylab ("Count") +
-  facet_wrap(~year,ncol=2) +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  facet_wrap( ~ year, ncol = 2) +
+  theme_icesqc()
 ```
 
 \newpage
 
 ## Average length:
-```{r Kw}
-dat2plot  <- ICES_VE[,c("year","avg_oal")]
-dat2plot$avg_oal <-  as.numeric(dat2plot$avg_oal)
-ggplot(dat2plot,aes(x=avg_oal))+
+```{r length}
+ggplot(ICES_VE, aes(x = avg_oal))+
   geom_histogram() +
   xlab("Average vessel length") + ylab ("Count") +
-  facet_wrap(~year,ncol=2) +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  facet_wrap( ~ year, ncol = 2) +
+  theme_icesqc()
 ```
 
 \newpage
 
-## Average KW:
+## Average kW:
 ```{r average-length}
-dat2plot  <- ICES_VE[,c("year","avg_kw")]
-dat2plot$avg_kw <-  as.numeric(dat2plot$avg_kw)
-ggplot(dat2plot,aes(x=avg_kw))+
+ggplot(ICES_VE, aes(x = avg_kw))+
   geom_histogram() +
-  xlab("Average vessel length") + ylab ("Count") +
-  facet_wrap(~year,ncol=2) +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  xlab("Average kW") + ylab ("Count") +
+  facet_wrap( ~ year, ncol = 2) +
+  theme_icesqc()
 ```
 
 \newpage
 
-## Average KW-hours:
+## Average kW-hours:
 ```{r fishing-speed}
-dat2plot  <- ICES_VE[,c("year","kw_fishinghours")]
-dat2plot$kw_fishinghours <-  as.numeric(dat2plot$kw_fishinghours)
-ggplot(dat2plot,aes(x=kw_fishinghours))+
+ggplot(ICES_VE, aes(x = kw_fishinghours))+
   geom_histogram() +
-  xlab("Average KW-hours") + ylab ("Count") +
+  xlab("Average kW-hours") + ylab ("Count") +
   facet_wrap(~year,ncol=2) +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
 
 ## Landings by gear by year:
-```{r fishing-hours}
-dat2tab <- as.matrix(aggregate(ICES_VE$totweight,by=list(ICES_VE$year,ICES_VE$gear_code),FUN=sum))
-colnames(dat2tab) <- c("Year","Gear_code","KG_landed")
-dat2tab <- as.data.frame(orderBy(~Year,data=dat2tab),stringsAsFactors=F)
-dat2tab$KG_landed <-  as.numeric(dat2tab$KG_landed)
-dat2tab <- acast(dat2tab,Year ~ Gear_code,value.var="KG_landed")
+```{r landings-by-gear-year}
+dat2tab <- 
+  with(ICES_VE, 
+       tapply(totweight, list(year, gear_code), sum, na.rm = TRUE))
+names(dimnames(dat2tab)) <- c("year","gear_code")
 kable(dat2tab)
 
-dat2plot  <- melt(dat2tab)
-colnames(dat2plot) <- c("Year","Gear_code","KG_landed")
-dat2plot$cols      <-  as.numeric(af(dat2plot$Gear_code))
+dat2plot <- as.data.frame.table(dat2tab, responseName = "totweight")
 
-ggplot(dat2plot,aes(x=Year,y=KG_landed)) +
-  geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
-  xlab("Year") + ylab ("KG landed") +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+ggplot(dat2plot, aes(x = year, y = totweight)) +
+  geom_line(aes(group = gear_code, colour = gear_code), lwd=1.5) +
+  xlab("Year") + ylab ("kg landed") +
+  theme_icesqc(legend.position = "right")
 ```
 
 \newpage
 
 ## Spatial distribution of effort by year:
 ```{r spatial-effort-year, results='asis', fig.height = 9}
-polLand         <- fortify(eurPols)
-spatCore        <- list(xrange=quantile(ICES_VE$SI_LONG,probs=c(0.025,0.975)),
-                        yrange=quantile(ICES_VE$SI_LATI,probs=c(0.025,0.975)))
-polLand         <- subset(polLand,long >= spatCore$xrange[1] & long <= spatCore$xrange[2] &
-                                   lat >= spatCore$yrange[1] & lat  <= spatCore$yrange[2])
-coordGrd        <- unique(ICES_VE[,c("SI_LONG","SI_LATI","year","c_square")])
 
-grdAll <- 
-  lapply(1:nrow(coordGrd),
-         function(i) {
-           out <- list(SI_LONG = coordGrd[i, "SI_LONG"] + c(-1, 1, 1, -1) * 0.05/2,
-                       SI_LATI = coordGrd[i, "SI_LATI"] + c(-1, -1, 1, 1) * 0.05/2)
-           attr(out, "row.names") <- paste(1:4)
-           attr(out, "class") <- "data.frame"
-           out
-         })
-grdAll <- lonLat2SpatialPolygons(lst = grdAll)
+coordGrd <- unique(ICES_VE[,c("SI_LONG","SI_LATI","year","c_square")])
+# make fortified DF for csquares
+polVMS <- make_polVMS(coordGrd)
+polVMS$year     <- rep(coordGrd$year, each = 5)
+polVMS$c_square <- rep(coordGrd$c_square, each = 5)
 
-polVMS          <- fortify(grdAll)
-polVMS$year     <- rep(coordGrd$year,each=5)
-polVMS$c_square <- rep(coordGrd$c_square,each=5)
-dat             <- aggregate(ICES_VE$fishing_hours,by=list(ICES_VE$year,ICES_VE$c_square),FUN=sum,na.rm=T)
+# aggregate fishing days
+dat <- with(ICES_VE,
+            aggregate(fishing_hours/24,
+                 by = list(year = year, c_square = c_square),
+                 FUN = sum, na.rm = TRUE))
+dat <- dplyr::rename(dat, fishing_days = x)
 
-steps               <- ceiling(max(dat$x,na.rm=T)/250/24)
-cutbreaksval        <- c(-1, 0, steps * c(1,2.5,5,10,25,50,100,250))
-legval <- paste(cutbreaksval[-length(cutbreaksval)], "<=", cutbreaksval[-1])
+# legend calculations
+steps <- ceiling(max(dat$fishing_days, na.rm = TRUE)/250)
+breaks <- c(-1, 0, steps * c(1, 2.5, 5, 10, 25, 50, 100, 250))
+legval <- paste(breaks[-length(breaks)], "<=", breaks[-1L])
 legval[1] <- "0"
-colintens <- brewer.pal(length(cutbreaksval) - 2,"YlOrRd")  #colour for fishing intensity
-cols <- c("white",colintens)[cut(dat$x/24,breaks=cutbreaksval)]
-cols <- cbind(cols, id = 1:length(cols), c_square = dat$Group.2, year = dat$Group.1)
-polVMS <- merge(polVMS, cols, by = c("c_square","year"))
 
-ggplot(polLand,aes(long,lat)) +
-  geom_polygon(aes(group=group)) +
-  coord_fixed(ratio=lonLatRatio(mean(spatCore$xrange),mean(spatCore$yrange)),xlim=spatCore$xrange, ylim=spatCore$yrange) +
-  guides(fill=guide_legend(title="Days@Sea")) +
-  geom_polygon(data=polVMS,aes(long,lat,group=group,fill=cols)) +
-  scale_fill_manual(values = c(colorRampPalette(rev(brewer.pal(length(cutbreaksval)-2,"YlOrRd")))(length(cutbreaksval)-2),"white"),labels=rev(legval)) +
-  geom_polygon(data=polVMS,aes(long,lat,group=group,fill=cols)) +
-  geom_polygon(data=polLand,aes(long,lat,group=group)) +
-  facet_wrap(~year,ncol=2) +
-  labs(x = "Longitude", y = "Latitude") +
-  theme(axis.text.y   = element_text(colour="black"),
-        axis.text.x   = element_text(colour="black"),
-        axis.title.y  = element_text(size=14,face="bold"),
-        axis.title.x  = element_text(size=14,face="bold"),
-        legend.position="top",
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+palette <- c("white", RColorBrewer::brewer.pal(length(breaks)-2, "YlOrRd"))  
+dat$colgrp <- as.numeric(cut(dat$fishing_days, breaks = breaks))
+dat$cols <- palette[dat$colgrp]
+
+# join dat onto polVMS (much faster than left_join or merge)
+# make joining keys
+a_by <- apply(dat[c("year","c_square")], 1, paste, collapse = ".")
+b_by <- apply(polVMS[c("year","c_square")], 1, paste, collapse = ".")
+ib_by <- as.integer(factor(b_by, levels = a_by))
+polVMS$cols <- dat$cols[ib_by]
+
+# do plots
+spatialplot +
+  geom_polygon(data = polVMS, 
+               aes(long, lat, group = group, fill = cols)) +
+  scale_fill_manual(values = rev(palette), labels = rev(legval)) +
+  guides(fill = guide_legend(title = "Days@Sea")) +
+  facet_wrap(~ year, ncol = 2) +
+  theme_icesqc(legend.position = "top")
 ```
 
 \newpage
 
 ## Spatial difference of effort `r tempBound[1]`:`r (tempBound[2]-1)` vs `r tempBound[2]`
 ```{r spatial-effort--difference1, results='asis', fig.height = 9}
-base            <- subset(ICES_VE,year < (tempBound[2]-1))
-recent          <- subset(ICES_VE,year == tempBound[2])
-datbase         <- aggregate(base$fishing_hours,by=list(base$c_square,base$year),FUN=sum,na.rm=T)
-datbase         <- aggregate(datbase$x,by=list(datbase$Group.1),FUN=median,na.rm=T)
-datrecent       <- aggregate(recent$fishing_hours,by=list(recent$c_square),FUN=sum,na.rm=T)
-colnames(datbase)    <- c("c_square","fishing_hours_median")
-colnames(datrecent)   <- c("c_square","fishing_hours")
-dat2plot        <- merge(datbase,datrecent[,c("c_square","fishing_hours")],by=c("c_square"),all=T)
+base <- with(ICES_VE, 
+             aggregate(fishing_hours, 
+                       by = list(c_square = c_square, year = year),
+                       FUN = sum, na.rm = TRUE))
+base <- dplyr::rename(base, fishing_hours = x)
+
+# calculate total fishing hours for recent year
+recent <- base[base$year == tempBound[2],]
+
+# calculate median of the total fishing hours per square for historical years
+base <- with(base[base$year < tempBound[2],], 
+             aggregate(fishing_hours,
+                       by = list(c_square = c_square), 
+                       FUN = median, na.rm = TRUE))
+base <- dplyr::rename(base, fishing_hours_median = x)
+
+# join
+dat2plot <- dplyr::full_join(base,
+                             recent[,c("c_square","fishing_hours")])
+
+# set NAs to zero
 dat2plot$fishing_hours_median[is.na(dat2plot$fishing_hours_median)] <- 0
 dat2plot$fishing_hours[is.na(dat2plot$fishing_hours)] <- 0
-dat2plot$ratio  <- log10(dat2plot$fishing_hours_median / dat2plot$fishing_hours)
-dat2plot        <- cbind(dat2plot,CSquare2LonLat(dat2plot$c_square,degrees=0.05))
-dat2plot$ratio[which(is.infinite(dat2plot$ratio) & dat2plot$fishing_hours == 0)] <- 9
-dat2plot$ratio[which(is.infinite(dat2plot$ratio) & dat2plot$fishing_hours_median == 0)] <- -9
-dat2plot$ratio[is.nan(dat2plot$ratio)] <- 0
 
-grdAll <- 
-  lapply(1:nrow(dat2plot),
-         function(i) {
-           out <- list(SI_LONG = dat2plot[i, "SI_LONG"] + c(-1, 1, 1, -1) * 0.05/2,
-                       SI_LATI = dat2plot[i, "SI_LATI"] + c(-1, -1, 1, 1) * 0.05/2)
-           attr(out, "row.names") <- paste(1:4)
-           attr(out, "class") <- "data.frame"
-           out
-         })
-grdAll <- lonLat2SpatialPolygons(lst = grdAll)
+# calculate ratio (with exceptions for zeros)
+dat2plot$ratio <- 
+  with(dat2plot,
+       ifelse(fishing_hours == 0, 9,
+         ifelse(fishing_hours_median == 0, -9,
+           ifelse(fishing_hours_median == 0 & fishing_hours_median == 0, 0,      
+             log10(fishing_hours_median) - log10(fishing_hours)))))
 
-polVMS          <- fortify(grdAll)
-polVMS$c_square <- rep(dat2plot$c_square,each=5)
+# add back in lat and long
+dat2plot <- cbind(dat2plot, 
+                  vmstools::CSquare2LonLat(dat2plot$c_square, degrees = 0.05))
 
+# make 'fortified' data frame
+polVMS <- make_polVMS(dat2plot)
+polVMS$c_square <- rep(dat2plot$c_square, each = 5)
+
+# set up legend
 cutbreaksval        <- log10(rev(c(1e-10,0.5,2/3,0.8,0.952381,1,1.05,1.25,1.5,2,1e10)))
 legval              <- c("historic >>","historic> +100%","historic> +50%","historic> +25%","+/-5%","recent> +5%","recent> +25%","recent> +50%","recent> +100%","recent >>")
 colintens           <- brewer.pal(length(cutbreaksval)-1,"RdYlBu")  #colour for fishing intensity
@@ -561,24 +458,11 @@ cols                <- colintens[cut(dat2plot$ratio,breaks=cutbreaksval)]
 cols                <- cbind(cols,c_square=dat2plot$c_square)
 polVMS              <- merge(polVMS,cols,by=c("c_square"))
 
-ggplot(polLand,aes(long,lat)) +
-  geom_polygon(aes(group=group)) +
-  coord_fixed(ratio=lonLatRatio(mean(spatCore$xrange),mean(spatCore$yrange)),xlim=spatCore$xrange, ylim=spatCore$yrange) +
-  guides(fill=guide_legend(title="Days@Sea")) +
-  geom_polygon(data=polVMS,aes(long,lat,group=group,fill=cols)) +
+spatialplot +
+  guides(fill = guide_legend(title = "Days@Sea")) +
+  geom_polygon(data = polVMS, aes(long, lat, group = group, fill = cols)) +
   scale_fill_manual(values = colorRampPalette(rev(brewer.pal(length(cutbreaksval),"RdYlBu")))(length(cutbreaksval)-1),labels=legval) +
-  geom_polygon(data=polVMS,aes(long,lat,group=group,fill=cols)) +
-  geom_polygon(data=polLand,aes(long,lat,group=group)) +
-  labs(x = "Longitude", y = "Latitude") +
-  theme(axis.text.y   = element_text(colour="black"),
-        axis.text.x   = element_text(colour="black"),
-        axis.title.y  = element_text(size=14,face="bold"),
-        axis.title.x  = element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc(legend.position = "right")
 ```
 
 \newpage
@@ -631,95 +515,63 @@ ggplot(polLand,aes(long,lat)) +
   geom_polygon(data=polVMS,aes(long,lat,group=group,fill=cols)) +
   geom_polygon(data=polLand,aes(long,lat,group=group)) +
   labs(x = "Longitude", y = "Latitude") +
-  theme(axis.text.y   = element_text(colour="black"),
-        axis.text.x   = element_text(colour="black"),
-        axis.title.y  = element_text(size=14,face="bold"),
-        axis.title.x  = element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icessq()
 ```
 
 \newpage
 
-## Mean landing per KW fishing hours by year:
+## Mean landing per kW fishing hours by year:
 
 ```{r landings-by-gear}
-dat2tab <- as.matrix(aggregate(ICES_VE$totweight/ICES_VE$kw_fishinghours,by=list(ICES_VE$year,ICES_VE$gear_code),FUN=median))
-colnames(dat2tab) <- c("Year","Gear_code","KGkwH")
-dat2tab <- as.data.frame(orderBy(~Year,data=dat2tab),stringsAsFactors=F)
-dat2tab$KGkwH <- as.numeric(dat2tab$KGkwH)
-dat2tab <- acast(dat2tab,Year ~ Gear_code,value.var="KGkwH")
+dat2tab <- 
+  with(ICES_VE, 
+       tapply(totweight/kw_fishinghours, list(year, gear_code), median, na.rm = TRUE))
+names(dimnames(dat2tab)) <- c("year","gear_code")
 kable(dat2tab)
 
-dat2plot  <- melt(dat2tab)
-colnames(dat2plot) <- c("Year","Gear_code","KGkwH")
-dat2plot$cols      <- as.numeric(af(dat2plot$Gear_code))
+dat2plot <- as.data.frame.table(dat2tab, responseName = "kgkWh")
 
-ggplot(dat2plot,aes(x=Year,y=KGkwH)) +
-  geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
-  xlab("Year") + ylab ("KG/kwH") +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+ggplot(dat2plot, aes(x = year, y = kgkWh)) +
+  geom_line(aes(group = gear_code, colour = gear_code), lwd=1.5) +
+  xlab("Year") + ylab ("kg/kWh") +
+  theme_icesqc(legend.position = "right")
 ```
 
 \newpage
 
 ## Value by gear by year:
 ```{r value-by-gear-year, results='asis'}
-dat2tab <- as.matrix(aggregate(ICES_VE$totvalue,by=list(ICES_VE$year,ICES_VE$gear_code),FUN=sum))
-colnames(dat2tab) <- c("Year","Gear_code","EUR_landed")
-dat2tab <- as.data.frame(orderBy(~Year,data=dat2tab),stringsAsFactors=F)
-dat2tab$EUR_landed <- as.numeric(dat2tab$EUR_landed)
-dat2tab <- acast(dat2tab,Year ~ Gear_code,value.var="EUR_landed")
+dat2tab <- 
+  with(ICES_VE, 
+       tapply(totvalue, list(year, gear_code), sum, na.rm = TRUE))
+names(dimnames(dat2tab)) <- c("year","gear_code")
 kable(dat2tab)
 
-dat2plot  <- melt(dat2tab)
-colnames(dat2plot) <- c("Year","Gear_code","EUR_landed")
-dat2plot$cols      <- as.numeric(af(dat2plot$Gear_code))
+dat2plot <- as.data.frame.table(dat2tab, responseName = "EUR_landed")
 
-ggplot(dat2plot,aes(x=Year,y=EUR_landed)) +
-  geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
+ggplot(dat2plot, aes(x = year, y = EUR_landed)) +
+  geom_line(aes(group = gear_code, colour = gear_code), lwd=1.5) +
   xlab("Year") + ylab ("EUR landed") +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc(legend.position = "right")
 ```
 
 \newpage
 
-## Mean value per KW fishing hours by year:
+## Median value per KW fishing hours by year:
 
 ```{r mean-value-by-KWhours-year, results='asis'}
-dat2tab <- as.matrix(aggregate(ICES_VE$totvalue/ICES_VE$kw_fishinghours,by=list(ICES_VE$year,ICES_VE$gear_code),FUN=median))
-colnames(dat2tab) <- c("Year","Gear_code","EURkwH")
-dat2tab <- as.data.frame(orderBy(~Year,data=dat2tab),stringsAsFactors=F)
-dat2tab$EURkwH <- as.numeric(dat2tab$EURkwH)
-dat2tab <- acast(dat2tab,Year ~ Gear_code,value.var="EURkwH")
+dat2tab <- 
+  with(ICES_VE, 
+       tapply(totvalue/kw_fishinghours, list(year, gear_code), median, na.rm = TRUE))
+names(dimnames(dat2tab)) <- c("year","gear_code")
 kable(dat2tab)
 
-dat2plot  <- melt(dat2tab)
-colnames(dat2plot) <- c("Year","Gear_code","EURkwH")
-dat2plot$cols      <- as.numeric(af(dat2plot$Gear_code))
+dat2plot <- as.data.frame.table(dat2tab, responseName = "EURkWh")
 
-ggplot(dat2plot,aes(x=Year,y=EURkwH)) +
-  geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
-  xlab("Year") + ylab ("EUR/kwH") +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+ggplot(dat2plot, aes(x = year, y = EURkWh)) +
+  geom_line(aes(group = gear_code, colour = gear_code), lwd=1.5) +
+  xlab("Year") + ylab ("EUR/kWh") +
+  theme_icesqc(legend.position = "right")
 ```
 
 \newpage
@@ -727,21 +579,31 @@ ggplot(dat2plot,aes(x=Year,y=EURkwH)) +
 ##  Average price:
 
 ```{r price, results='asis'}
-  dat2plot  <- aggregate(ICES_VE$totvalue/ICES_VE$totweight,by=list(ICES_VE$year),FUN=median)
-  dat2plot$x <- as.numeric(dat2plot$x)
-  colnames(dat2plot) <- c("Year","MeanPrice")
-  ggplot(dat2plot,aes(x=Year,y=MeanPrice))+
-    geom_line(lwd=1.5) +
-    xlab("Year") + ylab ("EUR/kwH") +
-    theme(axis.title=element_text(size=14,face="bold"),
-          panel.background = element_blank(),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.line = element_line(colour = "black"),
-          panel.border = element_rect(colour = "black", fill=NA))
+dat2tab <- 
+  with(ICES_VE, 
+       tapply(totvalue/totweight, list(year, gear_code), median, na.rm = TRUE))
+names(dimnames(dat2tab)) <- c("year","gear_code")
+kable(dat2tab)
+
+dat2plot <- as.data.frame.table(dat2tab, responseName = "MeanPrice")
+
+ggplot(dat2plot, aes(x = year, y = MeanPrice)) +
+  geom_line(aes(group = gear_code, colour = gear_code), lwd=1.5) +
+  xlab("Year") + ylab ("Mean price") +
+  theme_icesqc(legend.position = "right")
 ```
 
 \newpage
+
+
+
+
+<!--- 
+                       --------------
+                       LOGBOOK CHECKS
+                       --------------
+--->
+
 
 # Quality of the logbook
 
@@ -753,12 +615,7 @@ dat2plot <- data.frame(table(ICES_LE$year))
 colnames(dat2plot) <- c("Year","Freq")
 ggplot(dat2plot,aes(x=Year,y=Freq)) +
   geom_bar(stat="identity") + xlab("Year") + ylab("Number of records") +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-              panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(),
-              axis.line = element_line(colour = "black"),
-              panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
@@ -769,12 +626,7 @@ kable(table(ICES_LE$month,ICES_LE$year))
 
 qplot(factor(year),data=ICES_LE, geom="bar",fill=factor(month)) +
   xlab("Years") + ylab ("Count") + scale_fill_grey(guide=guide_legend(title="Month")) +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
@@ -817,16 +669,7 @@ ggplot(polLand,aes(long,lat)) +
   geom_polygon(data=polLand,aes(long,lat,group=group)) +
   facet_wrap(~year,ncol=2) +
   labs(x = "Longitude", y = "Latitude") +
-  theme(axis.text.y   = element_text(colour="black"),
-        axis.text.x   = element_text(colour="black"),
-        axis.title.y  = element_text(size=14,face="bold"),
-        axis.title.x  = element_text(size=14,face="bold"),
-        legend.position = "none",
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
@@ -837,12 +680,7 @@ kable(table(ICES_LE$vessel_length_category,ICES_LE$year))
 
 qplot(factor(year),data=ICES_LE, geom="bar",fill=factor(vessel_length_category)) +
   xlab("Years") + ylab ("Count") + scale_fill_grey(guide=guide_legend(title="Length category")) +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
@@ -853,12 +691,7 @@ kable(table(ICES_LE$gear_code,ICES_LE$year))
 
 qplot(factor(year),data=ICES_LE, geom="bar",fill=factor(gear_code)) +
   xlab("Years") + ylab ("Count") + scale_fill_grey(guide=guide_legend(title="Gear code")) +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
@@ -875,12 +708,7 @@ kable(table(ICES_LE$LE_MET_level6,ICES_LE$year)[top5Met6,])
 
 qplot(factor(year),data=subset(ICES_LE,LE_MET_level6 %in% top5Met6), geom="bar",fill=factor(LE_MET_level6)) +
   xlab("Years") + ylab ("Count") + scale_fill_grey(guide=guide_legend(title="Level 6")) +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
@@ -898,12 +726,7 @@ ggplot(dat2plot,aes(x=fishing_days))+
   geom_histogram() +
   xlab("Average fishing days") + ylab ("Count") +
   facet_wrap(~year,ncol=2) +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
@@ -916,12 +739,7 @@ ggplot(dat2plot,aes(x=kw_fishing_days))+
   geom_histogram() +
   xlab("Average KW-days") + ylab ("Count") +
   facet_wrap(~year,ncol=2) +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
@@ -942,12 +760,7 @@ dat2plot$cols      <- as.numeric(af(dat2plot$Gear_code))
 ggplot(dat2plot,aes(x=Year,y=KG_landed)) +
   geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
   xlab("Year") + ylab ("KG landed") +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
@@ -996,16 +809,7 @@ ggplot(polLand,aes(long,lat)) +
   geom_polygon(data=polLand,aes(long,lat,group=group)) +
   facet_wrap(~year,ncol=2) +
   labs(x = "Longitude", y = "Latitude") +
-  theme(axis.text.y   = element_text(colour="black"),
-        axis.text.x   = element_text(colour="black"),
-        axis.title.y  = element_text(size=14,face="bold"),
-        axis.title.x  = element_text(size=14,face="bold"),
-        legend.position="top",
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
@@ -1058,15 +862,7 @@ polRect              <- merge(polRect,cols,by=c("ICES_rectangle"))
     geom_polygon(data=polRect,aes(long,lat,group=group,fill=cols)) +
     geom_polygon(data=polLand,aes(long,lat,group=group)) +
     labs(x = "Longitude", y = "Latitude") +
-    theme(axis.text.y   = element_text(colour="black"),
-          axis.text.x   = element_text(colour="black"),
-          axis.title.y  = element_text(size=14,face="bold"),
-          axis.title.x  = element_text(size=14,face="bold"),
-          panel.background = element_blank(),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.line = element_line(colour = "black"),
-          panel.border = element_rect(colour = "black", fill=NA))
+    theme_icesqc()
 ```
 
 \newpage
@@ -1119,15 +915,7 @@ ggplot(polLand,aes(long,lat)) +
   geom_polygon(data=polRect,aes(long,lat,group=group,fill=cols)) +
   geom_polygon(data=polLand,aes(long,lat,group=group)) +
   labs(x = "Longitude", y = "Latitude") +
-  theme(axis.text.y   = element_text(colour="black"),
-        axis.text.x   = element_text(colour="black"),
-        axis.title.y  = element_text(size=14,face="bold"),
-        axis.title.x  = element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
@@ -1139,12 +927,7 @@ ggplot(subset(ICES_LE,year==tempBoundLog[2]),aes(x=fishing_days,y=totweight)) +
   geom_point() +
   facet_wrap(~gear_code,ncol=2,scale="free") +
   xlab("Fishing days") + ylab ("Total weight") +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
@@ -1167,12 +950,7 @@ dat2plot$cols      <- as.numeric(af(dat2plot$Gear_code))
 ggplot(dat2plot,aes(x=Year,y=KGkwH)) +
   geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
   xlab("Year") + ylab ("KG/kwH") +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
@@ -1194,12 +972,7 @@ dat2plot$cols      <- as.numeric(af(dat2plot$Gear_code))
 ggplot(dat2plot,aes(x=Year,y=EUR_landed)) +
   geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
   xlab("Year") + ylab ("EUR landed") +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
@@ -1221,12 +994,7 @@ dat2plot$cols      <- as.numeric(af(dat2plot$Gear_code))
 ggplot(dat2plot,aes(x=Year,y=EURkwH)) +
   geom_line(aes(group=Gear_code,colour=Gear_code),lwd=1.5) +
   xlab("Year") + ylab ("EUR/kwH") +
-  theme(axis.title=element_text(size=14,face="bold"),
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+  theme_icesqc()
 ```
 
 \newpage
@@ -1240,12 +1008,6 @@ ggplot(dat2plot,aes(x=Year,y=EURkwH)) +
   ggplot(dat2plot,aes(x=Year,y=MeanPrice))+
     geom_line(lwd=1.5) +
     xlab("Year") + ylab ("EUR/kwH") +
-    theme(axis.title=element_text(size=14,face="bold"),
-          panel.background = element_blank(),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.line = element_line(colour = "black"),
-          panel.border = element_rect(colour = "black", fill=NA))
+    theme_icesqc()
 ```
-
 
