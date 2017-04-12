@@ -804,7 +804,7 @@ spatialplot(polRect) +
 \newpage
 
 ## Spatial difference of effort `r tempBound[1]`:`r (tempBound[2]-1)` vs `r tempBound[2]`
-```{r , results='asis'}
+```{r,  fig.height = 9}
 base <- with(ICES_LE, 
              aggregate(fishing_days, 
                        by = list(ICES_rectangle = ICES_rectangle, year = year),
@@ -841,7 +841,7 @@ polRect <- make_polVMS(dat2plot, resolution = 1)
 polRect$ICES_rectangle <- rep(dat2plot$ICES_rectangle, each = 5)
 
 ## tidy ---
-breaks <- log10(rev(c(1e-10,0.5,2/3,0.8,0.952381,1,1.05,1.25,1.5,2,1e10)))
+breaks <- rev(c(1e-10,0.5,2/3,0.8,0.952381,1,1.05,1.25,1.5,2,1e10))
 legval <- c("historic >>","historic> +100%","historic> +50%","historic> +25%",
             "+/-5%",
             "recent> +5%","recent> +25%","recent> +50%","recent> +100%","recent >>")
@@ -861,7 +861,7 @@ spatialplot(polRect) +
 
 ## Spatial difference of effort `r tempBound[2]-1` vs `r tempBound[2]`
 
-```{r , results='asis'}
+```{r,  fig.height = 9}
 base <- with(ICES_LE, 
              aggregate(fishing_days, 
                        by = list(ICES_rectangle = ICES_rectangle, year = year),
@@ -895,7 +895,7 @@ polRect <- make_polVMS(dat2plot, resolution = 1)
 polRect$ICES_rectangle <- rep(dat2plot$ICES_rectangle, each = 5)
 
 ## tidy ---
-breaks <- log10(rev(c(1e-10,0.5,2/3,0.8,0.952381,1,1.05,1.25,1.5,2,1e10)))
+breaks <- rev(c(1e-10,0.5,2/3,0.8,0.952381,1,1.05,1.25,1.5,2,1e10))
 legval <- c("historic >>","historic> +100%","historic> +50%","historic> +25%",
             "+/-5%",
             "recent> +5%","recent> +25%","recent> +50%","recent> +100%","recent >>")
@@ -915,7 +915,7 @@ spatialplot(polRect) +
 
 
 ## Relationship fishing days and total weight
-```{r }
+```{r , fig.height = 9}
 ggplot(ICES_LE[ICES_LE$year == tempBoundLog[2],], 
        aes(x = fishing_days, y = totweight)) +
   geom_point() +
