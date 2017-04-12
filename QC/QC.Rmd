@@ -987,3 +987,31 @@ ggplot(dat2plot, aes(x = year, y = MeanPrice)) +
   xlab("Year") + ylab ("Mean price") +
   theme_icesqc(legend.position = "right")
 ```
+
+\newpage
+
+## Comparison of Metier level 6 reporting between logbook and VMS
+```{r met6-comparison, results = 'asis'}
+
+ledat <- with(ICES_LE, table(LE_MET_level6, year))
+vedat <- with(ICES_VE, table(LE_MET_level6, year))
+
+dat2tab <- 
+  rbind(
+    cbind(as.data.frame.table(ledat), data = "LE (records)"),
+    cbind(as.data.frame.table(vedat), data = "VE (pings)"))
+
+tab <- with(dat2tab, tapply(Freq, list(LE_MET_level6, data, year), sum))
+tab[tab == 0] <- NA
+
+options(knitr.kable.NA = '.')
+
+for (i in dimnames(tab)[[3]]) {
+  x <- tab[,,i]
+  x <- x[apply(!is.na(x), 1, any),]
+  cat(kable(cbind(x, year = i), table.attr='class="flat-table"'), sep = "\n")
+  cat("\n")
+}
+
+options(knitr.kable.NA = 'NA')
+```
