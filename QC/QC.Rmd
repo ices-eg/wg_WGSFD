@@ -48,13 +48,13 @@ Data handling
 # NOTE:
 #   This chunk of code is replaced when a template is created.
 
-ICES_LE <- read.table('data/ICES_LE_DNK.csv', sep = ',', header = TRUE,
+ICES_LE <- read.table('data/ICES_LE_SWE.csv', sep = ',', header = TRUE,
           stringsAsFactors = FALSE, na.strings = 'NULL',
           colClasses = c('character', 'character', 'numeric', 'numeric',
                          'character', 'character', 'character', 'numeric',
                          'character', 'character',
                          'numeric', 'numeric', 'numeric'))
-ICES_VE <- read.table('data/ICES_VE_DNK.csv', sep = ',', header = TRUE,
+ICES_VE <- read.table('data/ICES_VE_SWE.csv', sep = ',', header = TRUE,
           stringsAsFactors = FALSE, na.strings = 'NULL',
           colClasses = c('character', 'character', 'numeric', 'numeric',
                          'character', 'character', 'character', 'character',
@@ -129,9 +129,9 @@ make_polVMS <- function(coordGrd, resolution = 0.05) {
 spatialplot <- function(data, xyrange = spatCore) {
   ggplot(polLand, aes(long, lat)) +
     geom_polygon(aes(group=group), fill = "light grey") +
-    coord_fixed(ratio = vmstools::lonLatRatio(mean(xyrange$xrange), mean(xyrange$yrange)),
-                xlim=xyrange$xrange, 
-                ylim=xyrange$yrange) +
+    coord_fixed(ratio = vmstools::lonLatRatio(min(xyrange$xrange), min(xyrange$yrange)),
+                xlim = xyrange$xrange, 
+                ylim = xyrange$yrange) +
     labs(x = "Longitude", y = "Latitude") +
     geom_polygon(data = data, 
                  aes(long, lat, group = group, fill = cols)) +
@@ -184,7 +184,7 @@ kable(dat2tab)
 coordGrd <- unique(ICES_VE[, c("SI_LONG", "SI_LATI", "year")])
 
 # create a fortied polygon of csquares
-polVMS <- make_polVMS(coordGrd)
+polVMS <- make_polVMS(coordGrd, resolution = 0.5)
 polVMS$year <- rep(coordGrd$year, each = 5)
 polVMS$cols <- "red"
 
@@ -194,6 +194,13 @@ spatialplot(polVMS, spatBound) +
 ```
 
 ```{r area-of-data2,  fig.height = 9}
+coordGrd <- unique(ICES_VE[, c("SI_LONG", "SI_LATI", "year")])
+
+# create a fortied polygon of csquares
+polVMS <- make_polVMS(coordGrd)
+polVMS$year <- rep(coordGrd$year, each = 5)
+polVMS$cols <- "red"
+
 spatialplot(polVMS, spatCore) +
   facet_wrap(~ year, ncol = 2) +
   theme_icesqc()
@@ -798,47 +805,55 @@ spatialplot(polRect) +
 
 ## Spatial difference of effort `r tempBound[1]`:`r (tempBound[2]-1)` vs `r tempBound[2]`
 ```{r , results='asis'}
-base            <- subset(ICES_LE,year < (tempBoundLog[2]-1))
-recent          <- subset(ICES_LE,year == tempBoundLog[2])
-datbase         <- aggregate(base$fishing_days,by=list(base$ICES_rectangle,base$year),FUN=sum,na.rm=T)
-datbase         <- aggregate(datbase$x,by=list(datbase$Group.1),FUN=median,na.rm=T)
-datrecent       <- aggregate(recent$fishing_days,by=list(recent$ICES_rectangle),FUN=sum,na.rm=T)
-colnames(datbase)    <- c("ICES_rectangle","fishing_days_median")
-colnames(datrecent)   <- c("ICES_rectangle","fishing_days")
-dat2plot        <- merge(datbase,datrecent[,c("ICES_rectangle","fishing_days")],by=c("ICES_rectangle"),all=T)
+base <- with(ICES_LE, 
+             aggregate(fishing_days, 
+                       by = list(ICES_rectangle = ICES_rectangle, year = year),
+                       FUN = sum, na.rm = TRUE))
+base <- dplyr::rename(base, fishing_days = x)
+
+# calculate total fishing hours for recent year
+recent <- base[base$year == tempBound[2],]
+
+# calculate median of the total fishing hours per square for historical years
+base <- with(base[base$year < tempBound[2],], 
+             aggregate(fishing_days,
+                       by = list(ICES_rectangle = ICES_rectangle), 
+                       FUN = median, na.rm = TRUE))
+base <- dplyr::rename(base, fishing_days_median = x)
+
+# join
+dat2plot <- dplyr::full_join(base,
+                             recent[,c("ICES_rectangle","fishing_days")])
+
+# set NAs to zero
 dat2plot$fishing_days_median[is.na(dat2plot$fishing_days_median)] <- 0
 dat2plot$fishing_days[is.na(dat2plot$fishing_days)] <- 0
-dat2plot$ratio  <- log10(dat2plot$fishing_days_median / dat2plot$fishing_days)
-dat2plot        <- cbind(dat2plot,ICESrectangle2LonLat(dat2plot$ICES_rectangle,midpoint=T))
-dat2plot$ratio[which(is.infinite(dat2plot$ratio) & dat2plot$fishing_days == 0)] <- 9
-dat2plot$ratio[which(is.infinite(dat2plot$ratio) & dat2plot$fishing_days_median == 0)] <- -9
-dat2plot$ratio[is.nan(dat2plot$ratio)] <- 0
 
-grdAll <- 
-  lapply(1:nrow(dat2plot),
-         function(i) {
-           out <- list(SI_LONG = dat2plot[i, "SI_LONG"] + c(-1, 1, 1, -1) * 1/2,
-                       SI_LATI = dat2plot[i, "SI_LATI"] + c(-1, -1, 1, 1) * 1/2)
-           attr(out, "row.names") <- paste(1:4)
-           attr(out, "class") <- "data.frame"
-           out
-         })
-grdAll <- lonLat2SpatialPolygons(lst = grdAll)
+# calculate ratio (with exceptions for zeros)
+dat2plot$ratio <- with(dat2plot, pmax(fishing_days_median, 1e-9) / pmax(fishing_days, 1e-9))
 
-polRect          <- fortify(grdAll)
-polRect$ICES_rectangle <- rep(dat2plot$ICES_rectangle,each=5)
+# add back in lat and long
+dat2plot <- cbind(dat2plot,
+                  vmstools::ICESrectangle2LonLat(dat2plot$ICES_rectangle, midpoint = TRUE))
 
-cutbreaksval        <- log10(rev(c(1e-10,0.5,2/3,0.8,0.952381,1,1.05,1.25,1.5,2,1e10)))
-legval              <- c("historic >>","historic> +100%","historic> +50%","historic> +25%","+/-5%","recent> +5%","recent> +25%","recent> +50%","recent> +100%","recent >>")
-colintens           <- brewer.pal(length(cutbreaksval)-1,"RdYlBu")  #colour for fishing intensity
-cols                <- colintens[cut(dat2plot$ratio,breaks=cutbreaksval)]
-cols                <- cbind(cols,ICES_rectangle=dat2plot$ICES_rectangle)
-polRect              <- merge(polRect,cols,by=c("ICES_rectangle"))
+# make 'fortified' data frame
+polRect <- make_polVMS(dat2plot, resolution = 1)
+polRect$ICES_rectangle <- rep(dat2plot$ICES_rectangle, each = 5)
+
+## tidy ---
+breaks <- log10(rev(c(1e-10,0.5,2/3,0.8,0.952381,1,1.05,1.25,1.5,2,1e10)))
+legval <- c("historic >>","historic> +100%","historic> +50%","historic> +25%",
+            "+/-5%",
+            "recent> +5%","recent> +25%","recent> +50%","recent> +100%","recent >>")
+palette <- brewer.pal(length(cutbreaksval)-1,"RdYlBu")
+colgrp <- as.numeric(cut(dat2plot$ratio, breaks = breaks))
+cols <- cbind(cols = palette[colgrp], ICES_rectangle = dat2plot$ICES_rectangle)
+polRect <- merge(polRect, cols, by=c("ICES_rectangle"))
+# ---
 
 spatialplot(polRect) +
     guides(fill=guide_legend(title="Days@Sea")) +
-    scale_fill_manual(values = colorRampPalette(rev(brewer.pal(length(cutbreaksval),"RdYlBu")))(length(cutbreaksval)-1),labels=legval) +
-    labs(x = "Longitude", y = "Latitude") +
+    scale_fill_manual(values = rev(palette), labels = legval) +
     theme_icesqc(legend.position = "right")
 ```
 
@@ -847,47 +862,53 @@ spatialplot(polRect) +
 ## Spatial difference of effort `r tempBound[2]-1` vs `r tempBound[2]`
 
 ```{r , results='asis'}
-base            <- subset(ICES_LE,year == (tempBoundLog[2]-1))
-recent          <- subset(ICES_LE,year == tempBoundLog[2])
-datbase         <- aggregate(base$fishing_days,  by=list(base$ICES_rectangle),  FUN=sum,na.rm=T)
-datrecent       <- aggregate(recent$fishing_days,by=list(recent$ICES_rectangle),FUN=sum,na.rm=T)
-colnames(datbase)    <- c("ICES_rectangle","fishing_days_median")
-colnames(datrecent)   <- c("ICES_rectangle","fishing_days")
-dat2plot        <- merge(datbase,datrecent[,c("ICES_rectangle","fishing_days")],by=c("ICES_rectangle"),all=T)
+base <- with(ICES_LE, 
+             aggregate(fishing_days, 
+                       by = list(ICES_rectangle = ICES_rectangle, year = year),
+                       FUN = sum, na.rm = TRUE))
+base <- dplyr::rename(base, fishing_days = x)
+
+# calculate total fishing hours for recent year
+recent <- base[base$year == tempBound[2],]
+
+# previous year
+base <- base[base$year == tempBound[2]-1,]
+base <- dplyr::rename(base, fishing_days_median = fishing_days)
+
+# join
+dat2plot <- dplyr::full_join(base,
+                             recent[,c("ICES_rectangle","fishing_days")])
+
+# set NAs to zero
 dat2plot$fishing_days_median[is.na(dat2plot$fishing_days_median)] <- 0
 dat2plot$fishing_days[is.na(dat2plot$fishing_days)] <- 0
-dat2plot$ratio  <- log10(dat2plot$fishing_days_median / dat2plot$fishing_days)
-dat2plot        <- cbind(dat2plot,ICESrectangle2LonLat(dat2plot$ICES_rectangle,midpoint=T))
-dat2plot$ratio[which(is.infinite(dat2plot$ratio) & dat2plot$fishing_days == 0)] <- 9
-dat2plot$ratio[which(is.infinite(dat2plot$ratio) & dat2plot$fishing_days_median == 0)] <- -9
-dat2plot$ratio[is.nan(dat2plot$ratio)] <- 0
 
-grdAll <- 
-  lapply(1:nrow(dat2plot),
-         function(i) {
-           out <- list(SI_LONG = dat2plot[i, "SI_LONG"] + c(-1, 1, 1, -1) * 1/2,
-                       SI_LATI = dat2plot[i, "SI_LATI"] + c(-1, -1, 1, 1) * 1/2)
-           attr(out, "row.names") <- paste(1:4)
-           attr(out, "class") <- "data.frame"
-           out
-         })
-grdAll <- lonLat2SpatialPolygons(lst = grdAll)
+# calculate ratio (with exceptions for zeros)
+dat2plot$ratio <- with(dat2plot, pmax(fishing_days_median, 1e-9) / pmax(fishing_days, 1e-9))
 
-polRect          <- fortify(grdAll)
-polRect$ICES_rectangle <- rep(dat2plot$ICES_rectangle,each=5)
+# add back in lat and long
+dat2plot <- cbind(dat2plot,
+                  vmstools::ICESrectangle2LonLat(dat2plot$ICES_rectangle, midpoint = TRUE))
 
-cutbreaksval        <- log10(rev(c(1e-10,0.5,2/3,0.8,0.952381,1,1.05,1.25,1.5,2,1e10)))
-legval              <- c("historic >>","historic> +100%","historic> +50%","historic> +25%","+/-5%","recent> +5%","recent> +25%","recent> +50%","recent> +100%","recent >>")
-colintens           <- brewer.pal(length(cutbreaksval)-1,"RdYlBu")  #colour for fishing intensity
-cols                <- colintens[cut(dat2plot$ratio,breaks=cutbreaksval)]
-cols                <- cbind(cols,ICES_rectangle=dat2plot$ICES_rectangle)
-polRect              <- merge(polRect,cols,by=c("ICES_rectangle"))
+# make 'fortified' data frame
+polRect <- make_polVMS(dat2plot, resolution = 1)
+polRect$ICES_rectangle <- rep(dat2plot$ICES_rectangle, each = 5)
+
+## tidy ---
+breaks <- log10(rev(c(1e-10,0.5,2/3,0.8,0.952381,1,1.05,1.25,1.5,2,1e10)))
+legval <- c("historic >>","historic> +100%","historic> +50%","historic> +25%",
+            "+/-5%",
+            "recent> +5%","recent> +25%","recent> +50%","recent> +100%","recent >>")
+palette <- brewer.pal(length(cutbreaksval)-1,"RdYlBu")
+colgrp <- as.numeric(cut(dat2plot$ratio, breaks = breaks))
+cols <- cbind(cols = palette[colgrp], ICES_rectangle = dat2plot$ICES_rectangle)
+polRect <- merge(polRect, cols, by=c("ICES_rectangle"))
+# ---
 
 spatialplot(polRect) +
-  guides(fill=guide_legend(title="Days@Sea")) +
-  scale_fill_manual(values = colorRampPalette(rev(brewer.pal(length(cutbreaksval),"RdYlBu")))(length(cutbreaksval)-1),labels=legval) +
-  labs(x = "Longitude", y = "Latitude") +
-  theme_icesqc(legend.position = "right")
+    guides(fill=guide_legend(title="Days@Sea")) +
+    scale_fill_manual(values = rev(palette), labels = legval) +
+    theme_icesqc(legend.position = "right")
 ```
 
 \newpage
