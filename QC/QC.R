@@ -64,7 +64,7 @@ for (country in countries) {
   t0 <- proc.time()
   
   # setup file name
-  fname <- paste0("QC_", country,".Rmd")
+  fname <- paste0("QC_", country, format(Sys.time(), "_%Y-%m-%d_%b-%Y"),".Rmd")
 
   # fillin and write template
   cat(makeQCRmd(country, qc), sep = "\n", file = fname)
