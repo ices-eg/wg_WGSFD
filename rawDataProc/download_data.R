@@ -1,16 +1,23 @@
 
-# get packages
-devtools::install_github("hadley/dplyr@v0.4.3")
-# set large java mem
-options(java.parameters='-Xmx8g')
+# packages
+library(RODBC)
+# settings
+dbConnection <- 'Driver={SQL Server};Server=SQL06;Database=VMS;Trusted_Connection=yes'
 
 # create directories
 if (!dir.exists("data")) dir.create("data")
 
 # connect to DB
-db <- DBI::dbConnect(RSQLServer::SQLServer(), "SQL06", database = 'VMS')
+conn <- odbcDriverConnect(connection = dbConnection)
 
-submitted_countries <- c('DNK', 'BEL', 'SWE', 'NLD', 'FRA', 'FIN', 'LTU', 'POL', 'Latvia', 'PRT','IRL')
+# get submitted countries
+#sqlq <- sprintf("SELECT DISTINCT country FROM dbo._2017_ICES_VMS_Datacall_LE", country)
+#sqlQuery(conn, sqlq)$country
+#submitted_countries <- c('DNK', 'BEL', 'SWE', 'NLD', 'FRA', 'FIN', 'LTU', 'POL', 
+#                         'Latvia', 'PRT','IRL', 'GBR')
+
+submitted_countries <- c('FRA', 'LTU', 'Latvia', 'GBR')
+
 
 for (country in submitted_countries) {
   cat("downloading LE data for ... ", country, "\n")
@@ -20,20 +27,9 @@ for (country in submitted_countries) {
   fname <- paste0("data/ICES_LE_", country, ".csv")
   
   # fetch
-  res <- DBI::dbSendQuery(db, sqlq)
-  out <- DBI::dbFetch(res, n = 1e5)
+  out <- sqlQuery(conn, sqlq)
   # save to file
   write.csv(out, file = fname, row.names = FALSE)
-
-  # Fetch in chunks
-  while (!DBI::dbHasCompleted(res)) {
-    out <- DBI::dbFetch(res, n = 1e5)
-    write.table(out, file = fname, 
-                row.names = FALSE, sep = ",", dec = ".",
-                col.names = FALSE,
-                append = TRUE)
-  }
-  DBI::dbClearResult(res)
 }
 
 
@@ -45,21 +41,10 @@ for (country in submitted_countries) {
   fname <- paste0("data/ICES_VE_", country, ".csv")
   
   # fetch
-  res <- DBI::dbSendQuery(db, sqlq)
-  out <- DBI::dbFetch(res, n = 1e5)
+  out <- sqlQuery(conn, sqlq)
   # save to file
   write.csv(out, file = fname, row.names = FALSE)
-
-  # Fetch in chunks
-  while (!DBI::dbHasCompleted(res)) {
-    out <- DBI::dbFetch(res, n = 1e5)
-    write.table(out, file = fname, 
-                row.names = FALSE, sep = ",", dec = ".",
-                col.names = FALSE,
-                append = TRUE)
-  }
-  DBI::dbClearResult(res)
 }
 
 # disconnect
-DBI::dbDisconnect(db)
+odbcClose(conn)
