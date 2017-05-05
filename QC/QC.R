@@ -1,4 +1,8 @@
 
+
+# install vmstools from github
+#devtools::install_github("nielshintzen/vmstools/vmstools")
+
 # This script creates an Rmd file for a specific country
 
 # utility function
