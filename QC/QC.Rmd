@@ -253,7 +253,7 @@ qplot(factor(year), data = ICES_VE, geom = "bar", fill = factor(gear_code)) +
 # get 3 main gears
 gear_table <- with(ICES_VE, aggregate(fishing_hours, list(gear_code = gear_code), sum, na.rm = TRUE))
 gear_table <- gear_table[order(gear_table$x, decreasing = TRUE),]
-top3gears <- gear_table$gear_code[1:3]
+top3gears <- gear_table$gear_code[1:pmin(3, nrow(gear_table))]
 
 # split by gear
 idx <- which(ICES_VE$gear_code %in% top3gears)
@@ -308,8 +308,9 @@ kable(count(unique(ICES_VE[,c("LE_MET_level6","year")]),"year"))
 
 Top 5 DCF Level 6 codes by year:
 ```{r top5-met6} 
-top5Met6 <- names(sort(table(ICES_VE$LE_MET_level6), decreasing = TRUE)[1:5])
-kable(table(ICES_VE$LE_MET_level6, ICES_VE$year)[top5Met6,])
+top5Met6 <- names(sort(table(ICES_VE$LE_MET_level6), decreasing = TRUE))
+top5Met6 <- top5Met6[1:pmin(5, length(top5Met6))]
+kable(table(ICES_VE$LE_MET_level6, ICES_VE$year)[top5Met6,,drop=FALSE])
 
 qplot(factor(year), 
       data = ICES_VE[ICES_VE$LE_MET_level6 %in% top5Met6,],
