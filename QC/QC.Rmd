@@ -1,7 +1,11 @@
 ---
 title: "ICES VMS datacall quality check report"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: pdf_document
+header-includes:
+  - \usepackage{comment}
+output: 
+  pdf_document:
+    keep_tex: true
 ---
 
 <!-- QCTEMPLATE: header -->
@@ -146,6 +150,18 @@ Tables & Figures VMS
 ---------------------------------------------------------------------------- -->
 
 # Quality of the VMS data from `r country`
+
+```{r check-for-vms, results='asis'}
+hasvms <- nrow(ICES_VE) > 0
+haslogbook <- nrow(ICES_LE) > 0
+```
+
+`r if (!hasvms) {"No VMS data available\n\\begin{comment}"}`
+
+```{r set-eval-vms}
+opts_chunk$set(eval = hasvms)
+```
+
 ## Years & number of records for which data has been submitted:
 ```{r records-by-year, results='asis'}
 kable(plyr::count(ICES_VE,'year'))
@@ -613,6 +629,8 @@ ggplot(dat2plot, aes(x = year, y = MeanPrice)) +
   theme_icesqc(legend.position = "right")
 ```
 
+`r if (!hasvms) {"\\end{comment}"}`
+
 \newpage
 
 
@@ -631,6 +649,12 @@ ggplot(dat2plot, aes(x = year, y = MeanPrice)) +
 
 
 # Quality of the logbook
+
+`r if (!haslogbook) {"No Logbook data available\n\\begin{comment}"}`
+
+```{r set-eval-logbook}
+opts_chunk$set(eval = haslogbook)
+```
 
 ## Years & number of records for which data has been submitted:
 ```{r logbook-records, results='asis'}
@@ -1018,3 +1042,5 @@ for (i in dimnames(tab)[[3]]) {
   cat("\n")
 }
 ```
+
+`r if (!haslogbook) {"\\end{comment}"}`
