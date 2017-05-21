@@ -6,6 +6,7 @@ dbConnection <- 'Driver={SQL Server};Server=SQL06;Database=VMS;Trusted_Connectio
 
 # create directories
 if (!dir.exists("data")) dir.create("data")
+if (!dir.exists("data/QC")) dir.create("data/QC")
 
 # connect to DB
 conn <- odbcDriverConnect(connection = dbConnection)
@@ -23,7 +24,7 @@ for (country in countries) {
   
   # set up sql command
   sqlq <- sprintf("SELECT * FROM dbo._2017_ICES_VMS_Datacall_LE WHERE country = '%s'", country)
-  fname <- paste0("data/ICES_LE_", country, ".csv")
+  fname <- paste0("data/QC/ICES_LE_", country, ".csv")
   
   # fetch
   out <- sqlQuery(conn, sqlq)
@@ -37,7 +38,7 @@ for (country in countries) {
   
   # set up sql command
   sqlq <- sprintf("SELECT * FROM [dbo].[_2017_ICES_VMS_Datacall_VMS] WHERE country = '%s'", country)
-  fname <- paste0("data/ICES_VE_", country, ".csv")
+  fname <- paste0("data/QC/ICES_VE_", country, ".csv")
   
   # fetch
   out <- sqlQuery(conn, sqlq)
