@@ -14,10 +14,9 @@ conn <- odbcDriverConnect(connection = dbConnection)
 # get submitted countries
 #sqlq <- sprintf("SELECT DISTINCT country FROM dbo._2017_ICES_VMS_Datacall_LE", country)
 #sqlQuery(conn, sqlq)$country
-countries <- c('DNK', 'BEL', 'SWE', 'NLD', 'FRA', 'FIN', 'LTU', 'POL', 'Latvia', 'PRT','IRL', 'GBR')
-
+#countries <- c('DNK', 'BEL', 'SWE', 'NLD', 'FRA', 'FIN', 'LTU', 'POL', 'Latvia', 'PRT','IRL', 'GBR')
 #countries <-  c('FRA', 'LTU', 'Latvia', 'GBR')
-
+countries <-  c('ICE')
 
 for (country in countries) {
   cat("downloading LE data for ... ", country, "\n")

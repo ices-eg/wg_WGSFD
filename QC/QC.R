@@ -33,8 +33,8 @@ makeQCRmd <- function(country, qc) {
             "                         'numeric', 'numeric', 'numeric', 'numeric'))",
             "```",
             "", sep = "\n"),
-     paste0("data/ICES_LE_", country, ".csv"), 
-     paste0("data/ICES_VE_", country, ".csv"))
+     paste0("data/QC/ICES_LE_", country, ".csv"), 
+     paste0("data/QC/ICES_VE_", country, ".csv"))
 
   unlist(qc)
 }

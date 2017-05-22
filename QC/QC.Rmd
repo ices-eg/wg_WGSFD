@@ -52,13 +52,13 @@ Data handling
 # NOTE:
 #   This chunk of code is replaced when a template is created.
 
-ICES_LE <- read.table('data/ICES_LE_SWE.csv', sep = ',', header = TRUE,
+ICES_LE <- read.table('data/QC/ICES_LE_SWE.csv', sep = ',', header = TRUE,
           stringsAsFactors = FALSE, na.strings = 'NULL',
           colClasses = c('character', 'character', 'numeric', 'numeric',
                          'character', 'character', 'character', 'numeric',
                          'character', 'character',
                          'numeric', 'numeric', 'numeric'))
-ICES_VE <- read.table('data/ICES_VE_SWE.csv', sep = ',', header = TRUE,
+ICES_VE <- read.table('data/QC/ICES_VE_SWE.csv', sep = ',', header = TRUE,
           stringsAsFactors = FALSE, na.strings = 'NULL',
           colClasses = c('character', 'character', 'numeric', 'numeric',
                          'character', 'character', 'character', 'character',
