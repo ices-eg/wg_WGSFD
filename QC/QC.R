@@ -53,7 +53,7 @@ qc <- list(yaml = qc[1:(loc1-1)],
            body = qc[loc3:length(qc)])
 
 # get list of countries
-countries <- gsub("ICES_VE_|[.]csv", "", dir("data", pattern = "ICES_VE_*"))
+#countries <- gsub("ICES_VE_|[.]csv", "", dir("data", pattern = "ICES_VE_*"))
 
 # create report directory
 if (!dir.exists("QC/reports")) dir.create("QC/reports")
