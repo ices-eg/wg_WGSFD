@@ -1,7 +1,7 @@
 
 library(sp)
 
-years <- 2016
+years <- 2015
 
 for (year in years) {
   cat("Creating Fishing pressure shapefiles for ... ", year, "\n")

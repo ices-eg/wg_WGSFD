@@ -17,7 +17,7 @@ conn <- odbcDriverConnect(connection = dbConnection)
 #sqlQuery(conn, sqlq)
 
 
-years <- 2016
+years <- 2015
 
 for (year in years) {
   cat("downloading Fishing pressure total data for ... ", year, "\n")
