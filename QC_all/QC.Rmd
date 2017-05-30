@@ -658,6 +658,13 @@ ggplot(dat2plot, aes(x = year, y = MeanPrice)) +
 
 
 
+
+
+
+
+
+
+
 <!--- 
                        --------------
                        LOGBOOK CHECKS
@@ -716,7 +723,7 @@ qplot(factor(year),data=ICES_LE, geom="bar",fill=factor(month)) +
 ## Area extent of data submitted by year:
 ```{r , results='asis', fig.height = 9}
 dat2tab <- as.matrix(aggregate(ICES_LE$SI_LONG, by = list(year = ICES_LE$year), FUN=range, na.rm=TRUE))
-dat2tab <- cbind(dat2tab,as.matrix(aggregate(ICES_LE$SI_LATI,by=list(ICES_LE$year),FUN=range)[,-1]))
+dat2tab <- cbind(dat2tab,as.matrix(aggregate(ICES_LE$SI_LATI, by=list(ICES_LE$year), FUN=range, na.rm=TRUE)[,-1]))
 colnames(dat2tab) <- c("Year","min lon","max lon","min lat","max lat")
 kable(dat2tab)
 ```
