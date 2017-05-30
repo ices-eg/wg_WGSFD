@@ -1,8 +1,8 @@
 
 library(sp)
 
-years <- 2015
-datacallyears <- 2016:2017
+years <- 2009:2015
+datacallyears <- 2017
 
 for (datacallyear in datacallyears) {
 
@@ -59,7 +59,7 @@ for (year in years) {
     # subset out OSPAR region and HELCOM region
     if (type == "total") {
       # save output
-      rgdal::writeOGR(out, paste0("spatialPolygonsProducts/shapefiles/", datatable), 
+      rgdal::writeOGR(out, paste0("spatialPolygonsProducts/shapefiles/", datatable, "/", year), 
                       paste0("OSPAR_intensity_total_", year), 
                       driver = "ESRI Shapefile", overwrite_layer = TRUE)
     } else {
@@ -70,7 +70,7 @@ for (year in years) {
       }
       for (igeartype in unique(geartype)) 
         rgdal::writeOGR(out[geartype == igeartype,], 
-                        paste0("spatialPolygonsProducts/shapefiles/", datatable), 
+                        paste0("spatialPolygonsProducts/shapefiles/", datatable, "/", year), 
                         paste0("OSPAR_intensity_", igeartype, "_", year), 
                         driver = "ESRI Shapefile", overwrite_layer = TRUE)
     }
