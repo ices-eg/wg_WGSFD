@@ -39,4 +39,7 @@ spatialPolygonsProducts/shapefiles/*
 
 # ignore reports
 QC/reports/*
-QC_old/*
+QC_all/reports/*
+QC_*_files/*
+QC_*.tex
+QC_*.Rmd
