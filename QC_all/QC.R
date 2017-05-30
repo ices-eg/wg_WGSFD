@@ -19,22 +19,23 @@ makeQCRmd <- function(year, qc) {
             "---------------------------------------------------------------------------- -->",
             "```{r data}",
             "#Read in latest submission -->",
-            "ICES_LE <- read.table('%s', sep = ',', header = TRUE,",
+            "ICES_LE <- read.table('data/QC_all/ICES_LE_%1$s.csv', sep = ',', header = TRUE,",
             "          stringsAsFactors = FALSE, na.strings = 'NULL',",
             "          colClasses = c('character', 'character', 'numeric', 'numeric'," ,
             "                         'character', 'character', 'character', 'numeric',",
             "                         'character', 'character',",
             "                         'numeric', 'numeric', 'numeric'))",
-            "ICES_VE <- read.table('%s', sep = ',', header = TRUE,",
+            "ICES_LE <- ICES_LE[ICES_LE$year < %1$s & ICES_LE$year > 2008,]",
+            "ICES_VE <- read.table('data/QC_all/ICES_VE_%1$s.csv', sep = ',', header = TRUE,",
             "          stringsAsFactors = FALSE, na.strings = 'NULL',",
             "          colClasses = c('character', 'character', 'numeric', 'numeric',",
             "                         'character', 'character', 'character', 'character',",
             "                         'numeric', 'numeric', 'numeric', 'numeric',", 
             "                         'numeric', 'numeric', 'numeric', 'numeric'))",
+            "ICES_VE <- ICES_VE[ICES_VE$year < %1$s & ICES_VE$year > 2008,]",
             "```",
             "", sep = "\n"),
-     paste0("data/QC_all/ICES_LE_", year, ".csv"), 
-     paste0("data/QC_all/ICES_VE_", year, ".csv"))
+     year)
 
   unlist(qc)
 }
@@ -43,7 +44,7 @@ makeQCRmd <- function(year, qc) {
 # main script -----------------
 
 # read and parse template file
-qc <- readLines("QC/QC.Rmd")
+qc <- readLines("QC_all/QC.Rmd")
 loc1 <- grep("<!-- QCTEMPLATE: header -->", qc)
 loc2 <- grep("<!-- QCTEMPLATE: data -->", qc)
 loc3 <- grep("<!-- QCTEMPLATE: body -->", qc)
@@ -54,6 +55,8 @@ qc <- list(yaml = qc[1:(loc1-1)],
 
 # create report directory
 if (!dir.exists("QC_all/reports")) dir.create("QC_all/reports")
+
+years <- 2016
 
 # loop over countries
 for (year in years) {
