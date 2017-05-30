@@ -2,6 +2,13 @@
 library(sp)
 
 years <- 2015
+datacallyears <- 2016:2017
+
+for (datacallyear in datacallyears) {
+
+datatable <- sprintf("_%s_ICES_VMS_Datacall_VMS", datacallyear)
+if (!dir.exists(paste0("spatialPolygonsProducts/shapefiles/", datatable))) dir.create(paste0("spatialPolygonsProducts/shapefiles/", datatable))
+paste0("data/fishingPressure/", datatable)
 
 for (year in years) {
   cat("Creating Fishing pressure shapefiles for ... ", year, "\n")
@@ -10,7 +17,7 @@ for (year in years) {
   for (type in c("total", "jncc", "benthis")) {
   
     # read in total data
-    data <- read.csv(paste0("data/fishingPressure/OSPAR_intensity_data_", type ,"_", year, ".csv"))
+    data <- read.csv(paste0("data/fishingPressure/", datatable, "/OSPAR_intensity_data_", type ,"_", year, ".csv"))
 
     # calculate unique c_squares
     spdata <- unique(data[,c("c_square", "Latitude", "Longitude")])
@@ -52,7 +59,8 @@ for (year in years) {
     # subset out OSPAR region and HELCOM region
     if (type == "total") {
       # save output
-      rgdal::writeOGR(out, "spatialPolygonsProducts/shapefiles", paste0("OSPAR_intensity_total_", year), 
+      rgdal::writeOGR(out, paste0("spatialPolygonsProducts/shapefiles/", datatable), 
+                      paste0("OSPAR_intensity_total_", year), 
                       driver = "ESRI Shapefile", overwrite_layer = TRUE)
     } else {
       if (type == "benthis") {
@@ -62,8 +70,11 @@ for (year in years) {
       }
       for (igeartype in unique(geartype)) 
         rgdal::writeOGR(out[geartype == igeartype,], 
-                        "spatialPolygonsProducts/shapefiles", paste0("OSPAR_intensity_", igeartype, "_", year), 
+                        paste0("spatialPolygonsProducts/shapefiles/", datatable), 
+                        paste0("OSPAR_intensity_", igeartype, "_", year), 
                         driver = "ESRI Shapefile", overwrite_layer = TRUE)
     }
   }
+}
+
 }

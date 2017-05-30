@@ -11,22 +11,24 @@ if (!dir.exists("data/fishingPressure")) dir.create("data/fishingPressure")
 # connect to DB
 conn <- odbcDriverConnect(connection = dbConnection)
 
-# get submitted countries
-#sqlq <- paste(readLines("rawDataProc/create_total.sql"), collapse = "\n")
-#sqlq <- paste("select top(10) * FROM (", sqlq, ") as x  WHERE year = '2016'")
-#sqlQuery(conn, sqlq)
-
-
 years <- 2015
+datacallyears <- 2016:2017
+
+for (datacallyear in datacallyears) {
+
+datatable <- sprintf("_%s_ICES_VMS_Datacall_VMS", datacallyear)
+
+if (!dir.exists(paste0("data/fishingPressure/", datatable))) dir.create(paste0("data/fishingPressure/", datatable))
+
 
 for (year in years) {
   cat("downloading Fishing pressure total data for ... ", year, "\n")
   flush.console()
   
   # set up sql command
-  sqlq <- paste(readLines("rawDataProc/create_total.sql"), collapse = "\n")
-  sqlq <- sprintf(paste("select * FROM (", sqlq, ") as x  WHERE year = '%s'"), year)
-  fname <- paste0("data/fishingPressure/OSPAR_intensity_data_total_", year, ".csv")
+  sqlq <- paste(readLines("rawDataProc/create_total_template.sql"), collapse = "\n")
+  sqlq <- sprintf(paste("select * FROM (", sprintf(sqlq, datatable) , ") as x  WHERE year = '%s'"), year)
+  fname <- paste0("data/fishingPressure/", datatable,"/OSPAR_intensity_data_total_", year, ".csv")
   
   # fetch
   out <- sqlQuery(conn, sqlq)
@@ -40,9 +42,9 @@ for (year in years) {
   flush.console()
   
   # set up sql command
-  sqlq <- paste(readLines("rawDataProc/create_JNCC_groups.sql"), collapse = "\n")
-  sqlq <- sprintf(paste("select * FROM (", sqlq, ") as x  WHERE year = '%s'"), year)
-  fname <- paste0("data/fishingPressure/OSPAR_intensity_data_jncc_", year, ".csv")
+  sqlq <- paste(readLines("rawDataProc/create_JNCC_groups_template.sql"), collapse = "\n")
+  sqlq <- sprintf(paste("select * FROM (", sprintf(sqlq, datatable), ") as x  WHERE year = '%s'"), year)
+  fname <- paste0("data/fishingPressure/", datatable,"/OSPAR_intensity_data_jncc_", year, ".csv")
 
   # fetch
   out <- sqlQuery(conn, sqlq)
@@ -56,9 +58,9 @@ for (year in years) {
   flush.console()
   
   # set up sql command
-  sqlq <- paste(readLines("rawDataProc/create_Benthis_groups.sql"), collapse = "\n")
-  sqlq <- sprintf(paste("select * FROM (", sqlq, ") as x  WHERE year = '%s'"), year)
-  fname <- paste0("data/fishingPressure/OSPAR_intensity_data_benthis_", year, ".csv")
+  sqlq <- paste(readLines("rawDataProc/create_Benthis_groups_template.sql"), collapse = "\n")
+  sqlq <- sprintf(paste("select * FROM (", sprintf(sqlq, datatable), ") as x  WHERE year = '%s'"), year)
+  fname <- paste0("data/fishingPressure/", datatable,"/OSPAR_intensity_data_benthis_", year, ".csv")
   
   # fetch
   out <- sqlQuery(conn, sqlq)
@@ -66,6 +68,7 @@ for (year in years) {
   write.csv(out, file = fname, row.names = FALSE)
 }
 
+}
 
 # disconnect
 odbcClose(conn)
