@@ -44,3 +44,4 @@ QC_*_files/*
 QC_*.tex
 QC_*.Rmd
 *.zip
+*.png
