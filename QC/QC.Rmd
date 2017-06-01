@@ -25,6 +25,7 @@ opts_chunk$set(comment   = NA,
                fig.width = 5.5)
 
 options(knitr.kable.NA = '-')
+options(digits = 4)
 
 my_png <- function(file, width, height) {
   png(file, width = width, height = height, 
