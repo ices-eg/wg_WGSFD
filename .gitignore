@@ -45,3 +45,6 @@ QC_*.tex
 QC_*.Rmd
 *.zip
 *.png
+
+# ignore R projects
+*.Rproj
