@@ -77,7 +77,8 @@ for (country in countries) {
   file.copy(fname, file.path("QC/reports", fname), overwrite = TRUE)
   repname <- gsub(".Rmd", ".pdf", fname)
   file.copy(repname, file.path("QC/reports", repname), overwrite = TRUE)
-  unlink(fname); unlink(repname)
-
+  unlink(fname); unlink(repname); unlink(gsub(".pdf", ".tex", repname))
+  unlink(gsub(".Rmd", "_files", fname), recursive = TRUE)
+  
   cat("ellapsed:", (proc.time() - t0)[2], "\n\n")
 }
