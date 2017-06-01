@@ -139,11 +139,11 @@ d <-
   mutate(value = lastyear) %>% 
   tbl_df()
 # Cap the SAR values
-p <- 0.98
-q <-
-  d %>% 
-  group_by(variable) %>% 
-  summarise(upper = quantile(value, p, na.rm = TRUE))
+#p <- 0.98
+#q <-
+#  d %>% 
+#  group_by(variable) %>% 
+#  summarise(upper = quantile(value, p, na.rm = TRUE))
 d <-
   d %>% 
   left_join(q) %>% 
