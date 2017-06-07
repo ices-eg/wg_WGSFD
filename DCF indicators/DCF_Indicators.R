@@ -28,7 +28,7 @@ land <- spTransform(land,CRS("+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS8
 poly <- readShapePoly("ices_ecoregions/ices_ecoregions_bf005-005.shp",proj4string=CRS("+proj=longlat +datum=WGS84 +no_defs"))
 
 # load VMS data
-DCFagg0 <- read.table("../../Data/tbl_VMS_Final_Maps_31502017/tbl_VMS_Final_Maps_31502017.csv",header=T,sep=";",stringsAsFactors=F,na.strings="NULL")
+DCFagg0 <- read.table("../../2017/Data/tbl_VMS_Final_Maps_31502017/tbl_VMS_Final_Maps_31502017.csv",header=T,sep=";",stringsAsFactors=F,na.strings="NULL")
 names(DCFagg0)[c(1,2)]<-c("year","No_Recs")
 head(DCFagg0)
 # year No_Recs   totweight    totvalue kw_fishinghours fishing_hours      Surface     area
@@ -329,7 +329,7 @@ for(i in unique(DCFagg0$Fishing_category)){
   
   # Select a gear
   DCFagg1 <- DCFagg0[DCFagg0$Fishing_category==i,]
-  DCFagg1allyears <- aggregate(cbind(Surface,SubSurFaceSweptArea,Surface_SweptAreaRatio,SubSurface_SweptAreaRatio) ~ c_square+Longitude+Latitude+area+Fishing_category, data = DCFagg0, sum)
+  DCFagg1allyears <- aggregate(cbind(Surface,SubSurFaceSweptArea,Surface_SweptAreaRatio,SubSurface_SweptAreaRatio) ~ c_square+Longitude+Latitude+area+Fishing_category, data = DCFagg1, sum)
   DCFagg1allyears$year <- "all"
   DCFagg1 <- rbind(DCFagg1[,c("c_square","Longitude","Latitude","area","Fishing_category","Surface","SubSurFaceSweptArea","Surface_SweptAreaRatio","SubSurface_SweptAreaRatio","year")],DCFagg1allyears);rm(DCFagg1allyears)
   
