@@ -8,6 +8,10 @@ start.time <- Sys.time()
 # clear workspace
 rm(list = ls())
 
+# set working directory
+wd <- "C:/Users/mwoillez/Documents/Mon travail/ICES/WGSFD/wg_WGSFD/DCF indicators"
+setwd(wd)
+
 # load package
 library(rgdal)
 library(raster)
