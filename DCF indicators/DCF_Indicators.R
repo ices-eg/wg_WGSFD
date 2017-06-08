@@ -1,12 +1,13 @@
-# R-script:     Computing DCF indicators
-# date:         01/06/2017
+# R-script:     Computing DCF indicators for ICES WGSFD
+# date:         08/06/2017
 # R version:    3.0.2
 
-# start time
-start.time <- Sys.time()
 
 # clear workspace
 rm(list = ls())
+
+# start time
+start.time <- Sys.time()
 
 # set working directory
 wd <- "C:/Users/mwoillez/Documents/Mon travail/ICES/WGSFD/wg_WGSFD/DCF indicators"
@@ -20,6 +21,7 @@ library(mapdata)
 library(maptools)
 library(rgeos)
 library(rasterVis)
+library(fields)
 
 # load function for DCF indicators
 source("spreading.area.r")
@@ -326,6 +328,80 @@ write.table(A_FI0.9,file=paste(patfig,"/A_FI0.9.csv",sep=""),sep=";")
 A_FI0.9
 
 
+# Visualization
+nr <- dim(t(DCF5o1))[1]
+nc <- dim(t(DCF5o1))[2]
+
+# Figure 1
+jpeg(paste(patfig,"/DCF5_Fig1.jpg",sep=""),res=200,width=5,height=5,units="in")
+plot(2009:2016,t(DCF5o1r)[1:(nr-1),"Greater North Sea"],xlab="years",ylab="% of area that was swept",
+     main="Greater North Sea",ylim=c(min(t(DCF5o3r)[1:(nr-1),"Greater North Sea"]),max(t(DCF5o1r)[1:(nr-1),"Greater North Sea"])),type="l",lty=2)
+lines(2009:2016,t(DCF5o2r)[1:(nr-1),"Greater North Sea"],xlab="years",ylab="% of area that was swept",
+      main="Greater North Sea",type="l")
+lines(2009:2016,t(DCF5o3r)[1:(nr-1),"Greater North Sea"],xlab="years",ylab="% of area that was swept",
+      main="Greater North Sea",type="l",lty=3)
+legend(2009,max(t(DCF5o1r)[1:(nr-1),"Greater North Sea"]),c("regular","random","aggregated"),lty=c(2,1,3),cex=.5)
+dev.off()
+
+# Figure 2
+jpeg(paste(patfig,"/DCF5_Fig2.jpg",sep=""),res=200,width=5,height=5,units="in")
+plot(2009:2016,t(DCF5o2r)[1:(nr-1),1],xlab="years",ylab="% of area that was swept",
+     main="ICES ecoregions",ylim=c(0,max(t(DCF5o2r)[1:(nr-1),])),type="l",col=tim.colors(nc)[1])
+for(ii in 2:nc)
+  lines(2009:2016,t(DCF5o2r)[1:(nr-1),ii],type="l",col=tim.colors(nc)[ii])
+legend(2009,max(t(DCF5o2r)[1:(nr-1),]),dimnames(DCF5o2r)[[1]],lty=1,col=tim.colors(nc),cex=.5)
+dev.off()
+
+# Figure 3
+jpeg(paste(patfig,"/DCF6_Fig1.jpg",sep=""),res=200,width=5,height=5,units="in")
+plot(2009:2016,t(DCF6r)[1:(nr-1),1],xlab="years",ylab="% of spreading area of fishing intensity",
+     main="ICES ecoregions",ylim=c(0,max(t(DCF6r)[1:(nr-1),])),type="l",col=tim.colors(nc)[1])
+for(ii in 2:nc)
+  lines(2009:2016,t(DCF6r)[1:(nr-1),ii],type="l",col=tim.colors(nc)[ii])
+legend(2009,max(t(DCF6r)[1:(nr-1),]),dimnames(DCF6r)[[1]],lty=1,col=tim.colors(nc),cex=.5)
+dev.off()
+
+# Figure 4
+jpeg(paste(patfig,"/DCF6_Fig2.jpg",sep=""),res=200,width=5,height=5,units="in")
+par(mar=c(4.5,5.5,2,1))
+plot(2009:2016,t(A_FI0.9)[1:(nr-1),1],xlab="years",ylab="% of the fished area containing \nthe top 90% of the fishing intensity",
+     main="ICES ecoregions",ylim=c(0,max(t(A_FI0.9)[1:(nr-1),])),type="l",col=tim.colors(nc)[1])
+for(ii in 2:nc)
+  lines(2009:2016,t(A_FI0.9)[1:(nr-1),ii],type="l",col=tim.colors(nc)[ii])
+legend(2009,max(t(A_FI0.9)[1:(nr-1),]),dimnames(A_FI0.9)[[1]],lty=1,col=tim.colors(nc),cex=.5)
+dev.off()
+
+# Figure 5
+jpeg(paste(patfig,"/DCF7_Fig1.jpg",sep=""),res=200,width=5,height=5,units="in")
+plot(2009:2016,t(DCF7o1r)[1:(nr-1),"Greater North Sea"],xlab="years",ylab="% of total area not impacted",
+     main="Greater North Sea",ylim=c(min(t(DCF7o1r)[1:(nr-1),"Greater North Sea"]),max(t(DCF7o3r)[1:(nr-1),"Greater North Sea"])),type="l",lty=2)
+lines(2009:2016,t(DCF7o2r)[1:(nr-1),"Greater North Sea"],xlab="years",ylab="% of total area not impacted",
+      main="Greater North Sea",type="l")
+lines(2009:2016,t(DCF7o3r)[1:(nr-1),"Greater North Sea"],xlab="years",ylab="% of total area not impacted",
+      main="Greater North Sea",type="l",lty=3)
+legend(2009,max(t(DCF7o3r)[1:(nr-1),"Greater North Sea"]),c("regular","random","aggregated"),lty=c(2,1,3),cex=.5)
+dev.off()
+
+# Figure 6
+jpeg(paste(patfig,"/DCF7_Fig2.jpg",sep=""),res=200,width=5,height=5,units="in")
+par(mar=c(4.5,4.5,2,1))
+plot(2009:2016,t(DCF7o2r)[1:(nr-1),1],xlab="years",ylab="% of total area not impacted",
+     main="ICES ecoregions",ylim=c(min(t(DCF7o2r)[1:(nr-1),]),100),type="l",col=tim.colors(nc)[1])
+for(ii in 2:nc)
+  lines(2009:2016,t(DCF7o2r)[1:(nr-1),ii],type="l",col=tim.colors(nc)[ii])
+legend(2009,100,dimnames(DCF7o2r)[[1]],lty=1,col=tim.colors(nc),cex=.5)
+dev.off()
+
+# Figure 7
+jpeg(paste(patfig,"/Avg_intensity_Fig1.jpg",sep=""),res=200,width=5,height=5,units="in")
+par(mar=c(4.5,4.5,2,1))
+plot(2009:2016,t(avg_intensity)[1:(nr-1),1],xlab="years",ylab="Average fishing intensity",
+     main="ICES ecoregions",ylim=c(0,max(t(avg_intensity)[1:(nr-1),])),type="l",col=tim.colors(nc)[1])
+for(ii in 2:nc)
+  lines(2009:2016,t(avg_intensity)[1:(nr-1),ii],type="l",col=tim.colors(nc)[ii])
+legend(2009,max(t(avg_intensity)[1:(nr-1),]),dimnames(t(avg_intensity)[1:(nr-1),])[[2]],lty=1,col=tim.colors(nc),cex=.5)
+dev.off()
+
 
 # Bottom gears treated separatly ------------------------------------------
 
@@ -583,6 +659,82 @@ for(i in unique(DCFagg0$Fishing_category)){
   write.table(A_FI0.9,file=paste(patfig,"/A_FI0.9.csv",sep=""),sep=";")
   A_FI0.9
   
+  
+  
+  
+  # Visualization
+  nr <- dim(t(DCF5o1))[1]
+  nc <- dim(t(DCF5o1))[2]
+  
+  # Figure 1
+  jpeg(paste(patfig,"/DCF5_Fig1.jpg",sep=""),res=200,width=5,height=5,units="in")
+  plot(2009:2016,t(DCF5o1r)[1:(nr-1),"Greater North Sea"],xlab="years",ylab="% of area that was swept",
+       main="Greater North Sea",ylim=c(min(t(DCF5o3r)[1:(nr-1),"Greater North Sea"]),max(t(DCF5o1r)[1:(nr-1),"Greater North Sea"])),type="l",lty=2)
+  lines(2009:2016,t(DCF5o2r)[1:(nr-1),"Greater North Sea"],xlab="years",ylab="% of area that was swept",
+        main="Greater North Sea",type="l")
+  lines(2009:2016,t(DCF5o3r)[1:(nr-1),"Greater North Sea"],xlab="years",ylab="% of area that was swept",
+        main="Greater North Sea",type="l",lty=3)
+  legend(2009,max(t(DCF5o1r)[1:(nr-1),"Greater North Sea"]),c("regular","random","aggregated"),lty=c(2,1,3),cex=.5)
+  dev.off()
+  
+  # Figure 2
+  jpeg(paste(patfig,"/DCF5_Fig2.jpg",sep=""),res=200,width=5,height=5,units="in")
+  plot(2009:2016,t(DCF5o2r)[1:(nr-1),1],xlab="years",ylab="% of area that was swept",
+       main="ICES ecoregions",ylim=c(0,max(t(DCF5o2r)[1:(nr-1),])),type="l",col=tim.colors(nc)[1])
+  for(ii in 2:nc)
+    lines(2009:2016,t(DCF5o2r)[1:(nr-1),ii],type="l",col=tim.colors(nc)[ii])
+  legend(2009,max(t(DCF5o2r)[1:(nr-1),]),dimnames(DCF5o2r)[[1]],lty=1,col=tim.colors(nc),cex=.5)
+  dev.off()
+  
+  # Figure 3
+  jpeg(paste(patfig,"/DCF6_Fig1.jpg",sep=""),res=200,width=5,height=5,units="in")
+  plot(2009:2016,t(DCF6r)[1:(nr-1),1],xlab="years",ylab="% of spreading area of fishing intensity",
+       main="ICES ecoregions",ylim=c(0,max(t(DCF6r)[1:(nr-1),])),type="l",col=tim.colors(nc)[1])
+  for(ii in 2:nc)
+    lines(2009:2016,t(DCF6r)[1:(nr-1),ii],type="l",col=tim.colors(nc)[ii])
+  legend(2009,max(t(DCF6r)[1:(nr-1),]),dimnames(DCF6r)[[1]],lty=1,col=tim.colors(nc),cex=.5)
+  dev.off()
+  
+  # Figure 4
+  jpeg(paste(patfig,"/DCF6_Fig2.jpg",sep=""),res=200,width=5,height=5,units="in")
+  par(mar=c(4.5,5.5,2,1))
+  plot(2009:2016,t(A_FI0.9)[1:(nr-1),1],xlab="years",ylab="% of the fished area containing \nthe top 90% of the fishing intensity",
+       main="ICES ecoregions",ylim=c(0,max(t(A_FI0.9)[1:(nr-1),])),type="l",col=tim.colors(nc)[1])
+  for(ii in 2:nc)
+    lines(2009:2016,t(A_FI0.9)[1:(nr-1),ii],type="l",col=tim.colors(nc)[ii])
+  legend(2009,max(t(A_FI0.9)[1:(nr-1),]),dimnames(A_FI0.9)[[1]],lty=1,col=tim.colors(nc),cex=.5)
+  dev.off()
+  
+  # Figure 5
+  jpeg(paste(patfig,"/DCF7_Fig1.jpg",sep=""),res=200,width=5,height=5,units="in")
+  plot(2009:2016,t(DCF7o1r)[1:(nr-1),"Greater North Sea"],xlab="years",ylab="% of total area not impacted",
+       main="Greater North Sea",ylim=c(min(t(DCF7o1r)[1:(nr-1),"Greater North Sea"]),max(t(DCF7o3r)[1:(nr-1),"Greater North Sea"])),type="l",lty=2)
+  lines(2009:2016,t(DCF7o2r)[1:(nr-1),"Greater North Sea"],xlab="years",ylab="% of total area not impacted",
+        main="Greater North Sea",type="l")
+  lines(2009:2016,t(DCF7o3r)[1:(nr-1),"Greater North Sea"],xlab="years",ylab="% of total area not impacted",
+        main="Greater North Sea",type="l",lty=3)
+  legend(2009,max(t(DCF7o3r)[1:(nr-1),"Greater North Sea"]),c("regular","random","aggregated"),lty=c(2,1,3),cex=.5)
+  dev.off()
+  
+  # Figure 6
+  jpeg(paste(patfig,"/DCF7_Fig2.jpg",sep=""),res=200,width=5,height=5,units="in")
+  par(mar=c(4.5,4.5,2,1))
+  plot(2009:2016,t(DCF7o2r)[1:(nr-1),1],xlab="years",ylab="% of total area not impacted",
+       main="ICES ecoregions",ylim=c(min(t(DCF7o2r)[1:(nr-1),]),100),type="l",col=tim.colors(nc)[1])
+  for(ii in 2:nc)
+    lines(2009:2016,t(DCF7o2r)[1:(nr-1),ii],type="l",col=tim.colors(nc)[ii])
+  legend(2009,100,dimnames(DCF7o2r)[[1]],lty=1,col=tim.colors(nc),cex=.5)
+  dev.off()
+  
+  # Figure 7
+  jpeg(paste(patfig,"/Avg_intensity_Fig1.jpg",sep=""),res=200,width=5,height=5,units="in")
+  par(mar=c(4.5,4.5,2,1))
+  plot(2009:2016,t(avg_intensity)[1:(nr-1),1],xlab="years",ylab="Average fishing intensity",
+       main="ICES ecoregions",ylim=c(0,max(t(avg_intensity)[1:(nr-1),])),type="l",col=tim.colors(nc)[1])
+  for(ii in 2:nc)
+    lines(2009:2016,t(avg_intensity)[1:(nr-1),ii],type="l",col=tim.colors(nc)[ii])
+  legend(2009,max(t(avg_intensity)[1:(nr-1),]),dimnames(t(avg_intensity)[1:(nr-1),])[[2]],lty=1,col=tim.colors(nc),cex=.5)
+  dev.off()
   
 }
 
