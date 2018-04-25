@@ -38,7 +38,8 @@ data/*
 spatialPolygonsProducts/shapefiles/*
 
 # ignore reports
-QC/reports/*
+QC/reports_2017/*
+QC/reports_2018/*
 QC_all/reports/*
 QC_*_files/*
 QC_*.tex
