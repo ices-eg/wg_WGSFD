@@ -433,7 +433,7 @@ dat <- dplyr::rename(dat, fishing_days = x)
 
 # legend calculations
 steps <- ceiling(max(dat$fishing_days, na.rm = TRUE)/250)
-breaks <- c(-1, 0, steps * c(1, 2.5, 5, 10, 25, 50, 100, 250))
+breaks <- unique(c(-1, 0, steps * c(1, 2.5, 5, 10, 25, 50, 100, 250)))
 legval <- paste(breaks[-length(breaks)], "<=", breaks[-1L])
 legval[1] <- "0"
 
@@ -853,7 +853,7 @@ polRect$ICES_rectangle <- rep(coordGrd$ICES_rectangle, each = 5)
 dat             <- aggregate(ICES_LE$fishing_days,by=list(ICES_LE$year,ICES_LE$ICES_rectangle),FUN=sum,na.rm=T)
 
 steps               <- ceiling(max(dat$x,na.rm=T)/250)
-cutbreaksval        <- c(-1,0,steps*c(1,2.5,5,10,25,50,100,250))
+cutbreaksval        <- unique(c(-1,0,steps*c(1,2.5,5,10,25,50,100,250)))
 legval              <- outer(ac(cutbreaksval),ac(cutbreaksval),function(x,y){return(paste(x,"<=",y))})
 legval              <- c("0",diag(legval[-1,-c(1,2)]))
 palette <- c("white", brewer.pal(length(cutbreaksval)-2,"YlOrRd"))
