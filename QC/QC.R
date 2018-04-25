@@ -33,14 +33,16 @@ makeQCRmd <- function(country, qc) {
             "                         'numeric', 'numeric', 'numeric', 'numeric'))",
             "```",
             "", sep = "\n"),
-     paste0("data/QC/ICES_LE_", country, ".csv"), 
-     paste0("data/QC/ICES_VE_", country, ".csv"))
+     paste0("data/QC_2018/ICES_LE_", country, ".csv"), 
+     paste0("data/QC_2018/ICES_VE_", country, ".csv"))
 
   unlist(qc)
 }
 
 
 # main script -----------------
+library(rmarkdown)
+
 
 # read and parse template file
 qc <- readLines("QC/QC.Rmd")
@@ -54,12 +56,15 @@ qc <- list(yaml = qc[1:(loc1-1)],
 
 # get list of countries
 #countries <- gsub("ICES_VE_|[.]csv", "", dir("data", pattern = "ICES_VE_*"))
+countries <- c("DNK", "BEL", "IRL", "SWE", "nld", "FRA", "POL", "Latvia", "EST", "PRT", "LTU")
+#countries <- "IRL"
 
 # create report directory
-if (!dir.exists("QC/reports")) dir.create("QC/reports")
+if (!dir.exists("QC/reports_2018")) dir.create("QC/reports_2018")
 
 # loop over countries
 for (country in countries) {
+  #country <- "IRL"
   cat("Running QC for ... ", country, "\n")
   t0 <- proc.time()
   
@@ -70,15 +75,20 @@ for (country in countries) {
   cat(makeQCRmd(country, qc), sep = "\n", file = fname)
 
   # run template
-  ret <- try(rmarkdown::render(fname))
+  ret <- try(render(fname, clean = FALSE, output_format = latex_document()))
   if (inherits(ret, "try-error")) next
   
-  # clean up
-  file.copy(fname, file.path("QC/reports", fname), overwrite = TRUE)
+  # complile pdf
+  shell(paste('pdflatex -halt-on-error', ret))
+  
+  # copy report and Rmd file
   repname <- gsub(".Rmd", ".pdf", fname)
-  file.copy(repname, file.path("QC/reports", repname), overwrite = TRUE)
-  unlink(fname); unlink(repname); unlink(gsub(".pdf", ".tex", repname))
-  unlink(gsub(".Rmd", "_files", fname), recursive = TRUE)
+  texname <- gsub(".Rmd", ".tex", fname)
+  file.copy(fname, file.path("QC/reports_2018", fname), overwrite = TRUE)
+  file.copy(repname, file.path("QC/reports_2018", repname), overwrite = TRUE)
+  file.copy(texname, file.path("QC/reports_2018", texname), overwrite = TRUE)
+  # clean up
+  unlink(dir(pattern = gsub(".Rmd", "", fname)), recursive = TRUE)
   
   cat("ellapsed:", (proc.time() - t0)[2], "\n\n")
 }
