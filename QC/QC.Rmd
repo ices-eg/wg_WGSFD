@@ -3,14 +3,15 @@ title: "ICES VMS datacall quality check report"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 header-includes:
   - \usepackage{comment}
-output: 
-  pdf_document:
-    keep_tex: true
+  - \usepackage{booktabs}
+  - \usepackage{longtable}
+output: pdf_document
 ---
 
 <!-- QCTEMPLATE: header -->
 ```{r setup, eval=TRUE, echo=FALSE, cache=FALSE}
 library(knitr)
+library(kableExtra)
 
 opts_chunk$set(comment   = NA,
                warning   = FALSE,
@@ -25,6 +26,7 @@ opts_chunk$set(comment   = NA,
                fig.width = 5.5)
 
 options(knitr.kable.NA = '-')
+options(knitr.table.format = 'latex')
 options(digits = 4)
 
 my_png <- function(file, width, height) {
@@ -165,7 +167,7 @@ opts_chunk$set(eval = hasvms)
 
 ## Years & number of records for which data has been submitted:
 ```{r records-by-year, results='asis'}
-kable(plyr::count(ICES_VE,'year'))
+kable(plyr::count(ICES_VE,'year'), booktabs = TRUE)
 
 dat2plot <- data.frame(table(ICES_VE$year))
 colnames(dat2plot) <- c("Year","Freq")
@@ -181,7 +183,7 @@ ggplot(dat2plot,aes(x=Year,y=Freq)) +
 ```{r invalid stat-sqrs}
 if (any(is.na(ICES_VE$SI_LONG))) {
   kable(table(`ICES Rectangle` = ICES_VE$ICES_rectangle[is.na(ICES_VE$SI_LONG)],
-              Year = ICES_VE$year[is.na(ICES_VE$SI_LONG)]))
+              Year = ICES_VE$year[is.na(ICES_VE$SI_LONG)]), booktabs = TRUE)
 } else {
   x <- "There were no invalid Statistical Rectangles reported"
   attr(x, "format") <- "markdown"
@@ -195,7 +197,7 @@ if (any(is.na(ICES_VE$SI_LONG))) {
 
 ## Distribution of pings by month:
 ```{r pings-by-month}
-kable(table(ICES_VE$month, ICES_VE$year))
+kable(table(ICES_VE$month, ICES_VE$year), booktabs = TRUE)
 
 qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(month)) +
   xlab("Years") + ylab ("Count") + scale_fill_grey(guide=guide_legend(title="Month")) +
@@ -209,7 +211,7 @@ qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(month)) +
 dat2tab <- as.matrix(aggregate(ICES_VE$SI_LONG,by=list(ICES_VE$year),FUN=range))
 dat2tab <- cbind(dat2tab,as.matrix(aggregate(ICES_VE$SI_LATI,by=list(ICES_VE$year),FUN=range)[,-1]))
 colnames(dat2tab) <- c("Year", "min lon", "max lon", "min lat", "max lat")
-kable(dat2tab)
+kable(dat2tab, booktabs = TRUE)
 ```
 
 ## Area for which data has been submitted:
@@ -243,7 +245,7 @@ spatialplot(polVMS, spatCore) +
 
 ## Frequency of vessel length categories by year:
 ```{r records-by-vessel-length, results='asis'}
-kable(table(ICES_VE$vessel_length_category,ICES_VE$year))
+kable(table(ICES_VE$vessel_length_category,ICES_VE$year), booktabs = TRUE)
 
 qplot(factor(year), data = ICES_VE, geom = "bar", fill = factor(vessel_length_category)) +
   xlab("Years") + ylab ("Count") + 
@@ -255,7 +257,7 @@ qplot(factor(year), data = ICES_VE, geom = "bar", fill = factor(vessel_length_ca
 
 ## Frequency of gear codes by year:
 ```{r records-by-gear-code, results='asis'}
-kable(table(ICES_VE$gear_code,ICES_VE$year))
+kable(table(ICES_VE$gear_code,ICES_VE$year), booktabs = TRUE)
 
 qplot(factor(year), data = ICES_VE, geom = "bar", fill = factor(gear_code)) +
   xlab("Years") + ylab ("Count") + 
@@ -291,7 +293,7 @@ dat <- dplyr::rename(dat, fishing_days = x)
 
 # legend calculations
 steps <- ceiling(max(dat$fishing_days, na.rm = TRUE)/250)
-breaks <- c(-1, 0, steps * c(1, 2.5, 5, 10, 25, 50, 100, 250))
+breaks <- unique(c(-1, 0, steps * c(1, 2.5, 5, 10, 25, 50, 100, 250)))
 legval <- paste(breaks[-length(breaks)], "<=", breaks[-1L])
 legval[1] <- "0"
 
@@ -307,27 +309,29 @@ ib_by <- as.integer(factor(b_by, levels = a_by))
 polVMS$cols <- dat$cols[ib_by]
 
 # do plots
-invisible(lapply(top3gears, function(gear) {
-spatialplot(polVMS[polVMS$gear_code == gear,]) +
-  scale_fill_manual(values = rev(palette), labels = rev(legval)) +
-  guides(fill = guide_legend(title = paste("Days@Sea", gear))) +
-  facet_wrap(~ year, ncol = 2) +
-  theme_icesqc(legend.position = "top")
-}))
+for (gear in top3gears) {
+  p <-
+    spatialplot(polVMS[polVMS$gear_code == gear,]) +
+    scale_fill_manual(values = rev(palette), labels = rev(legval)) +
+    guides(fill = guide_legend(title = paste("Days@Sea", gear))) +
+    facet_wrap(~ year, ncol = 2) +
+    theme_icesqc(legend.position = "top")
+  print(p)
+}
 ```
 
 
 
 ## Number of unique DCF Level 6 codes by year:
 ```{r table-met6, results='asis'}
-kable(count(unique(ICES_VE[,c("LE_MET_level6","year")]),"year"))
+kable(count(unique(ICES_VE[,c("LE_MET_level6","year")]),"year"), booktabs = TRUE)
 ```
 
 Top 5 DCF Level 6 codes by year:
 ```{r top5-met6} 
 top5Met6 <- names(sort(table(ICES_VE$LE_MET_level6), decreasing = TRUE))
 top5Met6 <- top5Met6[1:pmin(5, length(top5Met6))]
-kable(table(ICES_VE$LE_MET_level6, ICES_VE$year)[top5Met6,,drop=FALSE])
+kable(table(ICES_VE$LE_MET_level6, ICES_VE$year)[top5Met6,,drop=FALSE], booktabs = TRUE)
 
 qplot(factor(year), 
       data = ICES_VE[ICES_VE$LE_MET_level6 %in% top5Met6,],
@@ -399,7 +403,7 @@ ggplot(ICES_VE, aes(x = kw_fishinghours))+
 dat2tab <- 
   with(ICES_VE, 
        tapply(totweight, list(gear_code = gear_code, year = year), sum, na.rm = TRUE))
-kable(dat2tab)
+kable(dat2tab, booktabs = TRUE)
 
 dat2plot <- as.data.frame.table(dat2tab, responseName = "totweight")
 
@@ -584,7 +588,7 @@ spatialplot(polVMS) +
 dat2tab <- 
   with(ICES_VE, 
        tapply(totweight/kw_fishinghours, list(gear_code = gear_code, year = year), median, na.rm = TRUE))
-kable(dat2tab)
+kable(dat2tab, booktabs = TRUE)
 
 dat2plot <- as.data.frame.table(dat2tab, responseName = "kgkWh")
 
@@ -601,7 +605,7 @@ ggplot(dat2plot, aes(x = year, y = kgkWh)) +
 dat2tab <- 
   with(ICES_VE, 
        tapply(totvalue, list(gear_code = gear_code, year = year), sum, na.rm = TRUE))
-kable(dat2tab)
+kable(dat2tab, booktabs = TRUE)
 
 dat2plot <- as.data.frame.table(dat2tab, responseName = "EUR_landed")
 
@@ -619,7 +623,7 @@ ggplot(dat2plot, aes(x = year, y = EUR_landed)) +
 dat2tab <- 
   with(ICES_VE, 
        tapply(totvalue/kw_fishinghours, list(gear_code = gear_code, year = year), median, na.rm = TRUE))
-kable(dat2tab)
+kable(dat2tab, booktabs = TRUE)
 
 dat2plot <- as.data.frame.table(dat2tab, responseName = "EURkWh")
 
@@ -637,7 +641,7 @@ ggplot(dat2plot, aes(x = year, y = EURkWh)) +
 dat2tab <- 
   with(ICES_VE, 
        tapply(totvalue/totweight, list(gear_code = gear_code, year = year), median, na.rm = TRUE))
-kable(dat2tab)
+kable(dat2tab, booktabs = TRUE)
 
 dat2plot <- as.data.frame.table(dat2tab, responseName = "MeanPrice")
 
@@ -683,7 +687,7 @@ opts_chunk$set(eval = haslogbook)
 
 ## Years & number of records for which data has been submitted:
 ```{r logbook-records, results='asis'}
-kable(count(ICES_LE,'year'))
+kable(count(ICES_LE,'year'), booktabs = TRUE)
 
 dat2plot <- data.frame(table(ICES_LE$year))
 colnames(dat2plot) <- c("Year","Freq")
@@ -698,7 +702,7 @@ ggplot(dat2plot,aes(x=Year,y=Freq)) +
 ```{r invalid stat-sqrs-le}
 if (any(is.na(ICES_LE$SI_LONG))) {
   kable(table(`ICES Rectangle` = ICES_LE$ICES_rectangle[is.na(ICES_LE$SI_LONG)],
-              Year = ICES_LE$year[is.na(ICES_LE$SI_LONG)]))
+              Year = ICES_LE$year[is.na(ICES_LE$SI_LONG)]), booktabs = TRUE)
 } else {
   x <- "There were no invalid Statistical Rectangles reported"
   attr(x, "format") <- "markdown"
@@ -711,7 +715,7 @@ if (any(is.na(ICES_LE$SI_LONG))) {
 
 ## Distribution of logbook entries by month:
 ```{r logbook-entries-month, results='asis'}
-kable(table(ICES_LE$month, ICES_LE$year))
+kable(table(ICES_LE$month, ICES_LE$year), booktabs = TRUE)
 
 qplot(factor(year),data=ICES_LE, geom="bar",fill=factor(month)) +
   xlab("Years") + ylab ("Count") + scale_fill_grey(guide=guide_legend(title="Month")) +
@@ -725,7 +729,7 @@ qplot(factor(year),data=ICES_LE, geom="bar",fill=factor(month)) +
 dat2tab <- as.matrix(aggregate(ICES_LE$SI_LONG, by = list(year = ICES_LE$year), FUN=range, na.rm=TRUE))
 dat2tab <- cbind(dat2tab,as.matrix(aggregate(ICES_LE$SI_LATI,by=list(ICES_LE$year), FUN=range, na.rm=TRUE)[,-1]))
 colnames(dat2tab) <- c("Year","min lon","max lon","min lat","max lat")
-kable(dat2tab)
+kable(dat2tab, booktabs = TRUE)
 ```
 
 ## Area for which data has been submitted:
@@ -752,7 +756,7 @@ spatialplot(polRect, spatCore) +
 
 ## Frequency of vessel length categories by year:
 ```{r , results='asis'}
-kable(table(ICES_LE$vessel_length_category,ICES_LE$year))
+kable(table(ICES_LE$vessel_length_category,ICES_LE$year), booktabs = TRUE)
 
 qplot(factor(year), data = ICES_LE, geom = "bar", fill = factor(vessel_length_category)) +
   xlab("Years") + ylab ("Count") + 
@@ -764,7 +768,7 @@ qplot(factor(year), data = ICES_LE, geom = "bar", fill = factor(vessel_length_ca
 
 ## Frequency of gear codes by year:
 ```{r , results='asis'}
-kable(table(ICES_LE$gear_code,ICES_LE$year))
+kable(table(ICES_LE$gear_code,ICES_LE$year), booktabs = TRUE)
 
 qplot(factor(year), data = ICES_LE, geom = "bar", fill = factor(gear_code)) +
   xlab("Years") + ylab("Count") + 
@@ -776,13 +780,13 @@ qplot(factor(year), data = ICES_LE, geom = "bar", fill = factor(gear_code)) +
 
 ## Number of unique DCF Level 6 codes by year:
 ```{r , results='asis'}
-kable(count(unique(ICES_LE[,c("LE_MET_level6","year")]),"year"))
+kable(count(unique(ICES_LE[,c("LE_MET_level6","year")]),"year"), booktabs = TRUE)
 ```
 
 ## Top 5 DCF Level 6 codes by year:
 ```{r , results='asis'}
 top5Met6 <- names(rev(sort(table(ICES_LE$LE_MET_level6)))[1:5])
-kable(table(ICES_LE$LE_MET_level6,ICES_LE$year)[top5Met6,])
+kable(table(ICES_LE$LE_MET_level6,ICES_LE$year)[top5Met6,], booktabs = TRUE)
 
 qplot(factor(year), data = subset(ICES_LE,LE_MET_level6 %in% top5Met6),
       geom = "bar", fill = factor(LE_MET_level6)) +
@@ -795,7 +799,7 @@ qplot(factor(year), data = subset(ICES_LE,LE_MET_level6 %in% top5Met6),
 
 ## Frequency of VMS enabled category
 ```{r , results='asis'}
-kable(table(ICES_LE$vms_enabled,ICES_LE$vessel_length_category))
+kable(table(ICES_LE$vms_enabled,ICES_LE$vessel_length_category), booktabs = TRUE)
 ```
 
 ## Average fishing days:
@@ -825,7 +829,7 @@ ggplot(ICES_LE, aes(x = kw_fishing_days)) +
 dat2tab <- 
   with(ICES_LE, 
        tapply(totweight, list(gear_code = gear_code, year = year), sum, na.rm = TRUE))
-kable(dat2tab)
+kable(dat2tab, booktabs = TRUE)
 
 dat2plot <- as.data.frame.table(dat2tab, responseName = "totweight")
 
@@ -996,7 +1000,7 @@ ggplot(ICES_LE[ICES_LE$year == tempBoundLog[2],],
 dat2tab <- 
   with(ICES_LE, 
        tapply(totweight/kw_fishing_days, list(gear_code = gear_code, year = year), median, na.rm = TRUE))
-kable(dat2tab)
+kable(dat2tab, booktabs = TRUE)
 
 dat2plot <- as.data.frame.table(dat2tab, responseName = "kgkWh")
 
@@ -1013,7 +1017,7 @@ ggplot(dat2plot, aes(x = year, y = kgkWh)) +
 dat2tab <- 
   with(ICES_LE, 
        tapply(totvalue, list(gear_code = gear_code, year = year), sum, na.rm = TRUE))
-kable(dat2tab)
+kable(dat2tab, booktabs = TRUE)
 
 dat2plot <- as.data.frame.table(dat2tab, responseName = "EUR_landed")
 
@@ -1031,7 +1035,7 @@ ggplot(dat2plot, aes(x = year, y = EUR_landed)) +
 dat2tab <- 
   with(ICES_LE, 
        tapply(totvalue/kw_fishing_days, list(gear_code = gear_code, year = year), median, na.rm = TRUE))
-kable(dat2tab)
+kable(dat2tab, booktabs = TRUE)
 
 dat2plot <- as.data.frame.table(dat2tab, responseName = "EURkWh")
 
@@ -1049,7 +1053,7 @@ ggplot(dat2plot, aes(x = year, y = EURkWh)) +
 dat2tab <- 
   with(ICES_LE, 
        tapply(totvalue/totweight, list(year = year), median, na.rm = TRUE))
-kable(as.data.frame(t(dat2tab)))
+kable(as.data.frame(t(dat2tab)), booktabs = TRUE)
 
 dat2plot <- as.data.frame.table(dat2tab, responseName = "MeanPrice")
 
@@ -1078,7 +1082,7 @@ tab[tab == 0] <- NA
 for (i in dimnames(tab)[[3]]) {
   x <- tab[,,i]
   x <- x[apply(!is.na(x), 1, any),]
-  cat(kable(cbind(x, year = i), table.attr='class="flat-table"'), sep = "\n")
+  cat(kable(cbind(x, year = i), booktabs = TRUE), sep = "\n")
   cat("\n")
 }
 ```
