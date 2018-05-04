@@ -1,0 +1,14 @@
+{
+  // list of countries to run QC for
+  "countries": ["DNK", "BEL", "SWE", "NLD", "FRA", "FIN", "LTU", "POL", "Latvia", "PRT", "IRL", "GBR"],
+  //"countries": ["IRL"],
+  
+  // location of data directory
+  "data_dir": "data/QC_2018",
+  
+  // location of report directory
+  "report_dir": "QC/reports_2018",
+  
+  // database connection string
+  "db_connection": "Driver={SQL Server};Server=SQL06;Database=VMS;Trusted_Connection=yes"
+}

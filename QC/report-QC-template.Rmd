@@ -344,6 +344,10 @@ qplot(factor(year),
 \newpage
 
 ## Average fishing speed:
+```{r table-average-fishing-speed, results='asis'}
+kable(do.call(rbind, tapply(ICES_VE$avg_fishing_speed, ICES_VE$year, summary)), booktabs = TRUE)
+```
+
 ```{r average-fishing-speed}
 ggplot(ICES_VE, aes(x = avg_fishing_speed)) +
   geom_histogram() +
@@ -355,6 +359,10 @@ ggplot(ICES_VE, aes(x = avg_fishing_speed)) +
 \newpage
 
 ## Average fishing hours:
+```{r table-fishing-hours, results='asis'}
+kable(do.call(rbind, tapply(ICES_VE$fishing_hours, ICES_VE$year, summary)), booktabs = TRUE)
+```
+
 ```{r fishing-hours}
 ggplot(ICES_VE, aes(x = fishing_hours)) +
   geom_histogram() +
@@ -366,6 +374,9 @@ ggplot(ICES_VE, aes(x = fishing_hours)) +
 \newpage
 
 ## Average length:
+```{r table-length, results='asis'}
+kable(do.call(rbind, tapply(ICES_VE$avg_oal, ICES_VE$year, summary)), booktabs = TRUE)
+```
 ```{r length}
 ggplot(ICES_VE, aes(x = avg_oal))+
   geom_histogram() +
@@ -377,7 +388,10 @@ ggplot(ICES_VE, aes(x = avg_oal))+
 \newpage
 
 ## Average kW:
-```{r average-length}
+```{r table-average-kW, results='asis'}
+kable(do.call(rbind, tapply(ICES_VE$avg_kw, ICES_VE$year, summary)), booktabs = TRUE)
+```
+```{r average-kW}
 ggplot(ICES_VE, aes(x = avg_kw))+
   geom_histogram() +
   xlab("Average kW") + ylab ("Count") +
@@ -388,7 +402,10 @@ ggplot(ICES_VE, aes(x = avg_kw))+
 \newpage
 
 ## Average kW-hours:
-```{r fishing-speed}
+```{r table-kw-fishing-hours, results='asis'}
+kable(do.call(rbind, tapply(ICES_VE$kw_fishinghours, ICES_VE$year, summary)), booktabs = TRUE)
+```
+```{r kw-fishing-hours}
 ggplot(ICES_VE, aes(x = kw_fishinghours))+
   geom_histogram() +
   xlab("Average kW-hours") + ylab("Count") +
@@ -513,9 +530,10 @@ ib_by <- as.integer(factor(b_by, levels = a_by))
 polVMS$cols <- dat2plot$cols[ib_by]
 # NOTE dark blue here just means that nothing was observered before, and now there is something... 
 # - could be 1 hour of fishing
+grps <- sort(unique(dat2plot$colgrp))
 spatialplot(polVMS) +
   guides(fill = guide_legend(title = "Days@Sea")) +
-  scale_fill_manual(values = rev(palette), labels = legval) +
+  scale_fill_manual(values = rev(palette)[grps], labels = legval[grps]) +
   theme_icesqc(legend.position = "right")
 ```
 
@@ -574,9 +592,10 @@ ib_by <- as.integer(factor(b_by, levels = a_by))
 polVMS$cols <- dat2plot$cols[ib_by]
 # NOTE dark blue here just means that nothing was observered before, and now there is something... 
 # - could be 1 hour of fishing
+grps <- sort(unique(dat2plot$colgrp))
 spatialplot(polVMS) +
   guides(fill = guide_legend(title = "Days@Sea")) +
-  scale_fill_manual(values = rev(palette), labels = legval) +
+  scale_fill_manual(values = rev(palette)[grps], labels = legval[grps]) +
   theme_icesqc(legend.position = "right")
 ```
 
