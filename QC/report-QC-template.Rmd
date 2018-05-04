@@ -436,7 +436,7 @@ dat2plot$fishing_hours_median[is.na(dat2plot$fishing_hours_median)] <- 0
 dat2plot$fishing_hours[is.na(dat2plot$fishing_hours)] <- 0
 
 # calculate ratio (with exceptions for zeros)
-dat2plot$ratio <- with(dat2plot, pmax(fishing_hours, 1e-9)/ pmax(fishing_hours_median, 1e-9))
+dat2plot$ratio <- 1/with(dat2plot, pmax(fishing_hours, 1e-9) / pmax(fishing_hours_median, 1e-9))
 
 # add back in lat and long
 dat2plot <- cbind(dat2plot, 
@@ -498,7 +498,7 @@ dat2plot$fishing_hours_median[is.na(dat2plot$fishing_hours_median)] <- 0
 dat2plot$fishing_hours[is.na(dat2plot$fishing_hours)] <- 0
 
 # calculate ratio (with exceptions for zeros)
-dat2plot$ratio <- with(dat2plot, pmax(fishing_hours, 1e-9)/ pmax(fishing_hours_median, 1e-9))
+dat2plot$ratio <- 1/with(dat2plot, pmax(fishing_hours, 1e-9) / pmax(fishing_hours_median, 1e-9))
 
 # add back in lat and long
 dat2plot <- cbind(dat2plot, 
@@ -802,7 +802,7 @@ dat2plot$fishing_days_median[is.na(dat2plot$fishing_days_median)] <- 0
 dat2plot$fishing_days[is.na(dat2plot$fishing_days)] <- 0
 
 # calculate ratio (with exceptions for zeros)
-dat2plot$ratio <- with(dat2plot, pmax(fishing_days, 1e-9)/ pmax(fishing_days_median, 1e-9))
+dat2plot$ratio <- 1/with(dat2plot, pmax(fishing_days, 1e-9) / pmax(fishing_days_median, 1e-9))
 
 # add back in lat and long
 dat2plot <- cbind(dat2plot,
@@ -856,7 +856,7 @@ dat2plot$fishing_days_median[is.na(dat2plot$fishing_days_median)] <- 0
 dat2plot$fishing_days[is.na(dat2plot$fishing_days)] <- 0
 
 # calculate ratio (with exceptions for zeros)
-dat2plot$ratio <- with(dat2plot, pmax(fishing_days, 1e-9)/ pmax(fishing_days_median, 1e-9))
+dat2plot$ratio <- 1/with(dat2plot, pmax(fishing_days, 1e-9) / pmax(fishing_days_median, 1e-9))
 
 # add back in lat and long
 dat2plot <- cbind(dat2plot,
