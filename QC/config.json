@@ -1,7 +1,8 @@
 {
   // list of countries to run QC for
-  "countries": ["DNK", "BEL", "SWE", "NLD", "FRA", "FIN", "LTU", "POL", "Latvia", "PRT", "IRL", "GBR"],
-  //"countries": ["IRL"],
+  "countries": ["BEL", "DEU", "DNK", "EST", "FIN", "FRA", "GBR", "IRL", "Latvia", "LTU", "nld", "NO", "POL", "PRT", "SWE"],
+  //"countries": ["DNK", "BEL", "SWE", "NLD", "FRA", "FIN", "LTU", "POL", "Latvia", "PRT", "IRL"],
+  //"countries": ["FIN"],
   
   // location of data directory
   "data_dir": "data/QC_2018",
