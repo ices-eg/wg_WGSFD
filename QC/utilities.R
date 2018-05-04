@@ -46,18 +46,21 @@ makeQCRmd <- function(country, data_dir, template = "QC/report-QC-template.Rmd")
   
   # write Rmd
   cat(unlist(qc), sep = "\n", file = fname)
+  
+  fname
 }
 
 
 
-copyReport <- function(fname, report_dir) {
+copyReport <- function(fname, report_dir, keeps = c("Rmd", "pdf", "tex")) {
   # copy report and Rmd file
   fname <- tools::file_path_sans_ext(fname)
-  for (ext in c("Rmd", "pdf", "tex")) {
+  for (ext in keeps) {
     cp(paste0(fname, ".", ext), report_dir, move = TRUE)
   }  
   
   # clean up
+  Sys.sleep(1)
   unlink(dir(pattern = fname), recursive = TRUE)
   
   invisible(TRUE)

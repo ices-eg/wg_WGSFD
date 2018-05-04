@@ -3,15 +3,15 @@
 # install vmstools from github
 #devtools::install_github("nielshintzen/vmstools/vmstools")
 
-# This script creates an Rmd file for a specific country
-source("QC/utilities.R")
-
-# main script -----------------
+# libraries
 library(rmarkdown)
 library(icesTAF)
 library(jsonlite)
 
-# get list of countries
+# utiities
+source("QC/utilities.R")
+
+# settings
 config <- read_json("QC/config.json", simplifyVector = TRUE)
 
 # create report directory
@@ -23,7 +23,7 @@ for (country in config$countries) {
   msg("Running QC for ... ", country)
   
   # fillin and write template
-  fname <- makeQCRmd(country, config$data_dir)
+  fname <- makeQCRmd(country, config$data_dir, template = "QC/report-QC-template.Rmd")
 
   # render Rmd
   ret <- try(render(fname, clean = FALSE, output_format = latex_document()))
@@ -36,7 +36,7 @@ for (country in config$countries) {
   shell(paste('pdflatex -halt-on-error', ret))
   
   # copy report and Rmd file
-  copyReport(fname, report_dir = config$report_dir)
+  copyReport(fname, report_dir = config$report_dir, keeps = "pdf")
   
   msg("Done ... ", country)
 }
