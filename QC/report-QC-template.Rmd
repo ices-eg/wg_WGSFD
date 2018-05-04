@@ -55,13 +55,13 @@ Data handling
 # NOTE:
 #   This chunk of code is replaced when a template is created.
 
-ICES_LE <- read.table('data/QC/ICES_LE_SWE.csv', sep = ',', header = TRUE,
+ICES_LE <- read.table('data/QC_2018/ICES_LE_NLD.csv', sep = ',', header = TRUE,
           stringsAsFactors = FALSE, na.strings = 'NULL',
           colClasses = c('character', 'character', 'numeric', 'numeric',
                          'character', 'character', 'character', 'numeric',
                          'character', 'character',
                          'numeric', 'numeric', 'numeric'))
-ICES_VE <- read.table('data/QC/ICES_VE_SWE.csv', sep = ',', header = TRUE,
+ICES_VE <- read.table('data/QC_2018/ICES_VE_NLD.csv', sep = ',', header = TRUE,
           stringsAsFactors = FALSE, na.strings = 'NULL',
           colClasses = c('character', 'character', 'numeric', 'numeric',
                          'character', 'character', 'character', 'character',
@@ -102,51 +102,10 @@ tempBoundLog <- range(ICES_LE$year, na.rm=TRUE)
 <!--------------------------
 Utility stuff
 ------------------------ -->
-```{r ggplot settings}
-theme_icesqc <- function(legend.position = "none")
-  theme(axis.text.y   = element_text(colour="black"),
-        axis.text.x   = element_text(colour="black"),
-        axis.title.y  = element_text(size=14,face="bold"),
-        axis.title.x  = element_text(size=14,face="bold"),
-        legend.position = legend.position,
-        panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill=NA))
+```{r utilities}
+source("QC/utilities-report.R")
 ```
 
-```{r utility functions}
-make_polVMS <- function(coordGrd, resolution = 0.05) {
-  polVMS <- data.frame(long = rep(c(-1, -1, 1,  1, -1), nrow(coordGrd)) * resolution/2,
-                       lat  = rep(c(-1,  1, 1, -1, -1), nrow(coordGrd)) * resolution/2) 
-  polVMS$long <- polVMS$long + rep(coordGrd$SI_LONG, each = 5)
-  polVMS$lat <- polVMS$lat + rep(coordGrd$SI_LATI, each = 5)
-  polVMS$order <- rep(1:5, nrow(coordGrd))
-  polVMS$hole <- FALSE
-  polVMS$piece <- 1
-  polVMS$id <- rep(1:nrow(coordGrd), each = 5)
-  polVMS$group <- paste0(polVMS$id, ".", polVMS$piece)
-  
-  polVMS
-}
-```
-
-```{r default-spatial-ggplot}
-spatialplot <- function(data, xyrange = spatCore) {
-  ggplot(polLand, aes(long, lat)) +
-    geom_polygon(aes(group=group), fill = "light grey") +
-    coord_fixed(ratio = vmstools::lonLatRatio(min(xyrange$xrange), min(xyrange$yrange)),
-                xlim = xyrange$xrange, 
-                ylim = xyrange$yrange) +
-    labs(x = "Longitude", y = "Latitude") +
-    geom_polygon(data = data, 
-                 aes(long, lat, group = group, fill = cols)) +
-    geom_polygon(data = polLand, 
-                 aes(long, lat, group = group), 
-                 colour = "black", size = 0.25, fill = "transparent")
-}
-```
 
 <!------------------------------------------------------------------------------
 Tables & Figures VMS
@@ -167,7 +126,7 @@ opts_chunk$set(eval = hasvms)
 
 ## Years & number of records for which data has been submitted:
 ```{r records-by-year, results='asis'}
-kable(plyr::count(ICES_VE,'year'), booktabs = TRUE)
+kable(plyr::count(ICES_VE, 'year'), booktabs = TRUE)
 
 dat2plot <- data.frame(table(ICES_VE$year))
 colnames(dat2plot) <- c("Year","Freq")
@@ -207,7 +166,7 @@ qplot(factor(year),data=ICES_VE, geom="bar",fill=factor(month)) +
 \newpage
 
 ## Spatial extent of data submitted by year:
-```{r table-exent, results='asis'}
+```{r table-exent}
 dat2tab <- as.matrix(aggregate(ICES_VE$SI_LONG,by=list(ICES_VE$year),FUN=range))
 dat2tab <- cbind(dat2tab,as.matrix(aggregate(ICES_VE$SI_LATI,by=list(ICES_VE$year),FUN=range)[,-1]))
 colnames(dat2tab) <- c("Year", "min lon", "max lon", "min lat", "max lat")
@@ -217,34 +176,17 @@ kable(dat2tab, booktabs = TRUE)
 ## Area for which data has been submitted:
 ```{r area-of-data,  fig.height = 9}
 coordGrd <- unique(ICES_VE[, c("SI_LONG", "SI_LATI", "year")])
-
-# create a fortied polygon of csquares
-polVMS <- make_polVMS(coordGrd, resolution = 0.5)
-polVMS$year <- rep(coordGrd$year, each = 5)
-polVMS$cols <- "red"
-
-spatialplot(polVMS, spatBound) +
-  facet_wrap(~ year, ncol = 2) +
-  theme_icesqc()
+data_coverage(coordGrd, spatBound, res = 0.5)
 ```
 
 ```{r area-of-data2,  fig.height = 9}
-coordGrd <- unique(ICES_VE[, c("SI_LONG", "SI_LATI", "year")])
-
-# create a fortied polygon of csquares
-polVMS <- make_polVMS(coordGrd)
-polVMS$year <- rep(coordGrd$year, each = 5)
-polVMS$cols <- "red"
-
-spatialplot(polVMS, spatCore) +
-  facet_wrap(~ year, ncol = 2) +
-  theme_icesqc()
+data_coverage(coordGrd, spatCore, res = 0.05)
 ```
 
 \newpage
 
 ## Frequency of vessel length categories by year:
-```{r records-by-vessel-length, results='asis'}
+```{r records-by-vessel-length}
 kable(table(ICES_VE$vessel_length_category,ICES_VE$year), booktabs = TRUE)
 
 qplot(factor(year), data = ICES_VE, geom = "bar", fill = factor(vessel_length_category)) +
@@ -417,17 +359,9 @@ ggplot(ICES_VE, aes(x = kw_fishinghours))+
 
 ## Landings by gear by year:
 ```{r landings-by-gear-year}
-dat2tab <- 
-  with(ICES_VE, 
-       tapply(totweight, list(gear_code = gear_code, year = year), sum, na.rm = TRUE))
-kable(dat2tab, booktabs = TRUE)
-
-dat2plot <- as.data.frame.table(dat2tab, responseName = "totweight")
-
-ggplot(dat2plot, aes(x = year, y = totweight)) +
-  geom_line(aes(group = gear_code, colour = gear_code), lwd=1.5) +
-  xlab("Year") + ylab ("kg landed") +
-  theme_icesqc(legend.position = "right")
+ps <- gear_splits(ICES_VE$totweight, data = ICES_VE, "kg landed", year_groups = 2, gear_groups = 4, func = sum)
+ps$table
+for (p in ps$plots) print(p)
 ```
 
 \newpage
@@ -502,7 +436,7 @@ dat2plot$fishing_hours_median[is.na(dat2plot$fishing_hours_median)] <- 0
 dat2plot$fishing_hours[is.na(dat2plot$fishing_hours)] <- 0
 
 # calculate ratio (with exceptions for zeros)
-dat2plot$ratio <- with(dat2plot, pmax(fishing_hours_median, 1e-9) / pmax(fishing_hours, 1e-9))
+dat2plot$ratio <- with(dat2plot, pmax(fishing_hours, 1e-9)/ pmax(fishing_hours_median, 1e-9))
 
 # add back in lat and long
 dat2plot <- cbind(dat2plot, 
@@ -564,7 +498,7 @@ dat2plot$fishing_hours_median[is.na(dat2plot$fishing_hours_median)] <- 0
 dat2plot$fishing_hours[is.na(dat2plot$fishing_hours)] <- 0
 
 # calculate ratio (with exceptions for zeros)
-dat2plot$ratio <- with(dat2plot, pmax(fishing_hours_median, 1e-9) / pmax(fishing_hours, 1e-9))
+dat2plot$ratio <- with(dat2plot, pmax(fishing_hours, 1e-9)/ pmax(fishing_hours_median, 1e-9))
 
 # add back in lat and long
 dat2plot <- cbind(dat2plot, 
@@ -604,34 +538,18 @@ spatialplot(polVMS) +
 ## Mean landing per kW fishing hours by year:
 
 ```{r landings-by-gear}
-dat2tab <- 
-  with(ICES_VE, 
-       tapply(totweight/kw_fishinghours, list(gear_code = gear_code, year = year), median, na.rm = TRUE))
-kable(dat2tab, booktabs = TRUE)
-
-dat2plot <- as.data.frame.table(dat2tab, responseName = "kgkWh")
-
-ggplot(dat2plot, aes(x = year, y = kgkWh)) +
-  geom_line(aes(group = gear_code, colour = gear_code), lwd=1.5) +
-  xlab("Year") + ylab ("kg/kWh") +
-  theme_icesqc(legend.position = "right")
+ps <- gear_splits(with(ICES_VE, totweight/kw_fishinghours), data = ICES_VE, "kg/kWh", gear_groups = 4, func = median)
+ps$table
+for (p in ps$plots) print(p)
 ```
 
 \newpage
 
 ## Value by gear by year:
 ```{r value-by-gear-year, results='asis'}
-dat2tab <- 
-  with(ICES_VE, 
-       tapply(totvalue, list(gear_code = gear_code, year = year), sum, na.rm = TRUE))
-kable(dat2tab, booktabs = TRUE)
-
-dat2plot <- as.data.frame.table(dat2tab, responseName = "EUR_landed")
-
-ggplot(dat2plot, aes(x = year, y = EUR_landed)) +
-  geom_line(aes(group = gear_code, colour = gear_code), lwd=1.5) +
-  xlab("Year") + ylab ("EUR landed") +
-  theme_icesqc(legend.position = "right")
+ps <- gear_splits(ICES_VE$totvalue, data = ICES_VE, "EUR landed", gear_groups = 4, func = sum)
+ps$table
+for (p in ps$plots) print(p)
 ```
 
 \newpage
@@ -639,17 +557,9 @@ ggplot(dat2plot, aes(x = year, y = EUR_landed)) +
 ## Median value per KW fishing hours by year:
 
 ```{r mean-value-by-KWhours-year, results='asis'}
-dat2tab <- 
-  with(ICES_VE, 
-       tapply(totvalue/kw_fishinghours, list(gear_code = gear_code, year = year), median, na.rm = TRUE))
-kable(dat2tab, booktabs = TRUE)
-
-dat2plot <- as.data.frame.table(dat2tab, responseName = "EURkWh")
-
-ggplot(dat2plot, aes(x = year, y = EURkWh)) +
-  geom_line(aes(group = gear_code, colour = gear_code), lwd=1.5) +
-  xlab("Year") + ylab ("EUR/kWh") +
-  theme_icesqc(legend.position = "right")
+ps <- gear_splits(with(ICES_VE, totvalue/kw_fishinghours), data = ICES_VE, "EUR/kWh", gear_groups = 4, func = median)
+ps$table
+for (p in ps$plots) print(p)
 ```
 
 \newpage
@@ -657,17 +567,9 @@ ggplot(dat2plot, aes(x = year, y = EURkWh)) +
 ##  Average price:
 
 ```{r price, results='asis'}
-dat2tab <- 
-  with(ICES_VE, 
-       tapply(totvalue/totweight, list(gear_code = gear_code, year = year), median, na.rm = TRUE))
-kable(dat2tab, booktabs = TRUE)
-
-dat2plot <- as.data.frame.table(dat2tab, responseName = "MeanPrice")
-
-ggplot(dat2plot, aes(x = year, y = MeanPrice)) +
-  geom_line(aes(group = gear_code, colour = gear_code), lwd=1.5) +
-  xlab("Year") + ylab ("Mean price") +
-  theme_icesqc(legend.position = "right")
+ps <- gear_splits(with(ICES_VE, totvalue/totweight), data = ICES_VE, "Mean price (EUR/kg)", gear_groups = 4, func = median)
+ps$table
+for (p in ps$plots) print(p)
 ```
 
 `r if (!hasvms) {"\\end{comment}"}`
@@ -753,22 +655,13 @@ kable(dat2tab, booktabs = TRUE)
 
 ## Area for which data has been submitted:
 ```{r , results='asis',fig.height = 9}
-coordGrd        <- unique(ICES_LE[,c("SI_LONG","SI_LATI","year")])
-
-polRect <- make_polVMS(coordGrd, resolution = 1)
-polRect$year    <- rep(coordGrd$year, each = 5)
-polRect$cols    <- "red"
-
-spatialplot(polRect, spatBoundLog) +
-  facet_wrap(~ year, ncol = 2) +
-  theme_icesqc()
+coordGrd <- unique(ICES_LE[,c("SI_LONG","SI_LATI","year")])
+data_coverage(coordGrd, spatBoundLog, res = 1)
 ```
 
 
 ```{r , results='asis',fig.height = 9}
-spatialplot(polRect, spatCore) +
-  facet_wrap(~ year, ncol = 2) +
-  theme_icesqc()
+data_coverage(coordGrd, spatCore, res = 1)
 ```
 
 \newpage
@@ -845,17 +738,9 @@ ggplot(ICES_LE, aes(x = kw_fishing_days)) +
 
 ## Landings by gear by year:
 ```{r , results='asis'}
-dat2tab <- 
-  with(ICES_LE, 
-       tapply(totweight, list(gear_code = gear_code, year = year), sum, na.rm = TRUE))
-kable(dat2tab, booktabs = TRUE)
-
-dat2plot <- as.data.frame.table(dat2tab, responseName = "totweight")
-
-ggplot(dat2plot, aes(x = year, y = totweight)) +
-  geom_line(aes(group = gear_code, colour = gear_code), lwd = 1.5) +
-  xlab("Year") + ylab ("kg landed") +
-  theme_icesqc(legend.position = "right")
+ps <- gear_splits(ICES_LE$totweight, data = ICES_LE, "kg landed", gear_groups = 4, func = sum)
+ps$table
+for (p in ps$plots) print(p)
 ```
 
 \newpage
@@ -917,7 +802,7 @@ dat2plot$fishing_days_median[is.na(dat2plot$fishing_days_median)] <- 0
 dat2plot$fishing_days[is.na(dat2plot$fishing_days)] <- 0
 
 # calculate ratio (with exceptions for zeros)
-dat2plot$ratio <- with(dat2plot, pmax(fishing_days_median, 1e-9) / pmax(fishing_days, 1e-9))
+dat2plot$ratio <- with(dat2plot, pmax(fishing_days, 1e-9)/ pmax(fishing_days_median, 1e-9))
 
 # add back in lat and long
 dat2plot <- cbind(dat2plot,
@@ -971,7 +856,7 @@ dat2plot$fishing_days_median[is.na(dat2plot$fishing_days_median)] <- 0
 dat2plot$fishing_days[is.na(dat2plot$fishing_days)] <- 0
 
 # calculate ratio (with exceptions for zeros)
-dat2plot$ratio <- with(dat2plot, pmax(fishing_days_median, 1e-9) / pmax(fishing_days, 1e-9))
+dat2plot$ratio <- with(dat2plot, pmax(fishing_days, 1e-9)/ pmax(fishing_days_median, 1e-9))
 
 # add back in lat and long
 dat2plot <- cbind(dat2plot,
@@ -1016,34 +901,18 @@ ggplot(ICES_LE[ICES_LE$year == tempBoundLog[2],],
 ## Mean landing per KW fishing day by year:
 
 ```{r , results='asis'}
-dat2tab <- 
-  with(ICES_LE, 
-       tapply(totweight/kw_fishing_days, list(gear_code = gear_code, year = year), median, na.rm = TRUE))
-kable(dat2tab, booktabs = TRUE)
-
-dat2plot <- as.data.frame.table(dat2tab, responseName = "kgkWh")
-
-ggplot(dat2plot, aes(x = year, y = kgkWh)) +
-  geom_line(aes(group = gear_code, colour = gear_code), lwd=1.5) +
-  xlab("Year") + ylab ("kg/kWh") +
-  theme_icesqc(legend.position = "right")
+ps <- gear_splits(with(ICES_LE, totweight/kw_fishing_days), data = ICES_LE, "kg landed", gear_groups = 4, func = median)
+ps$table
+for (p in ps$plots) print(p)
 ```
 
 \newpage
 
 ## Value by gear by year:
 ```{r , results='asis'}
-dat2tab <- 
-  with(ICES_LE, 
-       tapply(totvalue, list(gear_code = gear_code, year = year), sum, na.rm = TRUE))
-kable(dat2tab, booktabs = TRUE)
-
-dat2plot <- as.data.frame.table(dat2tab, responseName = "EUR_landed")
-
-ggplot(dat2plot, aes(x = year, y = EUR_landed)) +
-  geom_line(aes(group = gear_code, colour = gear_code), lwd=1.5) +
-  xlab("Year") + ylab ("EUR landed") +
-  theme_icesqc(legend.position = "right")
+ps <- gear_splits(with(ICES_LE, totvalue), data = ICES_LE, "EUR landed", gear_groups = 4, func = median)
+ps$table
+for (p in ps$plots) print(p)
 ```
 
 \newpage
@@ -1051,17 +920,9 @@ ggplot(dat2plot, aes(x = year, y = EUR_landed)) +
 ## Mean value per KW fishing day by year:
 
 ```{r , results='asis'}
-dat2tab <- 
-  with(ICES_LE, 
-       tapply(totvalue/kw_fishing_days, list(gear_code = gear_code, year = year), median, na.rm = TRUE))
-kable(dat2tab, booktabs = TRUE)
-
-dat2plot <- as.data.frame.table(dat2tab, responseName = "EURkWh")
-
-ggplot(dat2plot, aes(x = year, y = EURkWh)) +
-  geom_line(aes(group = gear_code, colour = gear_code), lwd=1.5) +
-  xlab("Year") + ylab ("EUR/kWh") +
-  theme_icesqc(legend.position = "right")
+ps <- gear_splits(with(ICES_LE, totvalue/kw_fishing_days), data = ICES_LE, "EUR/kWh", gear_groups = 4, func = median)
+ps$table
+for (p in ps$plots) print(p)
 ```
 
 \newpage
@@ -1069,17 +930,9 @@ ggplot(dat2plot, aes(x = year, y = EURkWh)) +
 ##  Average price:
 
 ```{r , results='asis'}
-dat2tab <- 
-  with(ICES_LE, 
-       tapply(totvalue/totweight, list(year = year), median, na.rm = TRUE))
-kable(as.data.frame(t(dat2tab)), booktabs = TRUE)
-
-dat2plot <- as.data.frame.table(dat2tab, responseName = "MeanPrice")
-
-ggplot(dat2plot, aes(x = year, y = MeanPrice, group = 1)) +
-  geom_line(lwd = 1.5) +
-  xlab("Year") + ylab ("Mean price") +
-  theme_icesqc()
+ps <- gear_splits(with(ICES_LE, totvalue/totweight), data = ICES_LE, "Mean price (EUR/kg)", gear_groups = 4, func = median)
+cat(ps$table)
+for (p in ps$plots) print(p)
 ```
 
 \newpage
