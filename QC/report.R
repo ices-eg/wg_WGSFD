@@ -33,10 +33,12 @@ for (country in config$countries) {
   }
   
   # compile pdf
-  shell(paste('pdflatex -halt-on-error', ret))
+  x <- shell(paste('pdflatex -halt-on-error', ret))
   
-  # copy report and Rmd file
-  copyReport(fname, report_dir = config$report_dir, keeps = "pdf")
+  if (x == 0) {
+    # copy report and Rmd file
+    copyReport(fname, report_dir = config$report_dir, keeps = "pdf")
+  }
   
   msg("Done ... ", country)
 }
