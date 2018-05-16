@@ -77,7 +77,7 @@ gear_splits <- function(response, data = ICES_VE, ylab_text, func = sum, year_gr
   dat2plot <- as.data.frame.table(dat2tab, responseName = "response")
   dat2plot <- dat2plot[complete.cases(dat2plot),]
   max <- tapply(dat2plot$response, dat2plot$gear_code, max, na.rm = TRUE)
-  if (gear_groups == 1) {
+  if (gear_groups == 1 || length(unique(max)) == 1) {
     grp <- rep(1, length(max))
   } else {
     max[!is.finite(max)] <- min(max, na.rm = TRUE)
