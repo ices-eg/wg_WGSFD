@@ -70,7 +70,7 @@ gear_splits <- function(response, data = ICES_VE, ylab_text, func = sum, year_gr
   } else {
     grp <- cut(as.numeric(colnames(dat2tab)), year_groups)
     for (igrp in levels(grp)) {
-      out <- c(out, kable(dat2tab[, grp == igrp], booktabs = TRUE), "/n")
+      out <- c(out, kable(dat2tab[, grp == igrp, drop = FALSE], booktabs = TRUE), "\n")
     }    
   }
 
