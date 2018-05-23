@@ -50,3 +50,5 @@ QC_*.Rmd
 
 # ignore R projects
 *.Rproj
+2017_maps.html
+QC/report-QC-template-short.Rmd
