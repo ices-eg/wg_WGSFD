@@ -1,0 +1,55 @@
+
+library(data.table)
+library(dplyr)
+library(raster)
+library(leaflet)
+library(htmlwidgets)
+library(icesTAF)
+
+
+countries <- c("BEL", "DEU", "DNK", "EST", "FIN", "FRA", "GBR", "ICE", "IRL", "Latvia", "LTU", "nld", "POL", "PRT", "SWE", "NO")
+rasts <- 
+  lapply(countries, function(country) {
+  
+    vms <- fread(sprintf("data/QC_2018/ICES_VE_%s.csv", country)) %>% .[year == 2017] %>% as.data.frame
+    msg(country, ":", nrow(vms), " rows")
+    
+    if (nrow(vms) == 0) return(NULL)
+    
+    # make raster
+    resolution <- 0.05
+    loc <- as.matrix(vmstools::CSquare2LonLat(vms$c_square, degrees = resolution))[,2:1]
+    colnames(loc) <- c('X', 'Y')
+    
+    # set up an 'empty' raster, here via an extent object derived from your data
+    r <- raster(extent(loc)  + resolution/2,
+                resolution = resolution,
+                crs = sp::CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
+    
+    r <- rasterize(loc, r, vms$kw_fishinghours, fun = "sum")
+    
+    r
+  })
+names(rasts) <- countries
+rasts <- rasts[!sapply(rasts, is.null)]
+
+msg("making map")
+m <- 
+  leaflet() %>% 
+  addTiles() %>%
+  addProviderTiles(providers$Esri.WorldImagery)
+
+# add layers
+for (layer in names(rasts)) {
+  if (is.null(rasts[[layer]])) next
+  m <- addRasterImage(m, rasts[[layer]], opacity = 0.8, group = layer)
+}
+# Layers control
+m <- addLayersControl(m,
+      baseGroups = names(rasts),
+      options = layersControlOptions(collapsed = FALSE))
+
+msg("saving map")
+fname <- "2017_maps.html"
+saveWidget(m, file = fname)
+cp(fname, "QC/reports_2018")
