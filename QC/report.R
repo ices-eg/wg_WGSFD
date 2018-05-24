@@ -19,7 +19,7 @@ mkdir(config$report_dir)
 
 # loop over countries
 for (country in config$countries) {
-  #country <- "IRL"
+  #country <- "EST"
   msg("Running QC for ... ", country)
   
   # fillin and write template
@@ -37,7 +37,7 @@ for (country in config$countries) {
   
   if (x == 0) {
     # copy report and Rmd file
-    copyReport(fname, report_dir = config$report_dir, keeps = "pdf")
+    copyReport(fname, report_dir = config$report_dir, keeps = c("pdf", "knit.md"))
   }
   
   msg("Done ... ", country)
