@@ -23,7 +23,7 @@ for (country in config$countries) {
   msg("downloading LE data for ... ", country)
   
   # set up sql command
-  sqlq <- sprintf("SELECT * FROM dbo._2017_ICES_VMS_Datacall_LE WHERE country = '%s'", country)
+  sqlq <- sprintf("SELECT * FROM dbo._2017_ICES_VMS_Datacall_LE WHERE country = '%s' order by year, ICES_rectangle, gear_code, month", country)
   fname <- paste0(config$data_dir, "/ICES_LE_", country, ".csv")
   
   # fetch
@@ -37,7 +37,7 @@ for (country in config$countries) {
   msg("downloading VMS data for ... ", country)
   
   # set up sql command
-  sqlq <- sprintf("SELECT * FROM [dbo].[_2017_ICES_VMS_Datacall_VMS] WHERE country = '%s'", country)
+  sqlq <- sprintf("SELECT * FROM [dbo].[_2017_ICES_VMS_Datacall_VMS] WHERE country = '%s' order by year, ICES_rectangle, gear_code, month", country)
   fname <- paste0(config$data_dir, "/ICES_VE_", country, ".csv")
   
   # fetch
