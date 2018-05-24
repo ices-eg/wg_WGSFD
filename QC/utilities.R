@@ -56,7 +56,8 @@ copyReport <- function(fname, report_dir, keeps = c("Rmd", "pdf", "tex")) {
   # copy report and Rmd file
   fname <- tools::file_path_sans_ext(fname)
   for (ext in keeps) {
-    cp(paste0(fname, ".", ext), report_dir, move = FALSE)
+    mkdir(file.path(report_dir, ext))
+    cp(paste0(fname, ".", ext), file.path(report_dir, ext), move = FALSE)
   }  
   
   # clean up
