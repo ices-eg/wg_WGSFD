@@ -8,10 +8,17 @@ library(icesTAF)
 
 
 countries <- c("BEL", "DEU", "DNK", "EST", "FIN", "FRA", "GBR", "ICE", "IRL", "Latvia", "LTU", "nld", "POL", "PRT", "SWE", "NO")
+years <- 2009:2017
+
+layers <- expand.grid(year = years, country = countries)
+
 rasts <- 
-  lapply(countries, function(country) {
+  lapply(1:nrow(layers), function(i) {
   
-    vms <- fread(sprintf("data/QC_2018/ICES_VE_%s.csv", country)) %>% .[year == 2017] %>% as.data.frame
+    country <- layers$country[i]; 
+    year <- layers$year[i]
+    
+    vms <- fread(sprintf("data/QC_2018/ICES_VE_%s.csv", country)) %>% .[year == layers$year[i]] %>% as.data.frame
     msg(country, ":", nrow(vms), " rows")
     
     if (nrow(vms) == 0) return(NULL)
@@ -30,14 +37,14 @@ rasts <-
     
     r
   })
-names(rasts) <- countries
+names(rasts) <- paste0(layers$country, ": ", layers$year)
 rasts <- rasts[!sapply(rasts, is.null)]
 
 msg("making map")
 m <- 
   leaflet() %>% 
   addTiles() %>%
-  addProviderTiles(providers$Esri.WorldImagery)
+  addProviderTiles(providers$Esri.OceanBasemap)
 
 # add layers
 for (layer in names(rasts)) {
