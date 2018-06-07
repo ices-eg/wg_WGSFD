@@ -5,9 +5,7 @@ header-includes:
   - \usepackage{comment}
   - \usepackage{booktabs}
   - \usepackage{longtable}
-output: 
-  pdf_document:
-    keep_tex: true
+output: pdf_document
 ---
 
 <!-- QCTEMPLATE: header -->
@@ -80,7 +78,8 @@ Pre-calculations
 Checks for VMS data
 ------------------------ -->
 ```{r vms-checks}
-
+#Most recent submission -->
+country <- unique(ICES_VE$country)
 ICES_VE <- cbind(ICES_VE, CSquare2LonLat(ICES_VE$c_square, degrees=0.05))
 spatBound <- list(xrange = range(ICES_VE$SI_LONG, na.rm=TRUE),
                   yrange = range(ICES_VE$SI_LATI, na.rm=TRUE))
