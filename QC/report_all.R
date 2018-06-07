@@ -28,7 +28,7 @@ for (year in config$years) {
   # render Rmd
   ret <- try(render(fname, clean = FALSE, output_format = latex_document()))
   if (inherits(ret, "try-error")) {
-    msg("FAILED - ", country)
+    msg("FAILED - ", year)
     next
   }
   
@@ -40,5 +40,5 @@ for (year in config$years) {
     copyReport(fname, report_dir = config$report_dir, keeps = c("pdf", "knit.md"))
   }
   
-  msg("Done ... ", country)
+  msg("Done ... ", year)
 }
