@@ -23,7 +23,7 @@ for (year in config$years) {
   msg("Running QC for ... ", year)
   
   # fillin and write template
-  fname <- makeQCRmd(year, config$data_dir, template = "QC/report-QC-template.Rmd")
+  fname <- makeQCRmd(year, config$data_dir, template = "QC/report-QC_all-template.Rmd")
 
   # render Rmd
   ret <- try(render(fname, clean = FALSE, output_format = latex_document()))
