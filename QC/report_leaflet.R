@@ -51,7 +51,8 @@ m <-
   addProviderTiles(providers$Esri.OceanBasemap)
 
 # add layers
-for (layer in names(rasts)) {
+rnames <- names(rasts)
+for (layer in rnames) {
   if (is.null(rasts[[layer]])) next
   m <- addRasterImage(m, rasts[[layer]], opacity = 0.8, group = layer)
 }
@@ -61,10 +62,10 @@ m <- addPolygons(m, fill = NA, weight = 1)
 
 # Layers control
 m <- addLayersControl(m,
-      baseGroups = names(rasts),
+      baseGroups = rnames,
       options = layersControlOptions(collapsed = FALSE))
 
 msg("saving map")
-fname <- "2017_maps.html"
+fname <- "fishing_intensity_by_country_and_year.html"
 saveWidget(m, file = fname)
 cp(fname, "QC/reports_2018")
