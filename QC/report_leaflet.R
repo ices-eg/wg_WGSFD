@@ -46,7 +46,7 @@ rasts <- rasts[!sapply(rasts, is.null)]
 
 msg("making map")
 m <- 
-  leaflet() %>% 
+  leaflet(ospar) %>% 
   addTiles() %>%
   addProviderTiles(providers$Esri.OceanBasemap)
 
@@ -55,6 +55,10 @@ for (layer in names(rasts)) {
   if (is.null(rasts[[layer]])) next
   m <- addRasterImage(m, rasts[[layer]], opacity = 0.8, group = layer)
 }
+
+# add ospar
+m <- addPolygons(m, fill = NA, weight = 1)
+
 # Layers control
 m <- addLayersControl(m,
       baseGroups = names(rasts),
