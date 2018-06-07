@@ -5,6 +5,10 @@ library(raster)
 library(leaflet)
 library(htmlwidgets)
 library(icesTAF)
+library(sf)
+
+# read ospar regions
+ospar <- read_sf("data/shapefiles", "ospar")
 
 
 countries <- c("BEL", "DEU", "DNK", "EST", "FIN", "FRA", "GBR", "ICE", "IRL", "Latvia", "LTU", "nld", "POL", "PRT", "SWE", "NO")
