@@ -1,0 +1,8 @@
+{
+  // location of data directory
+  "data_dir": "data/data_products_2018",
+  
+  // database connection string
+  "db_connection": "Driver={SQL Server};Server=SQL06;Database=VMS;Trusted_Connection=yes"
+}
+
