@@ -1,25 +1,24 @@
 # Make Maps of the fishing hours -------
 library(raster)
+library(sf)
 
 # create drectory
 if (!dir.exists("spatialPolygonsProducts/maps")) dir.create("spatialPolygonsProducts/maps")
 
 
-rm(list = ls())
-
 # source common
-source("spatialPolygonsProducts/plots-00-plotting-functions.R")
+source("spatialPolygonsProducts/utilities_report.R")
 
 ####
 
 # shape files
-coast <- rgdal::readOGR("data/shapefiles", "coast", verbose = FALSE)
-helcom <- rgdal::readOGR("data/shapefiles", "helcom", verbose = FALSE)
-ospar <- rgdal::readOGR("data/shapefiles", "ospar", verbose = FALSE)
+coast <- rgdal::readOGR("data/shapefiles", "coast", verbose = TRUE)
+helcom <- rgdal::readOGR("data/shapefiles", "helcom")
+ospar <- rgdal::readOGR("data/shapefiles", "ospar")
 
 # which table
-datacall <- "_2017_ICES_VMS_Datacall_VMS"
-years <- 2009:2016
+datacall <- "_2018_ICES_VMS_Datacall_VMS"
+years <- 2017:2009
 
 if (!dir.exists(paste0("spatialPolygonsProducts/maps/", datacall))) dir.create(paste0("spatialPolygonsProducts/maps/", datacall))
 
@@ -48,11 +47,11 @@ vms <- dplyr::rename(vms, Lat = mid_lat, Lon = mid_lon,
 
 # plot EO stuff
 
-q1 <- ceiling(quantile(vms$Surface_SweptAreaRatio, 0.95))
-m1 <- ceiling(max(vms$Surface_SweptAreaRatio))
+q1 <- ceiling(quantile(vms$Surface_SweptAreaRatio, 0.95, na.rm = TRUE))
+m1 <- ceiling(max(vms$Surface_SweptAreaRatio, na.rm = TRUE))
 
-q2 <- ceiling(quantile(vms$SubSurface_SweptAreaRatio, 0.95))
-m2 <- ceiling(max(vms$SubSurface_SweptAreaRatio))
+q2 <- ceiling(quantile(vms$SubSurface_SweptAreaRatio, 0.95, na.rm = TRUE))
+m2 <- ceiling(max(vms$SubSurface_SweptAreaRatio, na.rm = TRUE))
 
 breaks <- list(unique(c(seq(0, q1, length = 15), m1)),
                unique(c(seq(0, q2, length = 15), m2)))
