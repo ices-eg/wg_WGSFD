@@ -11,7 +11,7 @@ if (!dir.exists("data/fishingPressure")) dir.create("data/fishingPressure")
 # connect to DB
 conn <- odbcDriverConnect(connection = dbConnection)
 
-datacallyears <- 2017
+datacallyears <- 2018
 
 for (datacallyear in datacallyears) {
 

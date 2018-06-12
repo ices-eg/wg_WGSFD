@@ -20,7 +20,7 @@ conn <- odbcDriverConnect(connection = dbConnection)
 # get OSPAR region shapes
 ospar <- sqlQuery(conn, "SELECT Region, Name, shape.STAsText() as wkt FROM QUERYREF_OSPAR_REGIONS_20091214", rows_at_time = 1)
 ospar <- st_as_sf(ospar, wkt = "wkt", crs = 4326)
-write_sf(ospar, "data/shapefiles", "ospar", driver = "ESRI Shapefile")
+write_sf(ospar, "data/shapefiles", "ospar", driver = "ESRI Shapefile", update = TRUE)
 
 
 # get HELCOM region shapes
