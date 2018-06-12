@@ -28,7 +28,7 @@ from (
     %2$s 
     subsurface_prop 
   FROM
-    tblAux_benthisGearWidthsForWGSFD15 AS B 
+    tblAux_benthisGearWidthsForWGSFD17 AS B 
       RIGHT OUTER JOIN
     tblAux_Lookup_Metiers_incl_log AS JNCC ON B.benthis_met = JNCC.Benthis_metiers 
       RIGHT OUTER JOIN
@@ -52,7 +52,7 @@ from (
     %2$s 
     subsurface_prop   
   FROM
-    tblAux_benthisGearWidthsForWGSFD15 AS B 
+    tblAux_benthisGearWidthsForWGSFD17 AS B 
       RIGHT OUTER JOIN
     tblAux_Lookup_Metiers_incl_log AS JNCC ON B.benthis_met = JNCC.Benthis_metiers 
       RIGHT OUTER JOIN
@@ -76,7 +76,7 @@ from (
     %2$s
     subsurface_prop      
   FROM
-    tblAux_benthisGearWidthsForWGSFD15 AS B 
+    tblAux_benthisGearWidthsForWGSFD17 AS B 
       RIGHT OUTER JOIN
     tblAux_Lookup_Metiers_incl_log AS JNCC ON B.benthis_met = JNCC.Benthis_metiers 
       RIGHT OUTER JOIN
@@ -104,7 +104,7 @@ from (
     %2$s
     subsurface_prop
   FROM
-    tblAux_benthisGearWidthsForWGSFD15 AS B 
+    tblAux_benthisGearWidthsForWGSFD17 AS B 
       RIGHT OUTER JOIN
     tblAux_Lookup_Metiers_incl_log AS JNCC ON B.benthis_met = JNCC.Benthis_metiers 
       RIGHT OUTER JOIN
@@ -132,7 +132,7 @@ from (
     %2$s
     subsurface_prop
   FROM
-    tblAux_benthisGearWidthsForWGSFD15 AS B 
+    tblAux_benthisGearWidthsForWGSFD17 AS B 
       RIGHT OUTER JOIN
     tblAux_Lookup_Metiers_incl_log AS JNCC ON B.benthis_met = JNCC.Benthis_metiers 
       RIGHT OUTER JOIN
