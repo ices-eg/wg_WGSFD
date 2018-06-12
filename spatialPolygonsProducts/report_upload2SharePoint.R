@@ -14,7 +14,7 @@ spdir.create("shapefiles",
              site_collection = site_collection)
 
 # 'move' into effort_maps folder
-directory <- "2017 Meeting Docs/06. Data/Standard data products/shapefiles"
+directory <- "2018 Meeting Docs/06. Data/Standard data products/shapefiles"
 
 # copy all files in plots folder over
 copy2sp <- function(fname, comment = "2015 shapefiles", overwrite = FALSE)
