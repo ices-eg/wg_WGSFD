@@ -11,7 +11,7 @@ library(sf)
 ospar <- read_sf("data/shapefiles", "ospar")
 
 
-countries <- "2017"
+countries <- "2018"
 years <- 2009:2017
 
 layers <- expand.grid(year = years, country = countries)
