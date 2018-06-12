@@ -68,4 +68,4 @@ m <- addLayersControl(m,
 msg("saving map")
 fname <- "fishing_intensity_by_country_and_year.html"
 saveWidget(m, file = fname)
-cp(fname, "QC/reports_2018")
+cp(fname, "QC/reports_2018", move = TRUE)
