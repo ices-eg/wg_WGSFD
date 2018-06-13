@@ -61,26 +61,16 @@ for (i in 1:17) {
     mutate(c_square = as.character(c_square)) %>% 
     gather(variable, lastyear, -c(c_square, lon, lat))
   
-  # Merge the data and calculate the difference in the sar value
+ # Merge the data and calculate the difference in the sar value
   d <-
-    thisyear %>% 
-    full_join(lastyear) %>% 
-    mutate(diff = thisyear - lastyear) %>% 
+    thisyear %>%
+    full_join(lastyear) %>%
+    mutate(thisyear = ifelse(is.na(thisyear), 0, thisyear),             # new code
+           lastyear = ifelse(is.na(lastyear), 0, lastyear)) %>%         # new code
+    mutate(diff = thisyear - lastyear) %>%
     tbl_df()
   
-  # Trim the data excluding below 0.001 and above 0.999
-  p <- 0.999
-  q <-
-    d %>% 
-    group_by(variable) %>% 
-    summarise(lower = quantile(diff, 1 - p, na.rm = TRUE),
-              upper = quantile(diff, p, na.rm = TRUE))
-  d <-
-    d %>% 
-    left_join(q) %>% 
-    mutate(diff = ifelse(diff < lower, lower, diff),
-           diff = ifelse(diff > upper, upper, diff))
-  
+
   # Create a raster object for difference in the sar only
   r <- 
     d %>% 
@@ -121,17 +111,8 @@ for (i in 1:17) {
     full_join(lastyear) %>% 
     mutate(value = thisyear) %>% 
     tbl_df()
-  # Cap the SAR values
-  p <- 0.98
-  q <-
-    d %>% 
-    group_by(variable) %>% 
-    summarise(upper = quantile(value, p, na.rm = TRUE))
-  d <-
-    d %>% 
-    left_join(q) %>% 
-    mutate(value = ifelse(value > upper, upper, value))
-  r <- 
+
+ r <- 
     d %>% 
     filter(variable == "sar") %>% 
     dplyr::select(lon, lat, value) %>% 
