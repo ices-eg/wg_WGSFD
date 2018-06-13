@@ -16,154 +16,174 @@ library(raster)
 library(stringr)
 library(rgdal)
 library(tidyverse)
+library(tools)
+library(icesTAF)
+
 # also need sp- and raster-package, but needed function are called directly
 # in the code below
 
+datacalls <- c(2017, 2018)
+years <- c(2016, 2016)
+
 # Read in the 2015 data from data call 2016 and 2017
 # what shapes are there:
-file2016 <- 
-  dir("deliveries/_2016_ICES_VMS_Datacall_VMS", pattern = "shp", full.names = TRUE)
-i <- str_detect(file2016, "PEL")
-file2016 <- file2016[!i]
-file2017 <- dir("deliveries/2015", pattern = "shp", full.names = TRUE)
+# Detect files to read
+file2017 <- 
+  dir(paste0("spatialPolygonsProducts/shapefiles/_", datacalls[1] ,"_ICES_VMS_Datacall_VMS/", years[1] ,"/"), pattern = "shp", full.names = TRUE)
+i <- str_detect(file2017, "PEL")
+file2017 <- file2017[!i]
 
-# Get the total intensity file
-i <- 17 # The total intensity file
+file2018 <- 
+  dir(paste0("spatialPolygonsProducts/shapefiles/_", datacalls[2] ,"_ICES_VMS_Datacall_VMS/", years[2] ,"/"), pattern = "shp", full.names = TRUE)
+i <- str_detect(file2018, "PEL")
+file2018 <- file2018[!i]
 
-# 2017 datacall data
-thisyear <- 
-  rgdal::readOGR(paste0("/home/einarhj/prj2/vms2/wgsfd2017/", file2017[i]))@data %>%
-  select(c_square, lon = mid_lon, lat = mid_lat, sar = SurfSAR, ssar = SubsurfSAR) %>% 
-  mutate(c_square = as.character(c_square)) %>% 
-  gather(variable, thisyear, -c(c_square, lon, lat))
-# 2016 datacall data
-lastyear <- 
-  rgdal::readOGR(paste0("/home/einarhj/prj2/vms2/wgsfd2017/", file2016[i]))@data %>% 
-  select(c_square, lon = mid_lon, lat = mid_lat, sar = SurfSAR, ssar = SubsurfSAR) %>% 
-  mutate(c_square = as.character(c_square)) %>% 
-  gather(variable, lastyear, -c(c_square, lon, lat))
+label <- file2017 %>%
+         basename %>%
+         file_path_sans_ext
 
-# Merge the data and calculate the difference in the sar value
-d <-
-  thisyear %>% 
-  full_join(lastyear) %>% 
-  mutate(diff = thisyear - lastyear) %>% 
-  tbl_df()
+label <- gsub("(OSPAR_intensity_)|(_20[0-9][0-9])", "", label)
+label <- paste(label, years[1], "vs", years[2])
 
-# Trim the data excluding below 0.001 and above 0.999
-p <- 0.999
-q <-
-  d %>% 
-  group_by(variable) %>% 
-  summarise(lower = quantile(diff, 1 - p, na.rm = TRUE),
-            upper = quantile(diff, p, na.rm = TRUE))
-d <-
-  d %>% 
-  left_join(q) %>% 
-  mutate(diff = ifelse(diff < lower, lower, diff),
-         diff = ifelse(diff > upper, upper, diff))
 
-# Create a raster object for difference in the sar only
-r <- 
-  d %>% 
-  filter(variable == "sar") %>% 
-  dplyr::select(lon, lat, diff) %>% 
-  raster::rasterFromXYZ()
-sp::proj4string(r) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
-
-# peek on the distribution of the sar difference
-hist(raster::values(r))
-
-# Generate a colour function
-mx <- max(abs(raster::values(r)), na.rm = TRUE)
-pal <- colorNumeric(palette = c("red", "white", "blue"),
-                    domain = c(raster::values(r), -mx, mx),
-                    reverse = TRUE,
-                    na.color = "transparent")
-
-# Generate a leaflet map
-m <- 
-  leaflet() %>% 
-  #addTiles() %>% 
-  addTiles(urlTemplate = "http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}") %>% 
-  addRasterImage(r, colors = pal, opacity = 1, group = "Difference") %>%
-  addLegend(pal = pal, values = c(raster::values(r), -mx, mx),
-            title = "dsar")
-m
-
-# If you want to save the data as a html-file to be open in a browser
-#saveWidget(m, file="leaflet_demo.html", selfcontained = TRUE)
-
-# ------------------------------------------------------------------------------
-# Add SAR values from the 2017 datacall
-# the script is only a sligth modification from the above
-
-d <-
-  thisyear %>% 
-  full_join(lastyear) %>% 
-  mutate(value = thisyear) %>% 
-  tbl_df()
-# Cap the SAR values
-p <- 0.98
-q <-
-  d %>% 
-  group_by(variable) %>% 
-  summarise(upper = quantile(value, p, na.rm = TRUE))
-d <-
-  d %>% 
-  left_join(q) %>% 
-  mutate(value = ifelse(value > upper, upper, value))
-r <- 
-  d %>% 
-  filter(variable == "sar") %>% 
-  dplyr::select(lon, lat, value) %>% 
-  raster::rasterFromXYZ()
-sp::proj4string(r) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
-pal <- colorNumeric(palette = viridis(20, option = "B", direction = 1),
-                    domain = raster::values(r),
-                    reverse = TRUE,
-                    na.color = "transparent")
-# Add the new layer
-m <-
-  m %>% 
-  addRasterImage(r, colors = pal, opacity = 1, group = "2017 datacall") %>% 
-  addLegend(pal = pal, values = raster::values(r),
-            title = "SAR")
-
-# ------------------------------------------------------------------------------
-# Add SAR values from the 2016 datacall
-
-d <-
-  thisyear %>% 
-  full_join(lastyear) %>% 
-  mutate(value = lastyear) %>% 
-  tbl_df()
-# Cap the SAR values
-#p <- 0.98
-#q <-
-#  d %>% 
-#  group_by(variable) %>% 
-#  summarise(upper = quantile(value, p, na.rm = TRUE))
-d <-
-  d %>% 
-  left_join(q) %>% 
-  mutate(value = ifelse(value > upper, upper, value))
-r <- 
-  d %>% 
-  filter(variable == "sar") %>% 
-  dplyr::select(lon, lat, value) %>% 
-  raster::rasterFromXYZ()
-sp::proj4string(r) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
-pal <- colorNumeric(palette = viridis(20, option = "B", direction = 1),
-                    domain = raster::values(r),
-                    reverse = TRUE,
-                    na.color = "transparent")
-# Add the new layer
-m <-
-  m %>% 
-  addRasterImage(r, colors = pal, opacity = 1, group = "2016 datacall") %>% 
-  addLayersControl(baseGroups = c("diff", "2017 datacall", "2016 datacall"),
-                   #overlayGroups = c("Quakes", "Outline"),
-                   options = layersControlOptions(collapsed = FALSE))
-m
-saveWidget(m, file="leaflet_demo.html", selfcontained = TRUE)
+for (i in 1:17) {
+#for (i in 1:2) {
+  # 2018 datacall data
+  thisyear <- 
+    rgdal::readOGR(file2018[i])@data %>%
+    select(c_square, lon = mid_lon, lat = mid_lat, sar = SurfSAR, ssar = SubsurfSAR) %>% 
+    mutate(c_square = as.character(c_square)) %>% 
+    gather(variable, thisyear, -c(c_square, lon, lat))
+  # 2017 datacall data
+  lastyear <- 
+    rgdal::readOGR(file2017[i])@data %>% 
+    select(c_square, lon = mid_lon, lat = mid_lat, sar = SurfSAR, ssar = SubsurfSAR) %>% 
+    mutate(c_square = as.character(c_square)) %>% 
+    gather(variable, lastyear, -c(c_square, lon, lat))
+  
+  # Merge the data and calculate the difference in the sar value
+  d <-
+    thisyear %>% 
+    full_join(lastyear) %>% 
+    mutate(diff = thisyear - lastyear) %>% 
+    tbl_df()
+  
+  # Trim the data excluding below 0.001 and above 0.999
+  p <- 0.999
+  q <-
+    d %>% 
+    group_by(variable) %>% 
+    summarise(lower = quantile(diff, 1 - p, na.rm = TRUE),
+              upper = quantile(diff, p, na.rm = TRUE))
+  d <-
+    d %>% 
+    left_join(q) %>% 
+    mutate(diff = ifelse(diff < lower, lower, diff),
+           diff = ifelse(diff > upper, upper, diff))
+  
+  # Create a raster object for difference in the sar only
+  r <- 
+    d %>% 
+    filter(variable == "sar") %>% 
+    dplyr::select(lon, lat, diff) %>% 
+    raster::rasterFromXYZ()
+  sp::proj4string(r) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+  
+  # peek on the distribution of the sar difference
+  hist(raster::values(r))
+  
+  # Generate a colour function
+  mx <- max(abs(raster::values(r)), na.rm = TRUE)
+  pal <- colorNumeric(palette = c("red", "white", "blue"),
+                      domain = c(raster::values(r), -mx, mx),
+                      reverse = TRUE,
+                      na.color = "transparent")
+  
+  # Generate a leaflet map
+  m <- 
+    leaflet() %>% 
+    addTiles() %>% 
+    addProviderTiles(providers$Esri.OceanBasemap) %>%
+    addRasterImage(r, colors = pal, opacity = 1, group = "Difference") %>%
+    addLegend(pal = pal, values = c(raster::values(r), -mx, mx),
+              title = "dsar")
+  m
+  
+  # If you want to save the data as a html-file to be open in a browser
+  #saveWidget(m, file="leaflet_demo.html", selfcontained = TRUE)
+  
+  # ------------------------------------------------------------------------------
+  # Add SAR values from the 2018 datacall
+  # the script is only a sligth modification from the above
+  
+  d <-
+    thisyear %>% 
+    full_join(lastyear) %>% 
+    mutate(value = thisyear) %>% 
+    tbl_df()
+  # Cap the SAR values
+  p <- 0.98
+  q <-
+    d %>% 
+    group_by(variable) %>% 
+    summarise(upper = quantile(value, p, na.rm = TRUE))
+  d <-
+    d %>% 
+    left_join(q) %>% 
+    mutate(value = ifelse(value > upper, upper, value))
+  r <- 
+    d %>% 
+    filter(variable == "sar") %>% 
+    dplyr::select(lon, lat, value) %>% 
+    raster::rasterFromXYZ()
+  sp::proj4string(r) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+  pal <- colorNumeric(palette = viridis(20, option = "B", direction = 1),
+                      domain = raster::values(r),
+                      reverse = TRUE,
+                      na.color = "transparent")
+  # Add the new layer
+  m <-
+    m %>% 
+    addRasterImage(r, colors = pal, opacity = 1, group = paste(datacalls[2], "datacall year:", years[2])) %>% 
+    addLegend(pal = pal, values = raster::values(r),
+              title = "SAR")
+  
+  # ------------------------------------------------------------------------------
+  # Add SAR values from the 2017 datacall
+  
+  d <-
+    thisyear %>% 
+    full_join(lastyear) %>% 
+    mutate(value = lastyear) %>% 
+    tbl_df()
+  # Cap the SAR values
+  #p <- 0.98
+  #q <-
+  #  d %>% 
+  #  group_by(variable) %>% 
+  #  summarise(upper = quantile(value, p, na.rm = TRUE))
+  d <-
+    d %>% 
+    left_join(q) %>% 
+    mutate(value = ifelse(value > upper, upper, value))
+  r <- 
+    d %>% 
+    filter(variable == "sar") %>% 
+    dplyr::select(lon, lat, value) %>% 
+    raster::rasterFromXYZ()
+  sp::proj4string(r) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+  pal <- colorNumeric(palette = viridis(20, option = "B", direction = 1),
+                      domain = raster::values(r),
+                      reverse = TRUE,
+                      na.color = "transparent")
+  # Add the new layer
+  m <-
+    m %>% 
+    addRasterImage(r, colors = pal, opacity = 1, group = paste(datacalls[1], "datacall year:", years[1])) %>% 
+    addLayersControl(baseGroups = c("diff", paste(datacalls[2], "datacall year:", years[2]), paste(datacalls[1], "datacall year:", years[1])),
+                     #overlayGroups = c("Quakes", "Outline"),
+                     options = layersControlOptions(collapsed = FALSE))
+  m
+  saveWidget(m, file=paste0(gsub(" ", "_", label[i]), "_datacall_comparison.html"), selfcontained = TRUE, title = label[i])
+  cp(paste0(gsub(" ", "_", label[i]), "_datacall_comparison.html"), "QC/reports_2018/leaflet", move = TRUE)
+}
