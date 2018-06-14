@@ -1,0 +1,40 @@
+---
+title: "OSPAR_layers_2017"
+author: "WGSFD"
+date: "13 June 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+datacall <- "_2018_ICES_VMS_Datacall_VMS"
+```
+
+*links*
+
+[https://github.com/ices-eg/wg_WGSFD/tree/master/data/data_products_2018]
+
+# 2017
+
+## Total
+
+```{r echo=FALSE, out.width='100%'}
+year <- 2017
+files <- dir(paste0("../spatialPolygonsProducts/maps/", datacall, "/", year), pattern = "*.png", recursive = TRUE, full = TRUE)
+fs <- files[grep("total", files)]
+knitr::include_graphics(sort(fs))  
+```
+
+## JNCC fishing categories
+
+```{r echo=FALSE, out.width='100%'}
+fs <- files[grep("(Dredge)|(Beam)|(Otter)|(Seine)", files)]
+knitr::include_graphics(sort(fs))  
+```
+
+## Benthis gear categories
+
+```{r echo=FALSE, out.width='100%'}
+fs <- files[!grepl("(total)|(Dredge)|(Beam)|(Otter)|(Seine)", files)]
+knitr::include_graphics(sort(fs))  
+```
