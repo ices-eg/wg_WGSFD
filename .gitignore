@@ -52,3 +52,4 @@ QC_*.Rmd
 *.Rproj
 2017_maps.html
 QC/report-QC-template-short.Rmd
+*.html
