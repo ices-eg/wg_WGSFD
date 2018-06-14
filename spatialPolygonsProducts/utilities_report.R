@@ -9,7 +9,7 @@ makeRaster <- function(data, value, resolution = 0.05, by = NULL, fun = sum) {
   colnames(loc) <- c('X', 'Y')
 
   # set up an 'empty' raster, here via an extent object derived from your data
-  r <- raster::raster(raster::extent(loc) + resolution/2,
+  r <- raster::raster(raster::extent(loc) + resolution,
                       resolution = resolution,
                       crs = sp::CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 
@@ -27,12 +27,12 @@ makeRaster <- function(data, value, resolution = 0.05, by = NULL, fun = sum) {
 
 
 plotRaster <- function(x, region, land, palette, breaks, main = "") {
-
   # defaults:
   if (missing(palette)) palette <- RColorBrewer::brewer.pal(9, "YlOrRd")
 
   # derived quantities
   col <- colorRampPalette(palette)(length(breaks)-1)
+  if (length(col) == 0) col <- 1
 
   # define bounding box based on ecoregion
   bbox <- as(raster::extent(region), "SpatialPolygons")
@@ -45,7 +45,7 @@ plotRaster <- function(x, region, land, palette, breaks, main = "") {
   sp::degAxis(2, mgp = c(2, 0.75, 0), las = 1)
   box(bty = "o")
   sp::plot(rgeos::gIntersection(land, bbox), col = "light grey", border = NA, add = TRUE)
-
+  
   # plot raster
   if (!is.null(x))
     raster::plot(x, col = col, breaks = breaks, add = TRUE, legend = FALSE)
