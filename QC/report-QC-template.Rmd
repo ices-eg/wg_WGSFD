@@ -126,7 +126,7 @@ opts_chunk$set(eval = hasvms)
 
 ## Years & number of records for which data has been submitted:
 ```{r records-by-year, results='asis'}
-kable(plyr::count(ICES_VE, 'year'), booktabs = TRUE)
+kable(table(year = ICES_VE$year), booktabs = TRUE)
 
 dat2plot <- data.frame(table(ICES_VE$year))
 colnames(dat2plot) <- c("Year","Freq")
@@ -154,7 +154,7 @@ if (any(is.na(ICES_VE$SI_LONG))) {
 
 \newpage
 
-## Distribution of pings by month:
+## Distribution of records by month:
 ```{r pings-by-month}
 kable(table(ICES_VE$month, ICES_VE$year), booktabs = TRUE)
 
