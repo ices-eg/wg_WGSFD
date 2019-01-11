@@ -71,12 +71,13 @@ for (run in runs) {
       q2 <- ceiling(quantile(vms$SubSurface_SweptAreaRatio, 0.95, na.rm = TRUE))
       m2 <- ceiling(max(vms$SubSurface_SweptAreaRatio, na.rm = TRUE))
       
-      breaks <- list(unique(c(0, seq(1e-9, q1, length = 15), pmax(m1, 1))),
-                     unique(c(0, seq(1e-9, q2, length = 15), pmax(m2, 1))))
+      breaks <- list(unique(c(-10, seq(0, q1, length = 15), pmax(m1, 1))),
+                     unique(c(-10, seq(0, q2, length = 15), pmax(m2, 1))))
       
       cvalues <- c("Surface_SweptAreaRatio", "SubSurface_SweptAreaRatio")
       main <- c("SurSAR", "Sub-sur SAR")
       palette <- gplots::rich.colors(15)[-c(1:3)]
+      palette <- c(grey(0.5, alpha = 1), palette[-1])
       
       pdata <- vms
   
@@ -103,7 +104,7 @@ for (run in runs) {
         # do legend
         if (length(breaks) > 1)
           #plotLegend(breaks[[i]], maxvalue = maxval, palette = palette, digits = 1)
-          plotLegend(breaks[[i]], maxvalue = maxval, palette = c(grey(0.5, alpha = 1), palette[-1]), digits = 1)
+          plotLegend(breaks[[i]], maxvalue = maxval, palette = palette, digits = 1)
         dev.off()
       }
     }

@@ -39,12 +39,11 @@ plotRaster <- function(x, region, land, palette, breaks, main = "") {
   sp::proj4string(bbox) <- sp::proj4string(region)
 
   # make base plot of land and ecoregion outline
-  sp::plot(region, col = "#FF000001", lwd = .5,
-            axes = FALSE)
+  sp::plot(region, col = "#FF000001", lwd = .5, axes = FALSE)
   sp::degAxis(1, mgp = c(2, 0.5, 0))
   sp::degAxis(2, mgp = c(2, 0.75, 0), las = 1)
   box(bty = "o")
-  sp::plot(rgeos::gIntersection(land, bbox), col = "light grey", border = NA, add = TRUE)
+  sp::plot(rgeos::gIntersection(land, bbox), col = "#c9c0b6FF", border = NA, add = TRUE)
   
   # plot raster
   if (!is.null(x))
