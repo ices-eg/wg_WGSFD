@@ -18,6 +18,7 @@ for (datacallyear in datacallyears) {
 years <- 2009:(datacallyear-1)  
   
 datatable <- sprintf("_%s_ICES_VMS_Datacall_VMS", datacallyear)
+datatable <- "_ICES_VMS_Datacall_VMS"
 
 if (!dir.exists(paste0("data/fishingPressure/", datatable))) dir.create(paste0("data/fishingPressure/", datatable))
 

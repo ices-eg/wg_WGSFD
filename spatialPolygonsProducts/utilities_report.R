@@ -76,6 +76,7 @@ plotLegend <- function(breaks, maxvalue = max(breaks), title = "", palette, digi
   ncol <- length(breaks) - 1
   fbreaks <- formatC(breaks, format = "f", digits = digits)
   labels <- paste0(fbreaks[(ncol):1], " - ", fbreaks[(ncol + 1):2])
+  labels[length(labels)] <- "missing"
 
   par(fig = c(0, 1, 0, 1), oma = c(0.2, 0.2, 0.2, 0.2), mar = c(0, 0, 0, 0), new = TRUE)
   plot(0, 0, type = 'n', bty = 'n', xaxt = 'n', yaxt = 'n')
@@ -131,4 +132,24 @@ plotEOPages <- function(data, ivalues, years, breaks, palette, res, main, area_l
     plotLegend(ibreaks, icol, "", digits)
 
     if (save) dev.off()
+}
+
+
+
+makesf <- function(c_square, values, resolution = 0.05) {
+  values %>%
+    cbind.data.frame(., vmstools::CSquare2LonLat(c_square,  0.05)) %>%
+    rename(
+      Longitude = SI_LONG,
+      Latitude = SI_LATI
+    ) %>%
+    mutate(
+      wkt = paste0('POLYGON((',
+                   Longitude + 0.025, ' ', Latitude + 0.025, ', ',
+                   Longitude - 0.025, ' ', Latitude + 0.025, ', ',
+                   Longitude - 0.025, ' ', Latitude - 0.025, ', ',
+                   Longitude + 0.025, ' ', Latitude - 0.025, ', ',
+                   Longitude + 0.025, ' ', Latitude + 0.025, '))')
+    ) %>%
+    st_as_sf(crs = 4326, wkt = "wkt")
 }

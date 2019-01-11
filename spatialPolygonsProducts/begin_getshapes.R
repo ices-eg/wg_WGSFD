@@ -1,5 +1,5 @@
 
-devtools::install_github("ices-tools-prod/RODBC")
+#devtools::install_github("ices-tools-prod/RODBC")
 
 library(raster)
 library(sf)
@@ -18,7 +18,7 @@ dbConnection <- 'Driver={SQL Server};Server=SQL06;Database=GDB;Trusted_Connectio
 conn <- odbcDriverConnect(connection = dbConnection)
 
 # get OSPAR region shapes
-ospar <- sqlQuery(conn, "SELECT Region, Name, shape.STAsText() as wkt FROM QUERYREF_OSPAR_REGIONS_20091214", rows_at_time = 1)
+ospar <- sqlQuery(conn, "SELECT Region, Name, shape.STAsText() as wkt FROM QUERYREF_OSPAR_REGIONS_20181005", rows_at_time = 1)
 ospar <- st_as_sf(ospar, wkt = "wkt", crs = 4326)
 write_sf(ospar, "data/shapefiles", "ospar", driver = "ESRI Shapefile", update = TRUE)
 
@@ -56,5 +56,3 @@ coast <- aggregate(coast, list(world = rep(1, nrow(coast))), mean)
 
 # save coastline to shapefiles folder
 write_sf(coast, "data/shapefiles", "coast", driver = "ESRI Shapefile", update = TRUE)
-
-
