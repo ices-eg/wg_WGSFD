@@ -2,12 +2,12 @@
 #
 # Script to extract and process VMS and logbook data for ICES VMS data call
 #
-# By: Niels Hintzen, Katell Hamon, Marcel Machiels
+# By: Niels Hintzen, Katell Hamon, Marcel Machiels# 
 # Code by: Niels Hintzen
 # Contact: niels.hintzen@wur.nl
 #
 # Date: 25-Jan-2017
-#
+# Update Date: 29-Jan-2019 ; Updated by: Roi Martinez
 # Client: ICES
 #-------------------------------------------------------------------------------
 
@@ -25,6 +25,7 @@ rm(list=ls())
 library(vmstools) #- download from www.vmstools.org
 library(Matrix)   #- available on CRAN
 library(ggplot2)  #- available on CRAN
+library(dplyr)    #- available on CRAN
 
 #- Settings paths
 codePath  <- "D:/VMSdatacall/R/"          #Location where you store R scripts
@@ -513,20 +514,21 @@ for(year in yearsToSubmit){
   RecordType <- "VE"
   
   if(year == yearsToSubmit[1]){
-    table1                <- cbind(RT=RecordType,tacsatEflalo[,c("VE_COU","Year","Month","Csquare","LENGTHCAT","LE_GEAR","LE_MET","SI_SP","INTV","VE_LEN","kwHour","VE_KW","LE_KG_TOT","LE_EURO_TOT")])
+     table1                <- cbind(RT=RecordType,tacsatEflalo[,c("VE_REF", "VE_COU","Year","Month","Csquare","LENGTHCAT","LE_GEAR","LE_MET","SI_SP","INTV","VE_LEN","kwHour","VE_KW","LE_KG_TOT","LE_EURO_TOT")])
   } else {
-      table1              <- rbind(table1,
-                                   cbind(RT=RecordType,tacsatEflalo[,c("VE_COU","Year","Month","Csquare","LENGTHCAT","LE_GEAR","LE_MET","SI_SP","INTV","VE_LEN","kwHour","VE_KW","LE_KG_TOT","LE_EURO_TOT")]))
-    }
-  table1Sums              <- aggregate(table1[,c("INTV","kwHour","LE_KG_TOT","LE_EURO_TOT")],
-                                       by=as.list(table1[,c("RT","VE_COU","Year","Month","Csquare","LENGTHCAT","LE_GEAR","LE_MET")]),
-                                       FUN=sum,na.rm=T)
-  table1Means             <- aggregate(table1[,c("SI_SP","VE_LEN","VE_KW")],
-                                       by=as.list(table1[,c("RT","VE_COU","Year","Month","Csquare","LENGTHCAT","LE_GEAR","LE_MET")]),
-                                       FUN=mean,na.rm=T)
-  table1Save              <- cbind(table1Sums,table1Means[,c("SI_SP","VE_LEN","VE_KW")])
-  colnames(table1Save)    <- c("RecordType","VesselFlagCountry","Year","Month","C-square","LengthCat","Gear","Europeanlvl6","Fishing hour","KWhour","TotWeight","TotEuro","Av fish speed","Av vessel length","Av vessel KW")
+      table1              <- rbind(table1, cbind(RT=RecordType,tacsatEflalo[,c("VE_REF", "VE_COU","Year","Month","Csquare","LENGTHCAT","LE_GEAR","LE_MET","SI_SP","INTV","VE_LEN","kwHour","VE_KW","LE_KG_TOT","LE_EURO_TOT")]))
+  }
+ 
+   table1Save  <-   table1 %>%
+                    group_by(RT,VE_COU,Year,Month,Csquare,LENGTHCAT,LE_GEAR,LE_MET) %>%
+                    summarise(sum_intv =sum(INTV),sum_kwHour = sum(kwHour),sum_le_kg_tot = sum(LE_KG_TOT),
+                              sum_le_euro_tot  = sum( LE_EURO_TOT),  mean_si_sp = mean(SI_SP),
+                              mean_ve_len = mean(VE_LEN), mean_ve_kf = mean(VE_KW), n_vessels = n_distinct(VE_REF)
+                              ) %>%
+                    as.data.frame()
   
+            
+  colnames(table1Save)    <- c("RecordType","VesselFlagCountry","Year","Month","C-square","LengthCat","Gear","Europeanlvl6","Fishing hour","KWhour","TotWeight","TotEuro","Av fish speed","Av vessel length","Av vessel KW", "UniqueVessels")
 
 #-------------------------------------------------------------------------------
 #- 8) Assign  year, month, quarter, area and create table 2
@@ -554,15 +556,18 @@ for(year in yearsToSubmit){
   RecordType <- "LE"
 
   if(year == yearsToSubmit[1]){
-    table2                <- cbind(RT=RecordType,eflalo[,c("VE_COU","Year","Month","LE_RECT","LE_GEAR","LE_MET","LENGTHCAT","tripInTacsat","INTV","kwDays","LE_KG_TOT","LE_EURO_TOT")])
+     table2 <- cbind(RT=RecordType,eflalo[,c("VE_REF", "VE_COU","Year","Month","LE_RECT","LE_GEAR","LE_MET","LENGTHCAT","tripInTacsat","INTV","kwDays","LE_KG_TOT","LE_EURO_TOT")])
   } else {
-      table2              <- rbind(table2,
-                                   cbind(RT=RecordType,eflalo[,c("VE_COU","Year","Month","LE_RECT","LE_GEAR","LE_MET","LENGTHCAT","tripInTacsat","INTV","kwDays","LE_KG_TOT","LE_EURO_TOT")]))
-    }
-  table2Save              <- aggregate(table2[,c("INTV","kwDays","LE_KG_TOT","LE_EURO_TOT")],
-                                       by=as.list(table2[,c("RT","VE_COU","Year","Month","LE_RECT","LE_GEAR","LE_MET","LENGTHCAT","tripInTacsat")]),
-                                       FUN=sum,na.rm=T)
-  colnames(table2Save)    <- c("RecordType","VesselFlagCountry","Year","Month","ICESrect","Gear","Europeanlvl6","LengthCat","VMS enabled","FishingDays","KWDays","TotWeight","TotValue")
+     table2 <- rbind(table2, cbind(RT=RecordType,eflalo[,c("VE_REF","VE_COU","Year","Month","LE_RECT","LE_GEAR","LE_MET","LENGTHCAT","tripInTacsat","INTV","kwDays","LE_KG_TOT","LE_EURO_TOT")]))
+  }
+   table2Save  <-  table2 %>%
+                   group_by(RT,VE_COU,Year,Month,LE_RECT,LE_GEAR,LE_MET,LENGTHCAT, tripInTacsat) %>%
+                   summarise(sum_intv =sum(INTV),sum_kwDays = sum(kwDays),sum_le_kg_tot = sum(LE_KG_TOT),
+                               sum_le_euro_tot  = sum( LE_EURO_TOT),  n_vessels = n_distinct(VE_REF)
+                   ) %>%
+                   as.data.frame()
+    
+   colnames(table2Save) <- c("RecordType","VesselFlagCountry","Year","Month","ICESrect","Gear","Europeanlvl6","LengthCat","VMS enabled","FishingDays","KWDays","TotWeight","TotValue","UniqueVessels")
 }
 
 write.csv(table1Save,file=file.path(outPath,"table1.csv"))
