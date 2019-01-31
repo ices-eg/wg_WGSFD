@@ -38,8 +38,8 @@ intThres      <- 5    #Minimum difference in time interval in minutes to prevent
 intvThres     <- 240  #Maximum difference in time interval in minutes to prevent intervals being too large to be realistic
 lanThres      <- 1.5  #Maximum difference in log10-transformed sorted weights
 
-#- Re-run all years or only update 2017
-yearsToSubmit <- sort(2009:2017)
+#- Re-run all years or only update 2018
+yearsToSubmit <- sort(2009:2018)
 
 #- Set the gear names for which automatic fishing activity is wanted
 #  It is important to fill out the gears you want to apply auto detection for
