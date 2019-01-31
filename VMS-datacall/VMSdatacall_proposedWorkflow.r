@@ -31,17 +31,12 @@ library(dplyr)    #- available on CRAN
 codePath  <- "D:/VMSdatacall/R/"          #Location where you store R scripts
 dataPath  <- "D:/VMSdatacall/Data/"       #Location where you store tacsat (VMS) and eflalo (logbook) data
 outPath   <- "D:/VMSdatacall/Results/"    #Location where you want to store the results
-polPath   <- "D:/VMSdatacall/Polygons/"   #Location where you store the HELCOM and OSPAR polygons
 
 #- Setting specific thresholds
 spThres       <- 20   #Maximum speed threshold in analyses in nm
 intThres      <- 5    #Minimum difference in time interval in minutes to prevent pseudo duplicates
 intvThres     <- 240  #Maximum difference in time interval in minutes to prevent intervals being too large to be realistic
 lanThres      <- 1.5  #Maximum difference in log10-transformed sorted weights
-
-#- Load OSPAR and HELCOM areas (download from http://geo.ices.dk/index.php)
-helcom        <- readShapePoly(file.path(polPath,"helcom_subbasins"))
-ospar         <- readShapePoly(file.path(polPath,"ospar_regions_without_coastline"))
 
 #- Re-run all years or only update 2017
 yearsToSubmit <- sort(2009:2017)
@@ -96,11 +91,9 @@ for(year in yearsToSubmit){
   tacsat            <- formatTacsat(tacsat)
   eflalo            <- formatEflalo(eflalo)
   
-  #- Take only VMS pings in the ICES areas, Helcom and/or Ospar regions
-  idxH              <- over(SpatialPoints(tacsat[,c("SI_LONG","SI_LATI")]),as(helcom,"SpatialPolygons"))
-  idxO              <- over(SpatialPoints(tacsat[,c("SI_LONG","SI_LATI")]),as(ospar,"SpatialPolygons"))
+  #- Take only VMS pings in the ICES areas
   idxI              <- over(SpatialPoints(tacsat[,c("SI_LONG","SI_LATI")]),as(ICESareas,"SpatialPolygons"))
-  tacsat            <- tacsat[which(idxH>0 | idxO>0 | idxI >0),]
+  tacsat            <- tacsat[which(idxI >0),]
   
   coordsEflalo      <- ICESrectangle2LonLat(na.omit(unique(eflalo$LE_RECT)))
   coordsEflalo$LE_RECT <- na.omit(unique(eflalo$LE_RECT))
@@ -113,10 +106,8 @@ for(year in yearsToSubmit){
   coordsEflalo      <- as.data.frame(do.call(rbind,cornerPoints),stringsAsFactors=FALSE)
   coordsEflalo$SI_LONG <- an(coordsEflalo$SI_LONG)
   coordsEflalo$SI_LATI <- an(coordsEflalo$SI_LATI)
-  idxH              <- over(SpatialPoints(coordsEflalo[,c("SI_LONG","SI_LATI")]),as(helcom,"SpatialPolygons"))
-  idxO              <- over(SpatialPoints(coordsEflalo[,c("SI_LONG","SI_LATI")]),as(ospar,"SpatialPolygons"))
   idxI              <- over(SpatialPoints(coordsEflalo[,c("SI_LONG","SI_LATI")]),as(ICESareas,"SpatialPolygons"))
-  eflalo            <- subset(eflalo,LE_RECT %in% unique(coordsEflalo[which(idxH>0 | idxO > 0 | idxI > 0),"LE_RECT"]))
+  eflalo            <- subset(eflalo,LE_RECT %in% unique(coordsEflalo[which(idxI > 0),"LE_RECT"]))
   
 #-------------------------------------------------------------------------------
 #- 2) Clean the tacsat data
