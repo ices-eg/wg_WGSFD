@@ -156,9 +156,9 @@ for(year in yearsToSubmit){
   #-------------------------------------------------------------------------------
   #- Remove points on land
   #-------------------------------------------------------------------------------
-  pols            <- lonLat2SpatialPolygons(lst=lapply(as.list(sort(unique(europa$SID))),
-                        function(x){data.frame(SI_LONG=subset(europa,SID==x)$X,SI_LATI=subset(europa,SID==x)$Y)}))
-  idx             <- pointOnLand(tacsat,pols); pol <- tacsat[which(idx == 1),]
+  idx             <- point.in.polygon(point.x = tacsat$SI_LONG, point.y = tacsat$SI_LATI,
+                                      pol.x = eorpa[,1], pol.y = eorpa[,2]) 
+  pol <- tacsat[idx>0,]
   save(pol,file=paste(outPath,"pointOnLand",year,".RData",sep=""))
   tacsat          <- tacsat[which(idx == 0),]
   remrecsTacsat["land",] <- c(nrow(tacsat),100+round((nrow(tacsat) - an(remrecsTacsat["total",1]))/an(remrecsTacsat["total",1])*100,2))
