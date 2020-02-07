@@ -70,6 +70,12 @@ linkEflaloTacsat          <- c("day","ICESrectangle","trip")
   data(ICESareas)
   data(europa)
 
+  eorpa <- NULL
+  for(d in 1:1991){
+    eorpa <- rbind(eorpa, europa@polygons[[d]]@Polygons[[1]]@coords, c(NA, NA))
+  }
+
+
   #-------------------------------------------------------------------------------
   #- 1b) Looping through the data years
   #-------------------------------------------------------------------------------
