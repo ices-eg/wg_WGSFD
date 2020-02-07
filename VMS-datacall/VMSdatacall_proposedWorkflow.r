@@ -107,7 +107,7 @@ for(year in yearsToSubmit){
   coordsEflalo      <- as.data.frame(do.call(rbind,cornerPoints),stringsAsFactors=FALSE)
   coordsEflalo$SI_LONG <- an(coordsEflalo$SI_LONG)
   coordsEflalo$SI_LATI <- an(coordsEflalo$SI_LATI)
-  idxI              <- over(SpatialPoints(coordsEflalo[,c("SI_LONG","SI_LATI")]),as(ICESareas,"SpatialPolygons"))
+  idxI              <- over(SpatialPoints(coordsEflalo[,c("SI_LONG","SI_LATI")], crs(ICESareas@proj4string)),as(ICESareas,"SpatialPolygons"))
   eflalo            <- subset(eflalo,LE_RECT %in% unique(coordsEflalo[which(idxI > 0),"LE_RECT"]))
 
 #-------------------------------------------------------------------------------
