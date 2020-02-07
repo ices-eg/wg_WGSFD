@@ -2,12 +2,13 @@
 #
 # Script to extract and process VMS and logbook data for ICES VMS data call
 #
-# By: Niels Hintzen, Katell Hamon, Marcel Machiels# 
+# By: Niels Hintzen, Katell Hamon, Marcel Machiels
 # Code by: Niels Hintzen
 # Contact: niels.hintzen@wur.nl
 #
 # Date: 25-Jan-2017
 # Update Date: 29-Jan-2019 ; Updated by: Roi Martinez
+# Update Date: 04-Feb-2020 ; Updated by: Colin Millar
 # Client: ICES
 #-------------------------------------------------------------------------------
 
@@ -90,11 +91,11 @@ for(year in yearsToSubmit){
   #- Make sure data is in right format
   tacsat            <- formatTacsat(tacsat)
   eflalo            <- formatEflalo(eflalo)
-  
+
   #- Take only VMS pings in the ICES areas
   idxI              <- over(SpatialPoints(tacsat[,c("SI_LONG","SI_LATI")]),as(ICESareas,"SpatialPolygons"))
   tacsat            <- tacsat[which(idxI >0),]
-  
+
   coordsEflalo      <- ICESrectangle2LonLat(na.omit(unique(eflalo$LE_RECT)))
   coordsEflalo$LE_RECT <- na.omit(unique(eflalo$LE_RECT))
   coordsEflalo      <- coordsEflalo[is.na(coordsEflalo[,1]) == F | is.na(coordsEflalo[,2]) == F,]
@@ -108,7 +109,7 @@ for(year in yearsToSubmit){
   coordsEflalo$SI_LATI <- an(coordsEflalo$SI_LATI)
   idxI              <- over(SpatialPoints(coordsEflalo[,c("SI_LONG","SI_LATI")]),as(ICESareas,"SpatialPolygons"))
   eflalo            <- subset(eflalo,LE_RECT %in% unique(coordsEflalo[which(idxI > 0),"LE_RECT"]))
-  
+
 #-------------------------------------------------------------------------------
 #- 2) Clean the tacsat data
 #-------------------------------------------------------------------------------
@@ -361,7 +362,7 @@ for(year in yearsToSubmit){
   speedarr          <- as.data.frame(cbind(LE_GEAR=sort(unique(tacsatp$LE_GEAR)),min=NA,max=NA),stringsAsFactors=F)
   speedarr$min      <- rep(1,nrow(speedarr)) # It is important to fill out the personally inspected thresholds here!
   speedarr$max      <- rep(6,nrow(speedarr))
-  
+
 
   #-------------------------------------------------------------------------------
   #- Analyse activity automated for common gears only. Use the speedarr for the other gears
@@ -398,12 +399,12 @@ for(year in yearsToSubmit){
     storeScheme$peaks[which(storeScheme$analyse.by == "HMD")]       <- 3
     storeScheme$peaks[which(is.na(storeScheme$peaks) == TRUE)]      <- 5
   }
-  
+
   acTa                      <- activityTacsat(subTacsat,units="year",analyse.by="LE_GEAR",
                                               storeScheme=storeScheme,plot=FALSE,level="all")
   subTacsat$SI_STATE        <- acTa
   subTacsat$ID              <- 1:nrow(subTacsat)
-  
+
   #- Check results, and if results are not satisfactory, run analyses again but now
   #   with fixed peaks
   for(iGear in autoDetectionGears){
@@ -503,13 +504,13 @@ for(year in yearsToSubmit){
   tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(15,200]")] <- ">15"
 
   RecordType <- "VE"
-  
+
   if(year == yearsToSubmit[1]){
      table1                <- cbind(RT=RecordType,tacsatEflalo[,c("VE_REF", "VE_COU","Year","Month","Csquare","LENGTHCAT","LE_GEAR","LE_MET","SI_SP","INTV","VE_LEN","kwHour","VE_KW","LE_KG_TOT","LE_EURO_TOT")])
   } else {
       table1              <- rbind(table1, cbind(RT=RecordType,tacsatEflalo[,c("VE_REF", "VE_COU","Year","Month","Csquare","LENGTHCAT","LE_GEAR","LE_MET","SI_SP","INTV","VE_LEN","kwHour","VE_KW","LE_KG_TOT","LE_EURO_TOT")]))
   }
- 
+
    table1Save  <-   table1 %>%
                     group_by(RT,VE_COU,Year,Month,Csquare,LENGTHCAT,LE_GEAR,LE_MET) %>%
                     summarise(sum_intv =sum(INTV),sum_kwHour = sum(kwHour),sum_le_kg_tot = sum(LE_KG_TOT),
@@ -517,8 +518,8 @@ for(year in yearsToSubmit){
                               mean_ve_len = mean(VE_LEN), mean_ve_kf = mean(VE_KW), n_vessels = n_distinct(VE_REF)
                               ) %>%
                     as.data.frame()
-  
-            
+
+
   colnames(table1Save)    <- c("RecordType","VesselFlagCountry","Year","Month","C-square","LengthCat","Gear","Europeanlvl6","Fishing hour","KWhour","TotWeight","TotEuro","Av fish speed","Av vessel length","Av vessel KW", "UniqueVessels")
 
 #-------------------------------------------------------------------------------
@@ -546,20 +547,65 @@ for(year in yearsToSubmit){
 
   RecordType <- "LE"
 
-  if(year == yearsToSubmit[1]){
-     table2 <- cbind(RT=RecordType,eflalo[,c("VE_REF", "VE_COU","Year","Month","LE_RECT","LE_GEAR","LE_MET","LENGTHCAT","tripInTacsat","INTV","kwDays","LE_KG_TOT","LE_EURO_TOT")])
+  if (year == yearsToSubmit[1]) {
+    table2 <-
+			cbind(
+				RT = RecordType,
+				eflalo[, c("VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET", "LENGTHCAT",
+									"tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT")]
+			)
   } else {
-     table2 <- rbind(table2, cbind(RT=RecordType,eflalo[,c("VE_REF","VE_COU","Year","Month","LE_RECT","LE_GEAR","LE_MET","LENGTHCAT","tripInTacsat","INTV","kwDays","LE_KG_TOT","LE_EURO_TOT")]))
+    table2 <-
+			rbind(
+				table2,
+				cbind(
+					RT = RecordType,
+					eflalo[, c("VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET", "LENGTHCAT",
+											"tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT")]
+				)
+			)
   }
-   table2Save  <-  table2 %>%
-                   group_by(RT,VE_COU,Year,Month,LE_RECT,LE_GEAR,LE_MET,LENGTHCAT, tripInTacsat) %>%
-                   summarise(sum_intv =sum(INTV),sum_kwDays = sum(kwDays),sum_le_kg_tot = sum(LE_KG_TOT),
-                               sum_le_euro_tot  = sum( LE_EURO_TOT),  n_vessels = n_distinct(VE_REF)
-                   ) %>%
-                   as.data.frame()
-    
-   colnames(table2Save) <- c("RecordType","VesselFlagCountry","Year","Month","ICESrect","Gear","Europeanlvl6","LengthCat","VMS enabled","FishingDays","KWDays","TotWeight","TotValue","UniqueVessels")
+	table2Save <-
+		table2 %>%
+		group_by(RT, VE_COU, Year, Month, LE_RECT, LE_GEAR, LE_MET, LENGTHCAT, tripInTacsat) %>%
+		mutate(
+			VE_REF_annonymised = factor(VE_REF
+		)
+		summarise(
+			sum_intv = sum(INTV),
+			sum_kwDays = sum(kwDays),
+			sum_le_kg_tot = sum(LE_KG_TOT),
+			sum_le_euro_tot = sum(LE_EURO_TOT),
+			n_vessels = n_distinct(VE_REF),
+			vessel_ids = ifelse(n_distinct(VE_REF) < 3,
+													paste(unique(VE_REF), collapse = ";"),
+													NA_character_
+										)
+		) %>%
+	as.data.frame()
+
+  colnames(table2Save) <-
+		c("RecordType", "VesselFlagCountry", "Year", "Month", "ICESrect", "Gear", "Europeanlvl6", "LengthCat",
+			"VMS enabled", "FishingDays", "KWDays", "TotWeight", "TotValue", "UniqueVessels", "AnonVesselIds")
 }
+
+# NOTE: Anonymisation step done afterwards to allow for consistent IDs accross years for products that
+#       are multi-year averages
+
+vesselIds <-
+  table2Save$AnonVesselIds[!is.na(table2Save$AnonVesselIds)]
+vesselIds <- unique(unlist(strsplit(";", vesselIds)))
+
+anonymisedVesselIds <- paste(sample(seq_along(vesselIds))
+names(anonymisedVesselIds) <- vesselIds # used for assignment
+
+# loop through each record and anonymise
+table2Save$AnonVesselIds[!is.na(table2Save$AnonVesselIds)] <-
+  sapply(table2Save$AnonVesselIds[!is.na(table2Save$AnonVesselIds)],
+		function(x) {
+			anon <- anonymisedVesselIds[strsplit(x, ";")]
+			paste(anon, collapse = ";")
+		})
 
 write.csv(table1Save,file=file.path(outPath,"table1.csv"))
 write.csv(table2Save,file=file.path(outPath,"table2.csv"))
