@@ -271,10 +271,10 @@ for(year in yearsToSubmit){
 
                               rows      <- which(unlist(lapply(idx,length))>0)
                               return(rows)})
-  eflalo$ID       <- 1:nrow(eflalo)
-  for(iOver in 1:length(overlaps)){
-    if(length(overlaps[[iOver]])>0) eflalo <- eflalo[which(eflalo$VE_REF == names(overlaps)[iOver]),][-overlaps[[iOver]],]
-  }
+  eflalo$ID       <- 1:nrow(eflalo) # this doesn't work properly - needs some thinking while sober
+#  for(iOver in 1:length(overlaps)){
+#    if(length(overlaps[[iOver]])>0) eflalo <- eflalo[which(eflalo$VE_REF == names(overlaps)[iOver]),][-overlaps[[iOver]],]
+#  }
 
   #-------------------------------------------------------------------------------
   #- Remove records with arrival date before departure date
