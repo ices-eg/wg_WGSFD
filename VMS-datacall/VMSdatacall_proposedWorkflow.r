@@ -93,7 +93,7 @@ for(year in yearsToSubmit){
   eflalo            <- formatEflalo(eflalo)
 
   #- Take only VMS pings in the ICES areas
-  idxI              <- over(SpatialPoints(tacsat[,c("SI_LONG","SI_LATI")]),as(ICESareas,"SpatialPolygons"))
+  idxI              <- over(SpatialPoints(tacsat[,c("SI_LONG","SI_LATI")], crs(ICESareas@proj4string)),as(ICESareas,"SpatialPolygons"))
   tacsat            <- tacsat[which(idxI >0),]
 
   coordsEflalo      <- ICESrectangle2LonLat(na.omit(unique(eflalo$LE_RECT)))
