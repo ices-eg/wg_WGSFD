@@ -67,7 +67,8 @@ linkEflaloTacsat          <- c("day","ICESrectangle","trip")
   #-------------------------------------------------------------------------------
   #- 1a) load vmstools underlying data
   #-------------------------------------------------------------------------------
-  data(euharbours); if(substr(R.Version()$os,1,3)== "lin") data(harbours)
+  # data(euharbours); if(substr(R.Version()$os,1,3)== "lin") 
+	  data(harbours)
   data(ICESareas)
   data(europa)
 
