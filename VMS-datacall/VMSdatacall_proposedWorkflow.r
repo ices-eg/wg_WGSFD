@@ -602,7 +602,7 @@ for(year in yearsToSubmit){
 
 vesselIds <-
   table2Save$AnonVesselIds[!is.na(table2Save$AnonVesselIds)]
-vesselIds <- unique(unlist(strsplit(";", vesselIds)))
+vesselIds <- unique(unlist(strsplit(vesselIds, ";")))
 
 anonymisedVesselIds <- paste(sample(seq_along(vesselIds))
 names(anonymisedVesselIds) <- vesselIds # used for assignment
