@@ -127,8 +127,11 @@ for(year in yearsToSubmit){
 
   coordsEflalo <- ICESrectangle2LonLat( na.omit( unique( eflalo$LE_RECT )))
   coordsEflalo$LE_RECT <- na.omit( unique( eflalo$LE_RECT ))
-  coordsEflalo <- coordsEflalo[ is.na( coordsEflalo[, 1] ) == FALSE |
-                                is.na( coordsEflalo[, 2] ) == FALSE, ]
+  coordsEflalo <-
+    coordsEflalo[
+      is.na( coordsEflalo[, 1] ) == FALSE |
+      is.na( coordsEflalo[, 2] ) == FALSE,
+    ]
 
   cornerPoints <- list()
   for(i in 1:nrow(coordsEflalo)) {
@@ -882,17 +885,17 @@ for(year in yearsToSubmit){
 #- 7) Assign c-square, year, month, quarter, area and create table 1
 #-------------------------------------------------------------------------------
 
-  tacsatEflalo$Csquare  <- CSquare(tacsatEflalo$SI_LONG,tacsatEflalo$SI_LATI,degrees=0.05)
-  tacsatEflalo$Year     <- year(tacsatEflalo$SI_DATIM)
-  tacsatEflalo$Month    <- month(tacsatEflalo$SI_DATIM)
-  tacsatEflalo$kwHour   <- tacsatEflalo$VE_KW * tacsatEflalo$INTV/60
-  tacsatEflalo$INTV     <- tacsatEflalo$INTV/60
-  tacsatEflalo$LENGTHCAT<- cut(tacsatEflalo$VE_LEN,breaks=c(0,8,10,12,15,200))
-  tacsatEflalo$LENGTHCAT<- ac(tacsatEflalo$LENGTHCAT)
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(0,8]")]   <- "<8"
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(8,10]")]   <- "8-10"
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(10,12]")]   <- "10-12"
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(12,15]")]  <- "12-15"
+  tacsatEflalo$Csquare   <- CSquare(tacsatEflalo$SI_LONG, tacsatEflalo$SI_LATI, degrees = 0.05)
+  tacsatEflalo$Year      <- year(tacsatEflalo$SI_DATIM)
+  tacsatEflalo$Month     <- month(tacsatEflalo$SI_DATIM)
+  tacsatEflalo$kwHour    <- tacsatEflalo$VE_KW * tacsatEflalo$INTV / 60
+  tacsatEflalo$INTV      <- tacsatEflalo$INTV / 60
+  tacsatEflalo$LENGTHCAT <- cut(tacsatEflalo$VE_LEN, breaks=c(0, 8, 10, 12, 15, 200))
+  tacsatEflalo$LENGTHCAT <- as.character(tacsatEflalo$LENGTHCAT)
+  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(0,8]")] <- "<8"
+  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(8,10]")] <- "8-10"
+  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(10,12]")] <- "10-12"
+  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(12,15]")] <- "12-15"
   tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(15,200]")] <- ">15"
 
   RecordType <- "VE"
@@ -945,9 +948,9 @@ for(year in yearsToSubmit){
 
   colnames(table1Save) <-
     c(
-      "RecordType", "VesselFlagCountry", "Year", "Month", "C-square", "LengthCat", "Gear", "Europeanlvl6",
-      "Fishing hour", "KWhour", "TotWeight", "TotEuro", "Av fish speed", "Av vessel length", "Av vessel KW",
-      "UniqueVessels", "AnonVesselIds"
+      "RecordType", "VesselFlagCountry", "Year", "Month", "C-square", "LengthCat", "Gear",
+      "Europeanlvl6", "Fishing hour", "KWhour", "TotWeight", "TotEuro", "Av fish speed",
+      "Av vessel length", "Av vessel KW", "UniqueVessels", "AnonVesselIds"
     )
 
   # NOTE: Anonymisation step done afterwards to allow for consistent IDs accross years for products that
@@ -972,23 +975,29 @@ for(year in yearsToSubmit){
 #- 8) Assign  year, month, quarter, area and create table 2
 #-------------------------------------------------------------------------------
 
-  eflalo$Year             <- year(eflalo$FT_LDATIM)
-  eflalo$Month            <- month(eflalo$FT_LDATIM)
-  eflalo$INTV             <- 1 #1 day
-  eflalo$dummy            <- 1
-  res                     <- aggregate(eflalo$dummy,by=as.list(eflalo[,c("VE_COU","VE_REF","LE_CDAT")]),FUN=sum,na.rm=T)
-  colnames(res)           <- c("VE_COU","VE_REF","LE_CDAT","nrRecords")
-  eflalo                  <- merge(eflalo,res,by=c("VE_COU","VE_REF","LE_CDAT"))
-  eflalo$INTV             <- eflalo$INTV / eflalo$nrRecords
-  eflalo$kwDays           <- eflalo$VE_KW * eflalo$INTV
-  eflalo$tripInTacsat     <- ifelse(eflalo$FT_REF %in% tacsatp$FT_REF,"Yes","No")
+  eflalo$Year <- year(eflalo$FT_LDATIM)
+  eflalo$Month <- month(eflalo$FT_LDATIM)
+  eflalo$INTV <- 1 # 1 day
+  eflalo$dummy <- 1
+  res <-
+    aggregate(
+      eflalo$dummy,
+      by = as.list(eflalo[, c("VE_COU", "VE_REF", "LE_CDAT")]),
+      FUN = sum,
+      na.rm <- TRUE
+    )
+  colnames(res) <- c("VE_COU", "VE_REF", "LE_CDAT", "nrRecords")
+  eflalo <- merge(eflalo, res, by = c("VE_COU", "VE_REF", "LE_CDAT"))
+  eflalo$INTV <- eflalo$INTV / eflalo$nrRecords
+  eflalo$kwDays <- eflalo$VE_KW * eflalo$INTV
+  eflalo$tripInTacsat <- ifelse(eflalo$FT_REF %in% tacsatp$FT_REF, "Yes", "No")
 
-  eflalo$LENGTHCAT        <- cut(eflalo$VE_LEN,breaks=c(0,8,10,12,15,200))
-  eflalo$LENGTHCAT        <- ac(eflalo$LENGTHCAT)
-  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(0,8]")]   <- "<8"
-  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(8,10]")]  <- "8-10"
-  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(10,12]")]  <- "10-12"
-  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(12,15]")]  <- "12-15"
+  eflalo$LENGTHCAT <- cut(eflalo$VE_LEN, breaks = c(0, 8, 10, 12, 15, 200))
+  eflalo$LENGTHCAT <- ac(eflalo$LENGTHCAT)
+  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(0,8]")] <- "<8"
+  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(8,10]")] <- "8-10"
+  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(10,12]")] <- "10-12"
+  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(12,15]")] <- "12-15"
   eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(15,200]")] <- ">15"
 
   RecordType <- "LE"
@@ -999,8 +1008,8 @@ for(year in yearsToSubmit){
         RT = RecordType,
         eflalo[,
           c(
-            "VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET", "LENGTHCAT",
-            "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
+            "VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET",
+            "LENGTHCAT", "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
           )]
       )
   } else {
@@ -1011,8 +1020,8 @@ for(year in yearsToSubmit){
           RT = RecordType,
           eflalo[,
             c(
-              "VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET", "LENGTHCAT",
-              "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
+              "VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET",
+              "LENGTHCAT", "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
             )]
         )
       )
@@ -1064,5 +1073,5 @@ table2Save$AnonVesselIds[!is.na(table2Save$AnonVesselIds)] <-
       paste(anon, collapse = ";")
     })
 
-write.csv(table1Save,file=file.path(outPath,"table1.csv"))
-write.csv(table2Save,file=file.path(outPath,"table2.csv"))
+write.csv(table1Save, file = file.path(outPath, "table1.csv"))
+write.csv(table2Save, file = file.path(outPath, "table2.csv"))
