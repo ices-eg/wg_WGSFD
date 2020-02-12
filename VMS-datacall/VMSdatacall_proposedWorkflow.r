@@ -759,66 +759,122 @@ for(year in yearsToSubmit){
   #- Assign for visually inspected gears a simple speed rule classification
   #-------------------------------------------------------------------------------
 
-  metiers                   <- unique(nonsubTacsat$LE_GEAR)
-  nonsubTacsat$SI_STATE     <- NA
+  metiers <- unique(nonsubTacsat$LE_GEAR)
+  nonsubTacsat$SI_STATE <- NA
   for (mm in metiers) {
-  nonsubTacsat$SI_STATE[nonsubTacsat$LE_GEAR==mm & nonsubTacsat$SI_SP >= speedarr[speedarr$LE_GEAR==mm,"min"] & nonsubTacsat$SI_SP <= speedarr[speedarr$LE_GEAR==mm,"max"]]   <- "f";
+    nonsubTacsat$SI_STATE[
+      nonsubTacsat$LE_GEAR == mm &
+      nonsubTacsat$SI_SP >= speedarr[speedarr$LE_GEAR == mm, "min"] &
+      nonsubTacsat$SI_SP <= speedarr[speedarr$LE_GEAR == mm, "max"]
+    ] <- "f";
   }
-  nonsubTacsat$SI_STATE[nonsubTacsat$LE_GEAR=="NA" & nonsubTacsat$SI_SP >= speedarr[speedarr$LE_GEAR=="MIS","min"] & nonsubTacsat$SI_SP <= speedarr[speedarr$LE_GEAR=="MIS","max"]]   <- "f"
-  nonsubTacsat$SI_STATE[is.na(nonsubTacsat$SI_STATE)] <- "s"
+  nonsubTacsat$SI_STATE[
+    nonsubTacsat$LE_GEAR == "NA" &
+    nonsubTacsat$SI_SP >= speedarr[speedarr$LE_GEAR == "MIS", "min"] &
+    nonsubTacsat$SI_SP <= speedarr[speedarr$LE_GEAR == "MIS", "max"]
+  ] <- "f"
+  nonsubTacsat$SI_STATE[ is.na(nonsubTacsat$SI_STATE) ] <- "s"
 
   #-------------------------------------------------------------------------------
   #- Combine the two dataset together again
   #-------------------------------------------------------------------------------
-  tacsatp                   <- rbindTacsat(subTacsat,nonsubTacsat)
-  tacsatp                   <- orderBy(~VE_REF+SI_DATIM,data=tacsatp)
+  tacsatp <- rbindTacsat(subTacsat, nonsubTacsat)
+  tacsatp <- orderBy( ~ VE_REF + SI_DATIM, data = tacsatp)
   #- Set fishing sequences with hauling in the middle to "f"
-  idx                       <- which(tacsatp$SI_STATE[2:(nrow(tacsatp)-1)] == "h" &
-                   tacsatp$SI_STATE[1:(nrow(tacsatp)-2)] == "f" &
-                   tacsatp$SI_STATE[3:(nrow(tacsatp))  ] == "f" &
-                   tacsatp$VE_REF[2:(nrow(tacsatp)-1)]   == tacsatp$VE_REF[1:(nrow(tacsatp)-2)] &
-                   tacsatp$VE_REF[2:(nrow(tacsatp)-1)]   == tacsatp$VE_REF[3:(nrow(tacsatp))])+1
-  tacsatp$SI_STATE[idx]     <- "f"
+  idx <-
+    which(
+      tacsatp$SI_STATE[2:(nrow(tacsatp) - 1)] == "h" &
+      tacsatp$SI_STATE[1:(nrow(tacsatp) - 2)] == "f" &
+      tacsatp$SI_STATE[3:(nrow(tacsatp))    ] == "f" &
+      tacsatp$VE_REF[2:(nrow(tacsatp) - 1)] == tacsatp$VE_REF[1:(nrow(tacsatp) - 2)] &
+      tacsatp$VE_REF[2:(nrow(tacsatp) - 1)] == tacsatp$VE_REF[3:(nrow(tacsatp))]
+    ) + 1
+  tacsatp$SI_STATE[idx] <- "f"
 
-  save(tacsatp,file=file.path(outPath,paste("tacsatActivity",year,".RData",sep="")))
+  save(
+    tacsatp,
+    file <- file.path(outPath, paste0("tacsatActivity", year, ".RData"))
+  )
 
-  print("Defining activity completed")
+  message("Defining activity completed")
 #-------------------------------------------------------------------------------
 #- 6) Dispatch landings of merged eflalo at the ping scale
 #-------------------------------------------------------------------------------
-  idxkgeur          <- kgeur(colnames(eflalo))
-  eflalo$LE_KG_TOT  <- rowSums(eflalo[,grep("LE_KG_",colnames(eflalo))],na.rm=T)
-  eflalo$LE_EURO_TOT<- rowSums(eflalo[,grep("LE_EURO_",colnames(eflalo))],na.rm=T)
-  eflalo            <- eflalo[,-idxkgeur]
-  eflaloNM          <- subset(eflalo,!FT_REF %in% unique(tacsatp$FT_REF))
-  eflaloM           <- subset(eflalo,FT_REF %in% unique(tacsatp$FT_REF))
+  idxkgeur <- kgeur(colnames(eflalo))
+  eflalo$LE_KG_TOT <- rowSums(eflalo[,grep("LE_KG_",colnames(eflalo))],na.rm=T)
+  eflalo$LE_EURO_TOT <- rowSums(eflalo[,grep("LE_EURO_",colnames(eflalo))],na.rm=T)
+  eflalo <- eflalo[, -idxkgeur]
+  eflaloNM <- subset(eflalo,!FT_REF %in% unique(tacsatp$FT_REF))
+  eflaloM <- subset(eflalo,FT_REF %in% unique(tacsatp$FT_REF))
 
   tacsatp$SI_STATE[which(tacsatp$SI_STATE != "f")] <- 0
   tacsatp$SI_STATE[which(tacsatp$SI_STATE == "f")] <- 1
 
   #- There are several options, specify at the top of this script what type of linking you require
-  if(!"trip" %in% linkTacsatEflalo) stop("trip must be in linkTacsatEflalo")
-  if(all(c("day","ICESrectangle","trip") %in% linkEflaloTacsat)){
-  tacsatEflalo  <- splitAmongPings(tacsat=tacsatp,eflalo=eflaloM,variable="all",level="day",conserve=T)
-  } else {
-  if(all(c("day","trip") %in% linkEflaloTacsat) & !"ICESrectangle" %in% linkEflaloTacsat){
-    tmpTa       <- tacsatp
-    tmpEf       <- eflaloM
-    tmpTa$LE_RECT <- "ALL"
-    tmpEf$LE_RECT <- "ALL"
-    tacsatEflalo  <- splitAmongPings(tacsat=tmpTa,eflalo=tmpEf,variable="all",level="day",conserve=T)
-  } else {
-    if(all(c("ICESrectangle","trip") %in% linkEflaloTacsat) & !"day" %in% linkEflaloTacsat){
-    tacsatEflalo  <- splitAmongPings(tacsat=tacsatp,eflalo=eflaloM,variable="all",level="ICESrectangle",conserve=T)
-    } else {
-    if(linkEflaloTacsat == "trip" & length(linkEflaloTacsat)==1){
-      tacsatEflalo  <- splitAmongPings(tacsat=tacsatp,eflalo=eflaloM,variable="all",level="trip",conserve=T)
+  if (!"trip" %in% linkTacsatEflalo) stop("trip must be in linkTacsatEflalo")
+  if (all(c("day", "ICESrectangle", "trip") %in% linkEflaloTacsat)) {
+    tacsatEflalo <-
+      splitAmongPings(
+        tacsat = tacsatp,
+        eflalo = eflaloM,
+        variable = "all",
+        level = "day",
+        conserve = TRUE
+      )
+  } else
+  {
+    if (
+      all(c("day","trip") %in% linkEflaloTacsat) &
+      !"ICESrectangle" %in% linkEflaloTacsat
+    ) {
+      tmpTa <- tacsatp
+      tmpEf <- eflaloM
+      tmpTa$LE_RECT <- "ALL"
+      tmpEf$LE_RECT <- "ALL"
+      tacsatEflalo <-
+        splitAmongPings(
+          tacsat = tmpTa,
+          eflalo = tmpEf,
+          variable = "all",
+          level = "day",
+          conserve = TRUE
+        )
+    } else
+    {
+      if (
+        all(c("ICESrectangle", "trip") %in% linkEflaloTacsat) &
+        !"day" %in% linkEflaloTacsat
+      )
+      {
+        tacsatEflalo <-
+          splitAmongPings(
+            tacsat = tacsatp,
+            eflalo = eflaloM,
+            variable = "all",
+            level = "ICESrectangle",
+            conserve = TRUE
+          )
+      } else
+      {
+        if (linkEflaloTacsat == "trip" & length(linkEflaloTacsat) == 1)
+        {
+          tacsatEflalo <-
+            splitAmongPings(
+              tacsat = tacsatp,
+              eflalo = eflaloM,
+              variable = "all",
+              level = "trip",
+              conserve = TRUE
+            )
+        }
+      }
     }
-    }
-  }
   }
 
-  save(tacsatEflalo,file=paste(outPath,"tacsatEflalo",year,".RData",sep=""))
+  save(
+    tacsatEflalo,
+    file = file.path(outPath, paste0("tacsatEflalo", year, ".RData"))
+  )
 
   print("Dispatching landings completed")
 
@@ -841,36 +897,61 @@ for(year in yearsToSubmit){
 
   RecordType <- "VE"
 
-  if(year == yearsToSubmit[1]){
-   table1                <- cbind(RT=RecordType,tacsatEflalo[,c("VE_REF", "VE_COU","Year","Month","Csquare","LENGTHCAT","LE_GEAR","LE_MET","SI_SP","INTV","VE_LEN","kwHour","VE_KW","LE_KG_TOT","LE_EURO_TOT")])
+  if(year == yearsToSubmit[1]) {
+    table1 <-
+      cbind(
+        RT = RecordType,
+        tacsatEflalo[,
+          c(
+            "VE_REF", "VE_COU", "Year", "Month", "Csquare", "LENGTHCAT", "LE_GEAR",
+            "LE_MET", "SI_SP", "INTV", "VE_LEN", "kwHour", "VE_KW", "LE_KG_TOT", "LE_EURO_TOT"
+          )
+        ])
   } else {
-    table1              <- rbind(table1, cbind(RT=RecordType,tacsatEflalo[,c("VE_REF", "VE_COU","Year","Month","Csquare","LENGTHCAT","LE_GEAR","LE_MET","SI_SP","INTV","VE_LEN","kwHour","VE_KW","LE_KG_TOT","LE_EURO_TOT")]))
+    table1 <-
+      rbind(
+        table1,
+        cbind(
+          RT = RecordType,
+          tacsatEflalo[,
+            c(
+              "VE_REF", "VE_COU", "Year", "Month", "Csquare", "LENGTHCAT", "LE_GEAR",
+              "LE_MET", "SI_SP", "INTV", "VE_LEN", "kwHour", "VE_KW", "LE_KG_TOT", "LE_EURO_TOT"
+            )
+          ])
+      )
   }
 
-   table1Save  <-   table1 %>%
-                    group_by(RT,VE_COU,Year,Month,Csquare,LENGTHCAT,LE_GEAR,LE_MET) %>%
-                    summarise(
-			      sum_intv =sum(INTV),
-			      sum_kwHour = sum(kwHour),
-			      sum_le_kg_tot = sum(LE_KG_TOT),
-			      sum_le_euro_tot  = sum( LE_EURO_TOT),
-			      mean_si_sp = mean(SI_SP),
-			      mean_ve_len = mean(VE_LEN),
-			      mean_ve_kf = mean(VE_KW),
-			      n_vessels = n_distinct(VE_REF),
-			      vessel_ids = ifelse (
-						n_distinct(VE_REF) < 3,
-						paste(unique(VE_REF), collapse = ";"),
-						NA_character_
-						)
-                              ) %>%
-                    as.data.frame()
+  table1Save <-
+  table1 %>%
+    group_by(RT,VE_COU,Year,Month,Csquare,LENGTHCAT,LE_GEAR,LE_MET) %>%
+    summarise(
+      sum_intv =sum(INTV),
+      sum_kwHour = sum(kwHour),
+      sum_le_kg_tot = sum(LE_KG_TOT),
+      sum_le_euro_tot  = sum( LE_EURO_TOT),
+      mean_si_sp = mean(SI_SP),
+      mean_ve_len = mean(VE_LEN),
+      mean_ve_kf = mean(VE_KW),
+      n_vessels = n_distinct(VE_REF),
+      vessel_ids =
+        ifelse (
+          n_distinct(VE_REF) < 3,
+          paste(unique(VE_REF), collapse = ";"),
+          NA_character_
+        )
+      ) %>%
+      as.data.frame()
 
+  colnames(table1Save) <-
+    c(
+      "RecordType", "VesselFlagCountry", "Year", "Month", "C-square", "LengthCat", "Gear", "Europeanlvl6",
+      "Fishing hour", "KWhour", "TotWeight", "TotEuro", "Av fish speed", "Av vessel length", "Av vessel KW",
+      "UniqueVessels", "AnonVesselIds"
+    )
 
-  colnames(table1Save)    <- c("RecordType","VesselFlagCountry","Year","Month","C-square","LengthCat","Gear","Europeanlvl6","Fishing hour","KWhour","TotWeight","TotEuro","Av fish speed","Av vessel length","Av vessel KW", "UniqueVessels", "AnonVesselIds")
-
-   # NOTE: Anonymisation step done afterwards to allow for consistent IDs accross years for products that
-   #       are multi-year averages
+  # NOTE: Anonymisation step done afterwards to allow for consistent IDs accross years for products that
+  #       are multi-year averages
 
   vesselIds <-  table1Save$AnonVesselIds[!is.na(table1Save$AnonVesselIds)]
   vesselIds <- unique(unlist(strsplit(vesselIds, ";")))
@@ -881,10 +962,10 @@ for(year in yearsToSubmit){
 # loop through each record and anonymise
   table1Save$AnonVesselIds[!is.na(table1Save$AnonVesselIds)] <-
   sapply(table1Save$AnonVesselIds[!is.na(table1Save$AnonVesselIds)],
-		function(x) {
-			anon <- anonymisedVesselIds[strsplit(x, ";")]
-			paste(anon, collapse = ";")
-		})
+    function(x) {
+      anon <- anonymisedVesselIds[strsplit(x, ";")]
+      paste(anon, collapse = ";")
+    })
 
 
 #-------------------------------------------------------------------------------
@@ -914,45 +995,55 @@ for(year in yearsToSubmit){
 
   if (year == yearsToSubmit[1]) {
     table2 <-
-			cbind(
-				RT = RecordType,
-				eflalo[, c("VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET", "LENGTHCAT",
-									"tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT")]
-			)
+      cbind(
+        RT = RecordType,
+        eflalo[,
+          c(
+            "VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET", "LENGTHCAT",
+            "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
+          )]
+      )
   } else {
     table2 <-
-			rbind(
-				table2,
-				cbind(
-					RT = RecordType,
-					eflalo[, c("VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET", "LENGTHCAT",
-											"tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT")]
-				)
-			)
+      rbind(
+        table2,
+        cbind(
+          RT = RecordType,
+          eflalo[,
+            c(
+              "VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET", "LENGTHCAT",
+              "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
+            )]
+        )
+      )
   }
-	table2Save <-
-		table2 %>%
-		group_by(RT, VE_COU, Year, Month, LE_RECT, LE_GEAR, LE_MET, LENGTHCAT, tripInTacsat) %>%
-		mutate(
-			VE_REF_annonymised = factor(VE_REF
-		)
-		summarise(
-			sum_intv = sum(INTV),
-			sum_kwDays = sum(kwDays),
-			sum_le_kg_tot = sum(LE_KG_TOT),
-			sum_le_euro_tot = sum(LE_EURO_TOT),
-			n_vessels = n_distinct(VE_REF),
-			vessel_ids = ifelse (
-						n_distinct(VE_REF) < 3,
-					    	paste(unique(VE_REF), collapse = ";"),
-						NA_character_
-					    	)
-		) %>%
-	as.data.frame()
+  table2Save <-
+    table2 %>%
+    group_by(RT, VE_COU, Year, Month, LE_RECT, LE_GEAR, LE_MET, LENGTHCAT, tripInTacsat) %>%
+    mutate(
+      VE_REF_annonymised = factor(VE_REF
+    )
+    summarise(
+      sum_intv = sum(INTV),
+      sum_kwDays = sum(kwDays),
+      sum_le_kg_tot = sum(LE_KG_TOT),
+      sum_le_euro_tot = sum(LE_EURO_TOT),
+      n_vessels = n_distinct(VE_REF),
+      vessel_ids =
+        ifelse (
+          n_distinct(VE_REF) < 3,
+          paste(
+            unique(VE_REF), collapse = ";"),
+            NA_character_
+          )
+    ) %>%
+  as.data.frame()
 
   colnames(table2Save) <-
-		c("RecordType", "VesselFlagCountry", "Year", "Month", "ICESrect", "Gear", "Europeanlvl6", "LengthCat",
-			"VMS enabled", "FishingDays", "KWDays", "TotWeight", "TotValue", "UniqueVessels", "AnonVesselIds")
+    c(
+      "RecordType", "VesselFlagCountry", "Year", "Month", "ICESrect", "Gear", "Europeanlvl6", "LengthCat",
+      "VMS enabled", "FishingDays", "KWDays", "TotWeight", "TotValue", "UniqueVessels", "AnonVesselIds"
+    )
 }
 
 # NOTE: Anonymisation step done afterwards to allow for consistent IDs accross years for products that
@@ -968,10 +1059,10 @@ names(anonymisedVesselIds) <- vesselIds # used for assignment
 # loop through each record and anonymise
 table2Save$AnonVesselIds[!is.na(table2Save$AnonVesselIds)] <-
   sapply(table2Save$AnonVesselIds[!is.na(table2Save$AnonVesselIds)],
-		function(x) {
-			anon <- anonymisedVesselIds[strsplit(x, ";")]
-			paste(anon, collapse = ";")
-		})
+    function(x) {
+      anon <- anonymisedVesselIds[strsplit(x, ";")]
+      paste(anon, collapse = ";")
+    })
 
 write.csv(table1Save,file=file.path(outPath,"table1.csv"))
 write.csv(table2Save,file=file.path(outPath,"table2.csv"))
