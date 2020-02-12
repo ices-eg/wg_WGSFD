@@ -8,6 +8,8 @@
 #
 # Date: 25-Jan-2017
 # Update Date: 29-Jan-2019 ; Updated by: Roi Martinez
+# Update Date: 04-Feb-2020 ; Updated by: Colin Millar
+# Update Date: 07-Feb 2020 ; Updated by: Neil Campbell
 # Client: ICES
 #-------------------------------------------------------------------------------
 
@@ -41,8 +43,8 @@ intThres      <- 5    #Minimum difference in time interval in minutes to prevent
 intvThres     <- 240  #Maximum difference in time interval in minutes to prevent intervals being too large to be realistic
 lanThres      <- 1.5  #Maximum difference in log10-transformed sorted weights
 
-#- Re-run all years up to 2019
-yearsToSubmit <- 2009:2019
+#- Re-run all years as we have new field for no. vessels
+yearsToSubmit <- sort(2009:2019)
 
 #- Set the gear names for which automatic fishing activity is wanted
 #  It is important to fill out the gears you want to apply auto detection for
@@ -68,9 +70,16 @@ linkEflaloTacsat          <- c("day","ICESrectangle","trip")
   #-------------------------------------------------------------------------------
   #- 1a) load vmstools underlying data
   #-------------------------------------------------------------------------------
-  data(euharbours); if(substr(R.Version()$os,1,3)== "lin") data(harbours)
+  # data(euharbours); if(substr(R.Version()$os,1,3)== "lin")
+  data(harbours)
   data(ICESareas)
   data(europa)
+
+  eorpa <- NULL
+  for(d in 1:1991){
+    eorpa <- rbind(eorpa, europa@polygons[[d]]@Polygons[[1]]@coords, c(NA, NA))
+  }
+
 
   #-------------------------------------------------------------------------------
   #- 1b) Looping through the data years
@@ -261,8 +270,11 @@ for(year in yearsToSubmit){
   #-------------------------------------------------------------------------------
   #- Remove points on land
   #-------------------------------------------------------------------------------
-  idx <- pointOnLand(tacsat, europa)
-  pol <- tacsat[which(idx == 1),]
+  idx <- point.in.polygon(
+    point.x = tacsat$SI_LONG, point.y = tacsat$SI_LATI,
+    pol.x = eorpa[, 1], pol.y = eorpa[, 2]
+  )
+  pol <- tacsat[idx > 0, ]
   save(
     pol,
     file = file.path(outPath, paste0("pointOnLand", year, ".RData"))
@@ -512,16 +524,16 @@ for(year in yearsToSubmit){
         rows <- which(unlist(lapply(idx, length)) > 0)
         rows
       })
-  eflalo$ID <- 1:nrow(eflalo)
-  for (iOver in 1:length(overlaps)) {
-    if (length(overlaps[[iOver]]) > 0) {
-      eflalo <-
-        eflalo[
-          which(eflalo$VE_REF == names(overlaps)[iOver]),
-        ]
-      eflalo <- eflalo[-overlaps[[iOver]], ]
-    }
-  }
+  eflalo$ID <- 1:nrow(eflalo) # this doesn't work properly - needs some thinking
+  #for (iOver in 1:length(overlaps)) {
+  #  if (length(overlaps[[iOver]]) > 0) {
+  #    eflalo <-
+  #      eflalo[
+  #        which(eflalo$VE_REF == names(overlaps)[iOver]),
+  #      ]
+  #    eflalo <- eflalo[-overlaps[[iOver]], ]
+  #  }
+  #}
 
   #-------------------------------------------------------------------------------
   #- Remove records with arrival date before departure date
@@ -836,15 +848,44 @@ for(year in yearsToSubmit){
   }
 
    table1Save  <-   table1 %>%
-          group_by(RT,VE_COU,Year,Month,Csquare,LENGTHCAT,LE_GEAR,LE_MET) %>%
-          summarise(sum_intv =sum(INTV),sum_kwHour = sum(kwHour),sum_le_kg_tot = sum(LE_KG_TOT),
-                sum_le_euro_tot  = sum( LE_EURO_TOT),  mean_si_sp = mean(SI_SP),
-                mean_ve_len = mean(VE_LEN), mean_ve_kf = mean(VE_KW), n_vessels = n_distinct(VE_REF)
-                ) %>%
-          as.data.frame()
+                    group_by(RT,VE_COU,Year,Month,Csquare,LENGTHCAT,LE_GEAR,LE_MET) %>%
+                    summarise(
+			      sum_intv =sum(INTV),
+			      sum_kwHour = sum(kwHour),
+			      sum_le_kg_tot = sum(LE_KG_TOT),
+			      sum_le_euro_tot  = sum( LE_EURO_TOT),
+			      mean_si_sp = mean(SI_SP),
+			      mean_ve_len = mean(VE_LEN),
+			      mean_ve_kf = mean(VE_KW),
+			      n_vessels = n_distinct(VE_REF),
+			      vessel_ids = ifelse (
+						n_distinct(VE_REF) < 3,
+						paste(unique(VE_REF), collapse = ";"),
+						NA_character_
+						)
+                              ) %>%
+                    as.data.frame()
 
 
-  colnames(table1Save)    <- c("RecordType","VesselFlagCountry","Year","Month","C-square","LengthCat","Gear","Europeanlvl6","Fishing hour","KWhour","TotWeight","TotEuro","Av fish speed","Av vessel length","Av vessel KW", "UniqueVessels")
+  colnames(table1Save)    <- c("RecordType","VesselFlagCountry","Year","Month","C-square","LengthCat","Gear","Europeanlvl6","Fishing hour","KWhour","TotWeight","TotEuro","Av fish speed","Av vessel length","Av vessel KW", "UniqueVessels", "AnonVesselIds")
+
+   # NOTE: Anonymisation step done afterwards to allow for consistent IDs accross years for products that
+   #       are multi-year averages
+
+  vesselIds <-  table1Save$AnonVesselIds[!is.na(table1Save$AnonVesselIds)]
+  vesselIds <- unique(unlist(strsplit(vesselIds, ";")))
+
+  anonymisedVesselIds <- paste(sample(seq_along(vesselIds))
+  names(anonymisedVesselIds) <- vesselIds # used for assignment
+
+# loop through each record and anonymise
+  table1Save$AnonVesselIds[!is.na(table1Save$AnonVesselIds)] <-
+  sapply(table1Save$AnonVesselIds[!is.na(table1Save$AnonVesselIds)],
+		function(x) {
+			anon <- anonymisedVesselIds[strsplit(x, ";")]
+			paste(anon, collapse = ";")
+		})
+
 
 #-------------------------------------------------------------------------------
 #- 8) Assign  year, month, quarter, area and create table 2
@@ -871,20 +912,66 @@ for(year in yearsToSubmit){
 
   RecordType <- "LE"
 
-  if(year == yearsToSubmit[1]){
-   table2 <- cbind(RT=RecordType,eflalo[,c("VE_REF", "VE_COU","Year","Month","LE_RECT","LE_GEAR","LE_MET","LENGTHCAT","tripInTacsat","INTV","kwDays","LE_KG_TOT","LE_EURO_TOT")])
+  if (year == yearsToSubmit[1]) {
+    table2 <-
+			cbind(
+				RT = RecordType,
+				eflalo[, c("VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET", "LENGTHCAT",
+									"tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT")]
+			)
   } else {
-   table2 <- rbind(table2, cbind(RT=RecordType,eflalo[,c("VE_REF","VE_COU","Year","Month","LE_RECT","LE_GEAR","LE_MET","LENGTHCAT","tripInTacsat","INTV","kwDays","LE_KG_TOT","LE_EURO_TOT")]))
+    table2 <-
+			rbind(
+				table2,
+				cbind(
+					RT = RecordType,
+					eflalo[, c("VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET", "LENGTHCAT",
+											"tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT")]
+				)
+			)
   }
-   table2Save  <-  table2 %>%
-           group_by(RT,VE_COU,Year,Month,LE_RECT,LE_GEAR,LE_MET,LENGTHCAT, tripInTacsat) %>%
-           summarise(sum_intv =sum(INTV),sum_kwDays = sum(kwDays),sum_le_kg_tot = sum(LE_KG_TOT),
-                 sum_le_euro_tot  = sum( LE_EURO_TOT),  n_vessels = n_distinct(VE_REF)
-           ) %>%
-           as.data.frame()
+	table2Save <-
+		table2 %>%
+		group_by(RT, VE_COU, Year, Month, LE_RECT, LE_GEAR, LE_MET, LENGTHCAT, tripInTacsat) %>%
+		mutate(
+			VE_REF_annonymised = factor(VE_REF
+		)
+		summarise(
+			sum_intv = sum(INTV),
+			sum_kwDays = sum(kwDays),
+			sum_le_kg_tot = sum(LE_KG_TOT),
+			sum_le_euro_tot = sum(LE_EURO_TOT),
+			n_vessels = n_distinct(VE_REF),
+			vessel_ids = ifelse (
+						n_distinct(VE_REF) < 3,
+					    	paste(unique(VE_REF), collapse = ";"),
+						NA_character_
+					    	)
+		) %>%
+	as.data.frame()
 
-   colnames(table2Save) <- c("RecordType","VesselFlagCountry","Year","Month","ICESrect","Gear","Europeanlvl6","LengthCat","VMS enabled","FishingDays","KWDays","TotWeight","TotValue","UniqueVessels")
+  colnames(table2Save) <-
+		c("RecordType", "VesselFlagCountry", "Year", "Month", "ICESrect", "Gear", "Europeanlvl6", "LengthCat",
+			"VMS enabled", "FishingDays", "KWDays", "TotWeight", "TotValue", "UniqueVessels", "AnonVesselIds")
 }
+
+# NOTE: Anonymisation step done afterwards to allow for consistent IDs accross years for products that
+#       are multi-year averages
+
+vesselIds <-
+  table2Save$AnonVesselIds[!is.na(table2Save$AnonVesselIds)]
+vesselIds <- unique(unlist(strsplit(vesselIds, ";")))
+
+anonymisedVesselIds <- paste(sample(seq_along(vesselIds))
+names(anonymisedVesselIds) <- vesselIds # used for assignment
+
+# loop through each record and anonymise
+table2Save$AnonVesselIds[!is.na(table2Save$AnonVesselIds)] <-
+  sapply(table2Save$AnonVesselIds[!is.na(table2Save$AnonVesselIds)],
+		function(x) {
+			anon <- anonymisedVesselIds[strsplit(x, ";")]
+			paste(anon, collapse = ";")
+		})
 
 write.csv(table1Save,file=file.path(outPath,"table1.csv"))
 write.csv(table2Save,file=file.path(outPath,"table2.csv"))
