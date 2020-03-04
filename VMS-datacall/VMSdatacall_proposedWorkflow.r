@@ -510,16 +510,59 @@ for(year in yearsToSubmit){
       table1              <- rbind(table1, cbind(RT=RecordType,tacsatEflalo[,c("VE_REF", "VE_COU","Year","Month","Csquare","LENGTHCAT","LE_GEAR","LE_MET","SI_SP","INTV","VE_LEN","kwHour","VE_KW","LE_KG_TOT","LE_EURO_TOT")]))
   }
  
-   table1Save  <-   table1 %>%
-                    group_by(RT,VE_COU,Year,Month,Csquare,LENGTHCAT,LE_GEAR,LE_MET) %>%
-                    summarise(sum_intv =sum(INTV),sum_kwHour = sum(kwHour),sum_le_kg_tot = sum(LE_KG_TOT),
-                              sum_le_euro_tot  = sum( LE_EURO_TOT),  mean_si_sp = mean(SI_SP),
-                              mean_ve_len = mean(VE_LEN), mean_ve_kf = mean(VE_KW), n_vessels = n_distinct(VE_REF)
-                              ) %>%
-                    as.data.frame()
   
-            
-  colnames(table1Save)    <- c("RecordType","VesselFlagCountry","Year","Month","C-square","LengthCat","Gear","Europeanlvl6","Fishing hour","KWhour","TotWeight","TotEuro","Av fish speed","Av vessel length","Av vessel KW", "UniqueVessels")
+  ### this bit deals with the new field added for the 2020 datacall
+  ### it has not been fully tested so use at your peril
+  
+  VE_lut <- data.frame(VE_REF=unique(c(table1$VE_REF,table2$VE_REF)))
+  VE_lut$VE_ID <- paste0('IRL',sprintf("%03d", 1:nrow(VE_lut))) # use relevant country code!
+  ## check that there are fewer than 999 unique vessels!
+  nrow(VE_lut)
+  
+  table1 <- left_join(table1,VE_lut)
+  table2 <- left_join(table2,VE_lut)
+  
+  
+  table1 <- table1 %>%
+    group_by(RT, VE_COU,
+             Year, Month,
+             Csquare, LENGTHCAT,
+             LE_GEAR, LE_MET) %>% 
+    mutate(n_vessels = n_distinct(VE_REF, na.rm = TRUE))
+  table1$VE_ID[table1$n_vessels>2] <- NA #only provide vessel id for cells with 1 or 2 vessels
+  
+  
+  ## Aggregation of VMS data:
+  table1Save <- table1 %>%
+    group_by(RT, VE_COU,
+             Year, Month,
+             Csquare, LENGTHCAT,
+             LE_GEAR, LE_MET, VE_ID) %>%
+    summarise(sum_intv = sum(INTV, na.rm = TRUE),
+              sum_kwHour = sum(kwHour, na.rm = TRUE),
+              sum_le_kg_tot = sum(LE_KG_TOT, na.rm = TRUE),
+              sum_le_euro_tot = sum(LE_EURO_TOT, na.rm = TRUE),
+              mean_si_sp = mean(SI_SP, na.rm = TRUE),
+              mean_ve_len = mean(VE_LEN, na.rm = TRUE),
+              mean_ve_kf = mean(VE_KW, na.rm = TRUE),
+              n_vessels = n_distinct(VE_REF, na.rm = TRUE)) %>%
+    as.data.frame()
+  
+  colnames(table1Save) <- c("RecordType", "VesselFlagCountry", "Year", "Month", "C-square",
+                            "LengthCat", "Gear", "Europeanlvl6", "Anon vessel Id", "Fishing hour", "KWhour",
+                            "TotWeight", "TotEuro", "Av fish speed", "Av vessel length",
+                            "Av vessel KW", "UniqueVessels")
+  ### end new bit (below is the old code)
+
+#   table1Save  <-   table1 %>%
+#                    group_by(RT,VE_COU,Year,Month,Csquare,LENGTHCAT,LE_GEAR,LE_MET) %>%
+#                    summarise(sum_intv =sum(INTV),sum_kwHour = sum(kwHour),sum_le_kg_tot = sum(LE_KG_TOT),
+#                              sum_le_euro_tot  = sum( LE_EURO_TOT),  mean_si_sp = mean(SI_SP),
+#                              mean_ve_len = mean(VE_LEN), mean_ve_kf = mean(VE_KW), n_vessels = n_distinct(VE_REF)
+#                              ) %>%
+#                    as.data.frame()
+#
+#  colnames(table1Save)    <- c("RecordType","VesselFlagCountry","Year","Month","C-square","LengthCat","Gear","Europeanlvl6","Fishing hour","KWhour","TotWeight","TotEuro","Av fish speed","Av vessel length","Av vessel KW", "UniqueVessels")
 
 #-------------------------------------------------------------------------------
 #- 8) Assign  year, month, quarter, area and create table 2
@@ -551,15 +594,52 @@ for(year in yearsToSubmit){
   } else {
      table2 <- rbind(table2, cbind(RT=RecordType,eflalo[,c("VE_REF","VE_COU","Year","Month","LE_RECT","LE_GEAR","LE_MET","LENGTHCAT","tripInTacsat","INTV","kwDays","LE_KG_TOT","LE_EURO_TOT")]))
   }
-   table2Save  <-  table2 %>%
-                   group_by(RT,VE_COU,Year,Month,LE_RECT,LE_GEAR,LE_MET,LENGTHCAT, tripInTacsat) %>%
-                   summarise(sum_intv =sum(INTV),sum_kwDays = sum(kwDays),sum_le_kg_tot = sum(LE_KG_TOT),
-                               sum_le_euro_tot  = sum( LE_EURO_TOT),  n_vessels = n_distinct(VE_REF)
-                   ) %>%
-                   as.data.frame()
-    
-   colnames(table2Save) <- c("RecordType","VesselFlagCountry","Year","Month","ICESrect","Gear","Europeanlvl6","LengthCat","VMS enabled","FishingDays","KWDays","TotWeight","TotValue","UniqueVessels")
+  
+  ### this bit deals with the new field added for the 2020 datacall
+  ### it has not been fully tested so use at your peril
+  
+  table2 <- table2 %>%
+    group_by(RT, VE_COU,
+             Year, Month,
+             LE_RECT, LE_GEAR,
+             LE_MET, LENGTHCAT,
+             tripInTacsat) %>%
+    mutate(n_vessels = n_distinct(VE_REF, na.rm = TRUE))
+  table2$VE_ID[table2$n_vessels>2] <- NA #only provide vessel id for cells with 1 or 2 vessels
+  
+  ## Aggregation of LogBook data:
+  table2Save <- table2 %>%
+    group_by(RT, VE_COU,
+             Year, Month,
+             LE_RECT, LE_GEAR,
+             LE_MET, VE_ID, LENGTHCAT,
+             tripInTacsat) %>%
+    summarise(sum_intv = sum(INTV, na.rm = TRUE),
+              sum_kwDays = sum(kwDays, na.rm = TRUE),
+              sum_le_kg_tot = sum(LE_KG_TOT, na.rm = TRUE),
+              sum_le_euro_tot = sum( LE_EURO_TOT, na.rm = TRUE),
+              n_vessels = n_distinct(VE_REF, na.rm = TRUE)) %>%
+    as.data.frame()
+  colnames(table2Save) <- c("RecordType", "VesselFlagCountry", "Year", "Month",
+                            "ICESrect", "Gear", "Europeanlvl6", "Anon vessel Id", "LengthCat",
+                            "VMS enabled", "FishingDays", "KWDays", "TotWeight",
+                            "TotValue", "UniqueVessels")
+  
+  ### end new bit (below is the old code)
+
+  
+  #   table2Save  <-  table2 %>%
+  #                   group_by(RT,VE_COU,Year,Month,LE_RECT,LE_GEAR,LE_MET,LENGTHCAT, tripInTacsat) %>%
+  #                   summarise(sum_intv =sum(INTV),sum_kwDays = sum(kwDays),sum_le_kg_tot = sum(LE_KG_TOT),
+  #                               sum_le_euro_tot  = sum( LE_EURO_TOT),  n_vessels = n_distinct(VE_REF)
+  #                   ) %>%
+  #                   as.data.frame()
+  #    
+  #   colnames(table2Save) <- c("RecordType","VesselFlagCountry","Year","Month","ICESrect","Gear","Europeanlvl6","LengthCat","VMS enabled","FishingDays","KWDays","TotWeight","TotValue","UniqueVessels")
 }
 
+
+  
+  
 write.csv(table1Save,file=file.path(outPath,"table1.csv"))
 write.csv(table2Save,file=file.path(outPath,"table2.csv"))
