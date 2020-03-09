@@ -925,52 +925,6 @@ for(year in yearsToSubmit){
       )
   }
 
-  table1Save <-
-  table1 %>%
-    group_by(RT,VE_COU,Year,Month,Csquare,LENGTHCAT,LE_GEAR,LE_MET) %>%
-    summarise(
-      sum_intv =sum(INTV),
-      sum_kwHour = sum(kwHour),
-      sum_le_kg_tot = sum(LE_KG_TOT),
-      sum_le_euro_tot  = sum( LE_EURO_TOT),
-      mean_si_sp = mean(SI_SP),
-      mean_ve_len = mean(VE_LEN),
-      mean_ve_kf = mean(VE_KW),
-      n_vessels = n_distinct(VE_REF),
-      vessel_ids =
-        ifelse (
-          n_distinct(VE_REF) < 3,
-          paste(unique(VE_REF), collapse = ";"),
-          NA_character_
-        )
-      ) %>%
-      as.data.frame()
-
-  colnames(table1Save) <-
-    c(
-      "RecordType", "VesselFlagCountry", "Year", "Month", "C-square", "LengthCat", "Gear",
-      "Europeanlvl6", "Fishing hour", "KWhour", "TotWeight", "TotEuro", "Av fish speed",
-      "Av vessel length", "Av vessel KW", "UniqueVessels", "AnonVesselIds"
-    )
-
-  # NOTE: Anonymisation step done afterwards to allow for consistent IDs accross years for products that
-  #       are multi-year averages
-
-  vesselIds <-  table1Save$AnonVesselIds[!is.na(table1Save$AnonVesselIds)]
-  vesselIds <- unique(unlist(strsplit(vesselIds, ";")))
-
-  anonymisedVesselIds <- paste(sample(seq_along(vesselIds))
-  names(anonymisedVesselIds) <- vesselIds # used for assignment
-
-# loop through each record and anonymise
-  table1Save$AnonVesselIds[!is.na(table1Save$AnonVesselIds)] <-
-  sapply(table1Save$AnonVesselIds[!is.na(table1Save$AnonVesselIds)],
-    function(x) {
-      anon <- anonymisedVesselIds[strsplit(x, ";")]
-      paste(anon, collapse = ";")
-    })
-
-
 #-------------------------------------------------------------------------------
 #- 8) Assign  year, month, quarter, area and create table 2
 #-------------------------------------------------------------------------------
@@ -1006,11 +960,13 @@ for(year in yearsToSubmit){
     table2 <-
       cbind(
         RT = RecordType,
-        eflalo[,
+        eflalo[
+          ,
           c(
             "VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET",
             "LENGTHCAT", "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
-          )]
+          )
+        ]
       )
   } else {
     table2 <-
@@ -1018,60 +974,90 @@ for(year in yearsToSubmit){
         table2,
         cbind(
           RT = RecordType,
-          eflalo[,
+          eflalo[
+            ,
             c(
               "VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET",
               "LENGTHCAT", "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
-            )]
+            )
+          ]
         )
       )
   }
-  table2Save <-
-    table2 %>%
-    group_by(RT, VE_COU, Year, Month, LE_RECT, LE_GEAR, LE_MET, LENGTHCAT, tripInTacsat) %>%
-    mutate(
-      VE_REF_annonymised = factor(VE_REF
-    )
-    summarise(
-      sum_intv = sum(INTV),
-      sum_kwDays = sum(kwDays),
-      sum_le_kg_tot = sum(LE_KG_TOT),
-      sum_le_euro_tot = sum(LE_EURO_TOT),
-      n_vessels = n_distinct(VE_REF),
-      vessel_ids =
-        ifelse (
-          n_distinct(VE_REF) < 3,
-          paste(
-            unique(VE_REF), collapse = ";"),
-            NA_character_
-          )
-    ) %>%
-  as.data.frame()
-
-  colnames(table2Save) <-
-    c(
-      "RecordType", "VesselFlagCountry", "Year", "Month", "ICESrect", "Gear", "Europeanlvl6", "LengthCat",
-      "VMS enabled", "FishingDays", "KWDays", "TotWeight", "TotValue", "UniqueVessels", "AnonVesselIds"
-    )
 }
 
-# NOTE: Anonymisation step done afterwards to allow for consistent IDs accross years for products that
-#       are multi-year averages
 
-vesselIds <-
-  table2Save$AnonVesselIds[!is.na(table2Save$AnonVesselIds)]
-vesselIds <- unique(unlist(strsplit(vesselIds, ";")))
+### this bit deals with the new field added for the 2020 datacall
+# construct a table of annonymous vessel ids accross all years
+VE_lut <- data.frame(VE_REF = unique(c(table1$VE_REF, table2$VE_REF)))
+fmt <- paste0("%0", floor(log10(nrow(VE_lut))) + 1, "d")
+VE_lut$VE_ID <- paste0(table1$VE_COU[1], sprintf(fmt, 1:nrow(VE_lut))) # use relevant country code!
 
-anonymisedVesselIds <- paste(sample(seq_along(vesselIds))
-names(anonymisedVesselIds) <- vesselIds # used for assignment
+# join onto data tables
+table1 <- left_join(table1, VE_lut)
+table2 <- left_join(table2, VE_lut)
 
-# loop through each record and anonymise
-table2Save$AnonVesselIds[!is.na(table2Save$AnonVesselIds)] <-
-  sapply(table2Save$AnonVesselIds[!is.na(table2Save$AnonVesselIds)],
-    function(x) {
-      anon <- anonymisedVesselIds[strsplit(x, ";")]
-      paste(anon, collapse = ";")
-    })
+# summarise output and save
+table1Save <-
+  table1 %>%
+    group_by(RT,VE_COU,Year,Month,Csquare,LENGTHCAT,LE_GEAR,LE_MET) %>%
+    summarise(
+      sum_intv =sum(INTV),
+      sum_kwHour = sum(kwHour),
+      sum_le_kg_tot = sum(LE_KG_TOT),
+      sum_le_euro_tot  = sum(LE_EURO_TOT),
+      mean_si_sp = mean(SI_SP),
+      mean_ve_len = mean(VE_LEN),
+      mean_ve_kf = mean(VE_KW),
+      n_vessels = n_distinct(VE_ID),
+      vessel_ids =
+        ifelse (
+          n_distinct(VE_ID) < 3,
+          paste(unique(VE_ID), collapse = ";"),
+          NA_character_
+        )
+      ) %>%
+      as.data.frame()
+
+colnames(table1Save) <-
+  c(
+    "RecordType", "VesselFlagCountry", "Year", "Month", "C-square",
+    "LengthCat", "Gear", "Europeanlvl6", "Fishing hour", "KWhour",
+    "TotWeight", "TotEuro", "Av fish speed", "Av vessel length",
+    "Av vessel KW", "UniqueVessels", "AnonVesselIds"
+  )
+
+table2Save <-
+  table2 %>%
+  group_by(
+    RT, VE_COU, Year, Month, LE_RECT, LE_GEAR, LE_MET,
+    LENGTHCAT, tripInTacsat
+  ) %>%
+  mutate(
+    VE_REF_annonymised = factor(VE_REF
+  ) %>%
+  summarise(
+    sum_intv = sum(INTV, na.rm = TRUE),
+    sum_kwDays = sum(kwDays, na.rm = TRUE),
+    sum_le_kg_tot = sum(LE_KG_TOT, na.rm = TRUE),
+    sum_le_euro_tot = sum(LE_EURO_TOT, na.rm = TRUE),
+    n_vessels = n_distinct(VE_ID, na.rm = TRUE),
+    VE_IDs =
+      ifelse (
+        n_distinct(VE_ID) < 3,
+        paste(
+          unique(VE_ID), collapse = ";"),
+          NA_character_
+        )
+  ) %>%
+as.data.frame()
+
+colnames(table2Save) <-
+  c(
+    "RecordType", "VesselFlagCountry", "Year", "Month", "ICESrect",
+    "Gear", "Europeanlvl6", "LengthCat", "VMS enabled", "FishingDays",
+    "KWDays", "TotWeight", "TotValue", "UniqueVessels", "AnonVesselIds"
+  )
 
 write.csv(table1Save, file = file.path(outPath, "table1.csv"))
 write.csv(table2Save, file = file.path(outPath, "table2.csv"))
