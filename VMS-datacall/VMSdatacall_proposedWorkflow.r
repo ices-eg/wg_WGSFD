@@ -692,7 +692,7 @@ for(year in yearsToSubmit){
         years = year,
         months = 0,
         weeks = 0,
-        analyse.by <- unique(subTacsat[, "LE_GEAR"])
+        analyse.by = unique(subTacsat[, "LE_GEAR"])
       )
     storeScheme$peaks <- NA
     storeScheme$means <- NA
