@@ -796,7 +796,7 @@ for(year in yearsToSubmit){
 
   save(
     tacsatp,
-    file <- file.path(outPath, paste0("tacsatActivity", year, ".RData"))
+    file = file.path(outPath, paste0("tacsatActivity", year, ".RData"))
   )
 
   message("Defining activity completed")
