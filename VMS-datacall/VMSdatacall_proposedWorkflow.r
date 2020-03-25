@@ -814,7 +814,7 @@ for(year in yearsToSubmit){
   tacsatp$SI_STATE[which(tacsatp$SI_STATE == "f")] <- 1
 
   #- There are several options, specify at the top of this script what type of linking you require
-  if (!"trip" %in% linkTacsatEflalo) stop("trip must be in linkTacsatEflalo")
+  if (!"trip" %in% linkEflaloTacsat) stop("trip must be in linkEflaloTacsat")
   if (all(c("day", "ICESrectangle", "trip") %in% linkEflaloTacsat)) {
     tacsatEflalo <-
       splitAmongPings(
@@ -1032,9 +1032,6 @@ table2Save <-
   group_by(
     RT, VE_COU, Year, Month, LE_RECT, LE_GEAR, LE_MET,
     LENGTHCAT, tripInTacsat
-  ) %>%
-  mutate(
-    VE_REF_annonymised = factor(VE_REF
   ) %>%
   summarise(
     sum_intv = sum(INTV, na.rm = TRUE),
