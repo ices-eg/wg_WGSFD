@@ -30,7 +30,7 @@ options(knitr.table.format = 'latex')
 options(digits = 4)
 
 my_png <- function(file, width, height) {
-  png(file, width = width, height = height, 
+  png(file, width = width, height = height,
       res = 800, units = "in", pointsize = 20)
 }
 
@@ -55,18 +55,30 @@ Data handling
 # NOTE:
 #   This chunk of code is replaced when a template is created.
 
-ICES_LE <- read.table('data/QC_2018/ICES_LE_NLD.csv', sep = ',', header = TRUE,
-          stringsAsFactors = FALSE, na.strings = 'NULL',
-          colClasses = c('character', 'character', 'numeric', 'numeric',
-                         'character', 'character', 'character', 'numeric',
-                         'character', 'character',
-                         'numeric', 'numeric', 'numeric'))
-ICES_VE <- read.table('data/QC_2018/ICES_VE_NLD.csv', sep = ',', header = TRUE,
-          stringsAsFactors = FALSE, na.strings = 'NULL',
-          colClasses = c('character', 'character', 'numeric', 'numeric',
-                         'character', 'character', 'character', 'character',
-                         'numeric', 'numeric', 'numeric', 'numeric',
-                         'numeric', 'numeric', 'numeric', 'numeric'))
+ICES_LE <- read.table("data/QC_2020/ICES_LE_BEL.csv",
+  sep = ",", header = TRUE,
+  stringsAsFactors = FALSE, na.strings = "NULL",
+  colClasses = c(
+    "character", "character",
+    "character", "character", "numeric", "numeric",
+    "character", "character", "character", "numeric",
+    "character", "character",
+    "numeric", "numeric", "numeric",
+    "numeric", "character"
+  )
+)
+ICES_VE <- read.table("data/QC_2020/ICES_VE_BEL.csv",
+  sep = ",", header = TRUE,
+  stringsAsFactors = FALSE, na.strings = "NULL",
+  colClasses = c(
+    "character", "character",
+    "character", "character", "numeric", "numeric",
+    "character", "character", "character", "character",
+    "numeric", "numeric", "numeric", "numeric",
+    "numeric", "numeric", "numeric", "numeric",
+    "numeric", "numeric", "character"
+  )
+)
 ```
 <!-- QCTEMPLATE: body -->
 <!------------------------------------------------------------------------------
@@ -185,12 +197,87 @@ data_coverage(coordGrd, spatCore, res = 0.05)
 
 \newpage
 
+## Distribution of number of unique vessels per c-square:
+
+```{r unique-vessels}
+try(
+  barplot(
+    prop.table(
+      table(
+        factor(ICES_VE$UniqueVessels)
+      )
+    ),
+    main = "unnagregated",
+    ylab = "Proportion of c-squares with given number of unique vessels",
+    xlab = "number of unique vessels"
+  )
+)
+```
+
+```{r unique-vessels2}
+tmp <- ICES_VE %>%
+  dplyr::group_by(year, c_square) %>%
+  dplyr::summarise(
+    new_count =
+      ifelse(
+        any(UniqueVessels > 2),
+        3,
+        length(unique(unlist(strsplit(AnonVessels, ";"))))
+      )
+  ) %>%
+  dplyr::mutate(
+    new_count = ifelse(new_count >= 3, "3+", paste(new_count))
+  )
+
+try(
+  barplot(
+    prop.table(
+      table(factor(tmp$new_count))
+    ),
+    main = "aggregated to year level",
+    ylab = "Proportion of c-squares with given number of unique vessels",
+    xlab = "number of unique vessels"
+  )
+)
+```
+
+```{r unique-vessels3}
+tmp <- ICES_VE %>%
+  dplyr::group_by(c_square) %>%
+  dplyr::summarise(
+    new_count =
+      ifelse(
+        any(UniqueVessels > 2),
+        3,
+        length(unique(unlist(strsplit(AnonVessels, ";"))))
+      )
+  ) %>%
+  dplyr::mutate(
+    new_count = ifelse(new_count >= 3, "3+", paste(new_count))
+  )
+
+try(
+  barplot(
+    prop.table(
+      table(factor(tmp$new_count))
+    ),
+    main = "fully aggregated",
+    ylab = "Proportion of c-squares with given number of unique vessels",
+    xlab = "number of unique vessels"
+  )
+)
+```
+
+
+\newpage
+
+
 ## Frequency of vessel length categories by year:
 ```{r records-by-vessel-length}
 kable(table(ICES_VE$vessel_length_category,ICES_VE$year), booktabs = TRUE)
 
 qplot(factor(year), data = ICES_VE, geom = "bar", fill = factor(vessel_length_category)) +
-  xlab("Years") + ylab ("Count") + 
+  xlab("Years") + ylab ("Count") +
   scale_fill_grey(guide = guide_legend(title = "Length category")) +
   theme_icesqc(legend.position = "right")
 ```
@@ -202,7 +289,7 @@ qplot(factor(year), data = ICES_VE, geom = "bar", fill = factor(vessel_length_ca
 kable(table(ICES_VE$gear_code,ICES_VE$year), booktabs = TRUE)
 
 qplot(factor(year), data = ICES_VE, geom = "bar", fill = factor(gear_code)) +
-  xlab("Years") + ylab ("Count") + 
+  xlab("Years") + ylab ("Count") +
   scale_fill_grey(guide = guide_legend(title = "Gear code")) +
   theme_icesqc(legend.position = "right")
 ```
@@ -239,7 +326,7 @@ breaks <- unique(c(-1, 0, steps * c(1, 2.5, 5, 10, 25, 50, 100, 250)))
 legval <- paste(breaks[-length(breaks)], "<=", breaks[-1L])
 legval[1] <- "0"
 
-palette <- c("white", RColorBrewer::brewer.pal(length(breaks)-2, "YlOrRd"))  
+palette <- c("white", RColorBrewer::brewer.pal(length(breaks)-2, "YlOrRd"))
 dat$colgrp <- as.numeric(cut(dat$fishing_days, breaks = breaks))
 dat$cols <- palette[dat$colgrp]
 
@@ -270,15 +357,15 @@ kable(count(unique(ICES_VE[,c("LE_MET_level6","year")]),"year"), booktabs = TRUE
 ```
 
 Top 5 DCF Level 6 codes by year:
-```{r top5-met6} 
+```{r top5-met6}
 top5Met6 <- names(sort(table(ICES_VE$LE_MET_level6), decreasing = TRUE))
 top5Met6 <- top5Met6[1:pmin(5, length(top5Met6))]
 kable(table(ICES_VE$LE_MET_level6, ICES_VE$year)[top5Met6,,drop=FALSE], booktabs = TRUE)
 
-qplot(factor(year), 
+qplot(factor(year),
       data = ICES_VE[ICES_VE$LE_MET_level6 %in% top5Met6,],
       geom = "bar", fill = factor(LE_MET_level6)) +
-  xlab("Years") + ylab ("Count") + 
+  xlab("Years") + ylab ("Count") +
   scale_fill_grey(guide = guide_legend(title = "Level 6")) +
   theme_icesqc(legend.position = "right")
 ```
@@ -388,7 +475,7 @@ breaks <- unique(c(-1, 0, steps * c(1, 2.5, 5, 10, 25, 50, 100, 250)))
 legval <- paste(breaks[-length(breaks)], "<=", breaks[-1L])
 legval[1] <- "0"
 
-palette <- c("white", RColorBrewer::brewer.pal(length(breaks)-2, "YlOrRd"))  
+palette <- c("white", RColorBrewer::brewer.pal(length(breaks)-2, "YlOrRd"))
 dat$colgrp <- as.numeric(cut(dat$fishing_days, breaks = breaks))
 dat$cols <- palette[dat$colgrp]
 
@@ -411,8 +498,8 @@ spatialplot(polVMS) +
 
 ## Spatial difference of effort `r tempBound[1]`:`r (tempBound[2]-1)` vs `r tempBound[2]`
 ```{r spatial-effort--difference1, results='asis', fig.height = 9}
-base <- with(ICES_VE, 
-             aggregate(fishing_hours, 
+base <- with(ICES_VE,
+             aggregate(fishing_hours,
                        by = list(c_square = c_square, year = year),
                        FUN = sum, na.rm = TRUE))
 base <- dplyr::rename(base, fishing_hours = x)
@@ -421,9 +508,9 @@ base <- dplyr::rename(base, fishing_hours = x)
 recent <- base[base$year == tempBound[2],]
 
 # calculate median of the total fishing hours per square for historical years
-base <- with(base[base$year < tempBound[2],], 
+base <- with(base[base$year < tempBound[2],],
              aggregate(fishing_hours,
-                       by = list(c_square = c_square), 
+                       by = list(c_square = c_square),
                        FUN = median, na.rm = TRUE))
 base <- dplyr::rename(base, fishing_hours_median = x)
 
@@ -439,7 +526,7 @@ dat2plot$fishing_hours[is.na(dat2plot$fishing_hours)] <- 0
 dat2plot$ratio <- 1/with(dat2plot, pmax(fishing_hours, 1e-9) / pmax(fishing_hours_median, 1e-9))
 
 # add back in lat and long
-dat2plot <- cbind(dat2plot, 
+dat2plot <- cbind(dat2plot,
                   vmstools::CSquare2LonLat(dat2plot$c_square, degrees = 0.05))
 
 # make 'fortified' data frame
@@ -462,7 +549,7 @@ a_by <- dat2plot$c_square
 b_by <- polVMS$c_square
 ib_by <- as.integer(factor(b_by, levels = a_by))
 polVMS$cols <- dat2plot$cols[ib_by]
-# NOTE dark blue here just means that nothing was observered before, and now there is something... 
+# NOTE dark blue here just means that nothing was observered before, and now there is something...
 # - could be 1 hour of fishing
 grps <- sort(unique(dat2plot$colgrp))
 spatialplot(polVMS) +
@@ -476,8 +563,8 @@ spatialplot(polVMS) +
 ## Spatial difference of effort `r tempBound[2]-1` vs `r tempBound[2]`
 
 ```{r spatial-effort--difference2, results='asis', fig.height = 9}
-base <- with(ICES_VE, 
-             aggregate(fishing_hours, 
+base <- with(ICES_VE,
+             aggregate(fishing_hours,
                        by = list(c_square = c_square, year = year),
                        FUN = sum, na.rm = TRUE))
 base <- dplyr::rename(base, fishing_hours = x)
@@ -501,7 +588,7 @@ dat2plot$fishing_hours[is.na(dat2plot$fishing_hours)] <- 0
 dat2plot$ratio <- 1/with(dat2plot, pmax(fishing_hours, 1e-9) / pmax(fishing_hours_median, 1e-9))
 
 # add back in lat and long
-dat2plot <- cbind(dat2plot, 
+dat2plot <- cbind(dat2plot,
                   vmstools::CSquare2LonLat(dat2plot$c_square, degrees = 0.05))
 
 # make 'fortified' data frame
@@ -524,7 +611,7 @@ a_by <- dat2plot$c_square
 b_by <- polVMS$c_square
 ib_by <- as.integer(factor(b_by, levels = a_by))
 polVMS$cols <- dat2plot$cols[ib_by]
-# NOTE dark blue here just means that nothing was observered before, and now there is something... 
+# NOTE dark blue here just means that nothing was observered before, and now there is something...
 # - could be 1 hour of fishing
 grps <- sort(unique(dat2plot$colgrp))
 spatialplot(polVMS) +
@@ -590,7 +677,7 @@ for (p in ps$plots) print(p)
 
 
 
-<!--- 
+<!---
                        --------------
                        LOGBOOK CHECKS
                        --------------
@@ -666,12 +753,88 @@ data_coverage(coordGrd, spatCore, res = 1)
 
 \newpage
 
+## Distribution of number of unique vessels per stat-square:
+
+```{r unique-vessels-stsq}
+try(
+  barplot(
+    prop.table(
+      table(
+        factor(ICES_LE$UniqueVessels)
+      )
+    ),
+    main = "unnagregated",
+    ylab = "Proportion of c-squares with given number of unique vessels",
+    xlab = "number of unique vessels"
+  )
+)
+```
+
+```{r unique-vessels2-stsq}
+tmp <- ICES_LE %>%
+  dplyr::group_by(year, ICES_rectangle) %>%
+  dplyr::summarise(
+    new_count =
+      ifelse(
+        any(UniqueVessels > 2),
+        3,
+        length(unique(unlist(strsplit(AnonVessels, ";"))))
+      )
+  ) %>%
+  dplyr::mutate(
+    new_count = ifelse(new_count >= 3, "3+", paste(new_count))
+  )
+
+try(
+  barplot(
+    prop.table(
+      table(factor(tmp$new_count))
+    ),
+    main = "aggregated to year level",
+    ylab = "Proportion of stat-squares with given number of unique vessels",
+    xlab = "number of unique vessels"
+  )
+)
+```
+
+```{r unique-vessels3-stsq}
+tmp <- ICES_LE %>%
+  dplyr::group_by(ICES_rectangle) %>%
+  dplyr::summarise(
+    new_count =
+      ifelse(
+        any(UniqueVessels > 2),
+        3,
+        length(unique(unlist(strsplit(AnonVessels, ";"))))
+      )
+  ) %>%
+  dplyr::mutate(
+    new_count = ifelse(new_count >= 3, "3+", paste(new_count))
+  )
+
+try(
+  barplot(
+    prop.table(
+      table(factor(tmp$new_count))
+    ),
+    main = "fully aggregated",
+    ylab = "Proportion of stat-squares with given number of unique vessels",
+    xlab = "number of unique vessels"
+  )
+)
+```
+
+
+\newpage
+
+
+
 ## Frequency of vessel length categories by year:
 ```{r , results='asis'}
 kable(table(ICES_LE$vessel_length_category,ICES_LE$year), booktabs = TRUE)
 
 qplot(factor(year), data = ICES_LE, geom = "bar", fill = factor(vessel_length_category)) +
-  xlab("Years") + ylab ("Count") + 
+  xlab("Years") + ylab ("Count") +
   scale_fill_grey(guide = guide_legend(title = "Length category")) +
   theme_icesqc()
 ```
@@ -683,7 +846,7 @@ qplot(factor(year), data = ICES_LE, geom = "bar", fill = factor(vessel_length_ca
 kable(table(ICES_LE$gear_code,ICES_LE$year), booktabs = TRUE)
 
 qplot(factor(year), data = ICES_LE, geom = "bar", fill = factor(gear_code)) +
-  xlab("Years") + ylab("Count") + 
+  xlab("Years") + ylab("Count") +
   scale_fill_grey(guide = guide_legend(title = "Gear code")) +
   theme_icesqc(legend.position = "right")
 ```
@@ -702,7 +865,7 @@ kable(table(ICES_LE$LE_MET_level6,ICES_LE$year)[top5Met6,], booktabs = TRUE)
 
 qplot(factor(year), data = subset(ICES_LE,LE_MET_level6 %in% top5Met6),
       geom = "bar", fill = factor(LE_MET_level6)) +
-  xlab("Years") + ylab("Count") + 
+  xlab("Years") + ylab("Count") +
   scale_fill_grey(guide = guide_legend(title = "Level 6")) +
   theme_icesqc(legend.position = "right")
 ```
@@ -777,8 +940,8 @@ spatialplot(polRect) +
 
 ## Spatial difference of effort `r tempBound[1]`:`r (tempBound[2]-1)` vs `r tempBound[2]`
 ```{r,  fig.height = 9}
-base <- with(ICES_LE, 
-             aggregate(fishing_days, 
+base <- with(ICES_LE,
+             aggregate(fishing_days,
                        by = list(ICES_rectangle = ICES_rectangle, year = year),
                        FUN = sum, na.rm = TRUE))
 base <- dplyr::rename(base, fishing_days = x)
@@ -787,9 +950,9 @@ base <- dplyr::rename(base, fishing_days = x)
 recent <- base[base$year == tempBound[2],]
 
 # calculate median of the total fishing hours per square for historical years
-base <- with(base[base$year < tempBound[2],], 
+base <- with(base[base$year < tempBound[2],],
              aggregate(fishing_days,
-                       by = list(ICES_rectangle = ICES_rectangle), 
+                       by = list(ICES_rectangle = ICES_rectangle),
                        FUN = median, na.rm = TRUE))
 base <- dplyr::rename(base, fishing_days_median = x)
 
@@ -834,8 +997,8 @@ spatialplot(polRect) +
 ## Spatial difference of effort `r tempBound[2]-1` vs `r tempBound[2]`
 
 ```{r,  fig.height = 9}
-base <- with(ICES_LE, 
-             aggregate(fishing_days, 
+base <- with(ICES_LE,
+             aggregate(fishing_days,
                        by = list(ICES_rectangle = ICES_rectangle, year = year),
                        FUN = sum, na.rm = TRUE))
 base <- dplyr::rename(base, fishing_days = x)
@@ -888,7 +1051,7 @@ spatialplot(polRect) +
 
 ## Relationship fishing days and total weight
 ```{r , fig.height = 9}
-ggplot(ICES_LE[ICES_LE$year == tempBoundLog[2],], 
+ggplot(ICES_LE[ICES_LE$year == tempBoundLog[2],],
        aes(x = fishing_days, y = totweight)) +
   geom_point() +
   facet_wrap(~ gear_code, ncol = 3, scale = "free") +
@@ -943,7 +1106,7 @@ for (p in ps$plots) print(p)
 ledat <- with(ICES_LE, table(LE_MET_level6, year))
 vedat <- with(ICES_VE, table(LE_MET_level6, year))
 
-dat2tab <- 
+dat2tab <-
   rbind(
     cbind(as.data.frame.table(ledat), data = "LE (records)"),
     cbind(as.data.frame.table(vedat), data = "VE (pings)"))

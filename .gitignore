@@ -53,3 +53,5 @@ QC_*.Rmd
 2017_maps.html
 QC/report-QC-template-short.Rmd
 *.html
+
+QC/reports_2020/pdf/
