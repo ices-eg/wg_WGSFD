@@ -19,7 +19,7 @@ set.seed(1)
 if(!require(easypackages)) {install.packages("easypackages")}
 library(easypackages)
 VMStoolspackages <- c("cluster", "data.table", "doBy", "maps", "mapdata", "maptools", "PBSmapping", "sp")
-mypackages <- c("MASS", "corrgram", "openxlsx", "autoimage", "car", "svglite","raster","PerformanceAnalytics")
+mypackages <- c("MASS", "corrgram", "openxlsx", "autoimage", "car", "svglite","raster","PerformanceAnalytics","fields")
 packages(c(VMStoolspackages, mypackages), prompt = F)
 libraries(mypackages)
 
@@ -172,6 +172,11 @@ tiff(paste0(FG.path,"/Figures/Fig_3_correlation.tiff"),compression="lzw",width=2
 chart.Correlation(datflat[,4:(dim(datflat)[2]-2)])
 dev.off()
 
+# Time series
+tiff(paste0(FG.path,"/Figures/Fig_4_time_series.tiff"),compression="lzw",width=20,height=20,res=200,units="in")
+TS <- matrix(datflat$fishing_hours,length(unique(datflat$year))*length(unique(datflat$month)),length(unique(datflat$c_square)),byrow=FALSE)
+image.plot(log(1+TS[,apply(TS,2,sum)!=0]),xlab="Time",ylab="Space",main="Time series of Fishing hours")
+dev.off()
 
 
 # End
