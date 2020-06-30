@@ -148,6 +148,7 @@ r.s <- inla(formula, family = "nbinomial", data = inla.stack.data(stk.dat), verb
             control.predictor = list(A = inla.stack.A(stk.dat), compute = TRUE), 
             control.compute = list(dic = TRUE, cpo = TRUE, waic = T))
 
+#try
 # check criterion
 r.s$waic$waic
 mean(log(r.s$cpo$cpo))
