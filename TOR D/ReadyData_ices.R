@@ -136,7 +136,7 @@ griddat <- griddat[complete.cases(griddat),]
 
 # aggregate response part:
 subdat <- as.data.table(subdat)
-expl <- subdat[, lapply(.SD, mean, na.rm=T),
+expl <- subdat[, lapply(.SD, sum, na.rm=T),
                by=list(c_square, year, season),
                 .SDcols=c("fishing_hours", "kw_fishinghours")] # fast aggregation
 expl <- as.data.frame(expl)
