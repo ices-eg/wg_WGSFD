@@ -7,10 +7,13 @@ makeQCRmd <- function(country, data_dir, template = "QC/report-QC-template.Rmd")
   loc1 <- grep("<!-- QCTEMPLATE: header -->", qc)
   loc2 <- grep("<!-- QCTEMPLATE: data -->", qc)
   loc3 <- grep("<!-- QCTEMPLATE: body -->", qc)
-  qc <- list(yaml = qc[1:(loc1-1)],
-         header = qc[loc1:(loc2-1)],
-         data = qc[loc2:(loc3-1)],
-         body = qc[loc3:length(qc)])
+  qc <-
+    list(
+      yaml = qc[1:(loc1-1)],
+      header = qc[loc1:(loc2-1)],
+      data = qc[loc2:(loc3-1)],
+      body = qc[loc3:length(qc)]
+    )
 
   # make title
   qc$yaml[grep("title:", qc$yaml)] <-
