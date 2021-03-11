@@ -1029,13 +1029,13 @@ colnames(table1Save) <-
   )
 
 table2Save <-
-  table2 %>%
+  table2 %>%separate(col = LE_MET ,   c("met4", "met5", "mesh" ), sep = '_', remove = FALSE)%>%separate(mesh , c("min", "max"))%>%
   group_by(
-    RT, VE_COU, Year, Month, LE_RECT, LE_GEAR, LE_MET,
+    RT, VE_COU, Year, Month, LE_RECT,LE_GEAR, met5, min, max, LE_MET, 
     LENGTHCAT, tripInTacsat
   ) %>%
   mutate(
-    VE_REF_annonymised = factor(VE_REF
+      VE_REF_annonymised = factor(VE_REF
   ) %>%
   summarise(
     sum_intv = sum(INTV, na.rm = TRUE),
@@ -1043,21 +1043,21 @@ table2Save <-
     sum_le_kg_tot = sum(LE_KG_TOT, na.rm = TRUE),
     sum_le_euro_tot = sum(LE_EURO_TOT, na.rm = TRUE),
     n_vessels = n_distinct(VE_ID, na.rm = TRUE),
-    VE_IDs =
+    vessel_ids =
       ifelse (
         n_distinct(VE_ID) < 3,
         paste(
           unique(VE_ID), collapse = ";"),
           NA_character_
         )
-  ) %>%
+  ) %>%  relocate( n_vessels,vessel_ids, .before = LE_RECT)%>%
 as.data.frame()
 
 colnames(table2Save) <-
   c(
-    "RecordType", "VesselFlagCountry", "Year", "Month", "ICESrect",
-    "Gear", "Europeanlvl6", "LengthCat", "VMS enabled", "FishingDays",
-    "KWDays", "TotWeight", "TotValue", "UniqueVessels", "AnonVesselIds"
+    "RecordType", "CountryCode", "Year", "Month", "NoDistinctVessels", "AnonymizedVesselID", "ICESrectangle",
+    "MetierL4", "MetierL5", "LowerMeshSize", "UpperMeshSize", "MetierL6", "VesselLengthRange", "VMSEnabled", "FishingDays",
+    "kWFishingDays", "TotWeight", "TotValue" 
   )
 
 write.csv(table1Save, file = file.path(outPath, "table1.csv"))
