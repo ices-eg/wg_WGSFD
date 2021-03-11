@@ -28,6 +28,7 @@ library(vmstools) #- download from www.vmstools.org
 library(Matrix)   #- available on CRAN
 library(ggplot2)  #- available on CRAN
 library(dplyr)    #- available on CRAN
+library(tidyverse)    #- available on CRAN
 library(sp)
 library(doBy)
 library(mixtools)
@@ -999,16 +1000,16 @@ table2 <- left_join(table2, VE_lut)
 
 # summarise output and save
 table1Save <-
-  table1 %>%
-    group_by(RT,VE_COU,Year,Month,Csquare,LENGTHCAT,LE_GEAR,LE_MET) %>%
+  table1 %>%separate(col = LE_MET ,   c("met4", "met5", "mesh" ), sep = '_', remove = FALSE)%>%separate(mesh , c("min", "max"))%>%
+    group_by(RT,VE_COU,Year,Month,Csquare,LE_GEAR, met5, min, max, LE_MET,LENGTHCAT) %>%
     summarise(
-      sum_intv =sum(INTV),
-      sum_kwHour = sum(kwHour),
-      sum_le_kg_tot = sum(LE_KG_TOT),
-      sum_le_euro_tot  = sum(LE_EURO_TOT),
       mean_si_sp = mean(SI_SP),
+      sum_intv =sum(INTV),
       mean_ve_len = mean(VE_LEN),
       mean_ve_kf = mean(VE_KW),
+      sum_kwHour = sum(kwHour),
+      sum_le_kg_tot = sum(LE_KG_TOT),
+      sum_le_euro_tot  = sum(LE_EURO_TOT),      
       n_vessels = n_distinct(VE_ID),
       vessel_ids =
         ifelse (
@@ -1016,15 +1017,15 @@ table1Save <-
           paste(unique(VE_ID), collapse = ";"),
           NA_character_
         )
-      ) %>%
+      ) %>%  relocate( n_vessels,vessel_ids, .before = Csquare)
       as.data.frame()
 
 colnames(table1Save) <-
   c(
-    "RecordType", "VesselFlagCountry", "Year", "Month", "C-square",
-    "LengthCat", "Gear", "Europeanlvl6", "Fishing hour", "KWhour",
-    "TotWeight", "TotEuro", "Av fish speed", "Av vessel length",
-    "Av vessel KW", "UniqueVessels", "AnonVesselIds"
+    "RecordType", "CountryCode", "Year", "Month", "NoDistinctVessels", "AnonymizedVesselID",
+    "C-square","MetierL4", "MetierL5", "LowerMeshSize", "UpperMeshSize", "MetierL6",  "VesselLengthRange",
+    "AverageFishingSpeed", "FishingHour", "AverageVesselLength", "AveragekW",
+    "kWFishingHour", "TotWeight", "TotValue" 
   )
 
 table2Save <-
