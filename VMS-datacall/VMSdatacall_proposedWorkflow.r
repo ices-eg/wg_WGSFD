@@ -44,7 +44,7 @@ intvThres     <- 240  #Maximum difference in time interval in minutes to prevent
 lanThres      <- 1.5  #Maximum difference in log10-transformed sorted weights
 
 #- Re-run all years as we have new field for no. vessels
-yearsToSubmit <- sort(2009:2019)
+yearsToSubmit <- sort(2009:2020)
 
 #- Set the gear names for which automatic fishing activity is wanted
 #  It is important to fill out the gears you want to apply auto detection for
