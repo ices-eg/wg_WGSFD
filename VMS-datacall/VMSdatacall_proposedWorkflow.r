@@ -1034,9 +1034,7 @@ table2Save <-
     RT, VE_COU, Year, Month, LE_RECT,LE_GEAR, met5, min, max, LE_MET, 
     LENGTHCAT, tripInTacsat
   ) %>%
-  mutate(
-      VE_REF_annonymised = factor(VE_REF
-  ) %>%
+  mutate(VE_REF_annonymised = factor(VE_REF)) %>%
   summarise(
     sum_intv = sum(INTV, na.rm = TRUE),
     sum_kwDays = sum(kwDays, na.rm = TRUE),
