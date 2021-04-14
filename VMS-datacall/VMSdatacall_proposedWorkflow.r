@@ -44,7 +44,7 @@ intvThres     <- 240  #Maximum difference in time interval in minutes to prevent
 lanThres      <- 1.5  #Maximum difference in log10-transformed sorted weights
 
 #- Re-run all years as we have new field for no. vessels
-yearsToSubmit <- sort(2009:2019)
+yearsToSubmit <- sort(2009:2020)
 
 #- Set the gear names for which automatic fishing activity is wanted
 #  It is important to fill out the gears you want to apply auto detection for
@@ -692,7 +692,7 @@ for(year in yearsToSubmit){
         years = year,
         months = 0,
         weeks = 0,
-        analyse.by <- unique(subTacsat[, "LE_GEAR"])
+        analyse.by = unique(subTacsat[, "LE_GEAR"])
       )
     storeScheme$peaks <- NA
     storeScheme$means <- NA
@@ -796,7 +796,7 @@ for(year in yearsToSubmit){
 
   save(
     tacsatp,
-    file <- file.path(outPath, paste0("tacsatActivity", year, ".RData"))
+    file = file.path(outPath, paste0("tacsatActivity", year, ".RData"))
   )
 
   message("Defining activity completed")
@@ -814,7 +814,7 @@ for(year in yearsToSubmit){
   tacsatp$SI_STATE[which(tacsatp$SI_STATE == "f")] <- 1
 
   #- There are several options, specify at the top of this script what type of linking you require
-  if (!"trip" %in% linkTacsatEflalo) stop("trip must be in linkTacsatEflalo")
+  if (!"trip" %in% linkEflaloTacsat) stop("trip must be in linkEflaloTacsat")
   if (all(c("day", "ICESrectangle", "trip") %in% linkEflaloTacsat)) {
     tacsatEflalo <-
       splitAmongPings(
@@ -1060,5 +1060,7 @@ colnames(table2Save) <-
     "kWFishingDays", "TotWeight", "TotValue" 
   )
 
-write.csv(table1Save, file = file.path(outPath, "table1.csv"))
-write.csv(table2Save, file = file.path(outPath, "table2.csv"))
+## Save the final table 1 and table 2 . Headers and quotes have been removed to be compatible with required submission format.  
+write.table(table2Save, file.path(outPath, "table2.csv"),row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
+write.table(table2Save, file.path(outPath, "table2.csv"),row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
+

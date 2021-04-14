@@ -1,18 +1,28 @@
 {
-  // list of countries to run QC for
-  // "countries": ["BEL", "DEU", "DNK", "EST", "FIN", "FRA", "GBR", "IRL", "ICE", "Latvia", "LTU", "nld", "NO", "POL", "PRT", "SWE"],
-  "countries": ["DEU"],
-
-  // data call years to compare over
-  "years": [2017],
-  
-  // location of data directory
-  "data_dir": "data/QC_2018",
-  
-  // location of report directory
-  "report_dir": "QC/reports_2018",
-  
-  // database connection string
+  "countries": [
+    //"BEL",
+    //"DEU",
+    //"DNK",
+    //"EST",
+    //"FIN",
+    //"FRA",
+    //"IRL",
+    //"Latvia",
+    //"LTU",
+    //"nld",
+    //"POL",
+    //"SWE",
+    //"PRT",
+    "ESP"//,
+    //"GB",
+    //"ICE",
+    //"NO",
+    //"FAR",
+    //"GRE",
+    //"RU"
+  ],
+  "years": 2019,
+  "data_dir": "data/data_2020",
+  "report_dir": "QC/reports_2020",
   "db_connection": "Driver={SQL Server};Server=SQL06;Database=VMS;Trusted_Connection=yes"
 }
-
