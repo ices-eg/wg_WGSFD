@@ -999,6 +999,7 @@ VE_lut$VE_ID <- paste0(table1$VE_COU[1], sprintf(fmt, 1:nrow(VE_lut))) # use rel
 table1 <- left_join(table1, VE_lut)
 table2 <- left_join(table2, VE_lut)
 
+
 # summarise output and save
 table1Save <-
   table1 %>%separate(col = LE_MET ,   c("met4", "met5", "mesh" ), sep = '_', remove = FALSE)%>%separate(mesh , c("min", "max"))%>%
@@ -1018,8 +1019,8 @@ table1Save <-
           paste(unique(VE_ID), collapse = ";"),
           NA_character_
         )
-      ) %>%  relocate( n_vessels,vessel_ids, .before = Csquare)
-      %>%mutate (AverageGearWidth = NA  ) ## If this information is available modify this line of the script. By default is assumed not existing gear width information
+      ) %>%  relocate( n_vessels,vessel_ids, .before = Csquare)%>%
+      mutate (AverageGearWidth = NA  )%>% ## If this information is available modify this line of the script. By default is assumed not existing gear width information
       as.data.frame()
 
 colnames(table1Save) <-
@@ -1035,8 +1036,7 @@ table2Save <-
   group_by(
     RT, VE_COU, Year, Month, LE_RECT,LE_GEAR, met5, min, max, LE_MET, 
     LENGTHCAT, tripInTacsat
-  ) %>%
-  mutate(VE_REF_annonymised = factor(VE_REF)) %>%
+  ) %>%  
   summarise(
     sum_intv = sum(INTV, na.rm = TRUE),
     sum_kwDays = sum(kwDays, na.rm = TRUE),
