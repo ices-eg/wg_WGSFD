@@ -1019,7 +1019,7 @@ table1Save <-
           NA_character_
         )
       ) %>%  relocate( n_vessels,vessel_ids, .before = Csquare)
-      %>%mutate (AverageGearWidth = NULL  ) ## If this information is available modify this line of the script. By default is assumed not existing gear width information
+      %>%mutate (AverageGearWidth = NA  ) ## If this information is available modify this line of the script. By default is assumed not existing gear width information
       as.data.frame()
 
 colnames(table1Save) <-
