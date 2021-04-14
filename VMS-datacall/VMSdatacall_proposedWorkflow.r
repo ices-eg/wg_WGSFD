@@ -1056,5 +1056,7 @@ colnames(table2Save) <-
     "KWDays", "TotWeight", "TotValue", "UniqueVessels", "AnonVesselIds"
   )
 
-write.csv(table1Save, file = file.path(outPath, "table1.csv"))
-write.csv(table2Save, file = file.path(outPath, "table2.csv"))
+## Save the final table 1 and table 2 . Headers and quotes have been removed to be compatible with required submission format.  
+write.table(table2Save, file.path(outPath, "table2.csv"),row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
+write.table(table2Save, file.path(outPath, "table2.csv"),row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
+
