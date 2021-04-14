@@ -31,6 +31,8 @@ library(dplyr)    #- available on CRAN
 library(sp)
 library(doBy)
 library(mixtools)
+library(dplyr)
+library(tidyverse)
 
 #- Settings paths
 codePath  <- "VMSdatacall/R"          #Location where you store R scripts
