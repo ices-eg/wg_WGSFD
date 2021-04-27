@@ -1061,6 +1061,5 @@ colnames(table2Save) <-
   )
 
 ## Save the final table 1 and table 2 . Headers and quotes have been removed to be compatible with required submission format.  
-write.table(table1Save, file.path(outPath, "table1Save.csv"),row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
-write.table(table2Save, file.path(outPath, "table2Save.csv"),row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
-
+write.table(table1Save, file.path(outPath, "table1Save.csv"), na = "",row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
+write.table(table2Save, file.path(outPath, "table2Save.csv"), na = "",row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
