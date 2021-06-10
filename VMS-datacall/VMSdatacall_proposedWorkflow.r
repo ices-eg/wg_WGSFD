@@ -31,6 +31,8 @@ library(dplyr)    #- available on CRAN
 library(sp)
 library(doBy)
 library(mixtools)
+library(dplyr)
+library(tidyverse)
 
 #- Settings paths
 codePath  <- "VMSdatacall/R"          #Location where you store R scripts
@@ -892,11 +894,12 @@ for(year in yearsToSubmit){
   tacsatEflalo$INTV      <- tacsatEflalo$INTV / 60
   tacsatEflalo$LENGTHCAT <- cut(tacsatEflalo$VE_LEN, breaks=c(0, 8, 10, 12, 15, 200))
   tacsatEflalo$LENGTHCAT <- as.character(tacsatEflalo$LENGTHCAT)
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(0,8]")] <- "<8"
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(8,10]")] <- "8-10"
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(10,12]")] <- "10-12"
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(12,15]")] <- "12-15"
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(15,200]")] <- ">15"
+  ### following new ICES DATSU vocabulary format for vessel length categories http://vocab.ices.dk/?ref=1502
+  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(0,8]")] <- "A"
+  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(8,10]")] <- "B"
+  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(10,12]")] <- "C"
+  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(12,15]")] <- "D"
+  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(15,200]")] <- "E"
 
   RecordType <- "VE"
 
@@ -944,15 +947,19 @@ for(year in yearsToSubmit){
   eflalo <- merge(eflalo, res, by = c("VE_COU", "VE_REF", "LE_CDAT"))
   eflalo$INTV <- eflalo$INTV / eflalo$nrRecords
   eflalo$kwDays <- eflalo$VE_KW * eflalo$INTV
-  eflalo$tripInTacsat <- ifelse(eflalo$FT_REF %in% tacsatp$FT_REF, "Yes", "No")
+  
+ ### following new ICES DATSU vocabulary format for vessel length categories http://vocab.ices.dk/?ref=316
+  eflalo$tripInTacsat <- ifelse(eflalo$FT_REF %in% tacsatp$FT_REF, "Y", "N")
 
   eflalo$LENGTHCAT <- cut(eflalo$VE_LEN, breaks = c(0, 8, 10, 12, 15, 200))
   eflalo$LENGTHCAT <- ac(eflalo$LENGTHCAT)
-  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(0,8]")] <- "<8"
-  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(8,10]")] <- "8-10"
-  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(10,12]")] <- "10-12"
-  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(12,15]")] <- "12-15"
-  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(15,200]")] <- ">15"
+  
+  ### following new ICES DATSU vocabulary format for vessel length categories http://vocab.ices.dk/?ref=1502
+  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(0,8]")] <- "A"
+  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(8,10]")] <- "B"
+  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(10,12]")] <- "C"
+  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(12,15]")] <- "D"
+  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(15,200]")] <- "E"
 
   RecordType <- "LE"
 
@@ -997,18 +1004,19 @@ VE_lut$VE_ID <- paste0(table1$VE_COU[1], sprintf(fmt, 1:nrow(VE_lut))) # use rel
 table1 <- left_join(table1, VE_lut)
 table2 <- left_join(table2, VE_lut)
 
+
 # summarise output and save
 table1Save <-
-  table1 %>%
-    group_by(RT,VE_COU,Year,Month,Csquare,LENGTHCAT,LE_GEAR,LE_MET) %>%
+  table1 %>%separate(col = LE_MET ,   c("met4", "met5", "mesh" ), sep = '_', remove = FALSE)%>%separate(mesh , c("min", "max"))%>%
+    group_by(RT,VE_COU,Year,Month,Csquare,LE_GEAR, met5, min, max, LE_MET,LENGTHCAT) %>%
     summarise(
-      sum_intv =sum(INTV),
-      sum_kwHour = sum(kwHour),
-      sum_le_kg_tot = sum(LE_KG_TOT),
-      sum_le_euro_tot  = sum(LE_EURO_TOT),
       mean_si_sp = mean(SI_SP),
+      sum_intv =sum(INTV),
       mean_ve_len = mean(VE_LEN),
       mean_ve_kf = mean(VE_KW),
+      sum_kwHour = sum(kwHour),
+      sum_le_kg_tot = sum(LE_KG_TOT),
+      sum_le_euro_tot  = sum(LE_EURO_TOT),      
       n_vessels = n_distinct(VE_ID),
       vessel_ids =
         ifelse (
@@ -1016,47 +1024,48 @@ table1Save <-
           paste(unique(VE_ID), collapse = ";"),
           NA_character_
         )
-      ) %>%
+      ) %>%  relocate( n_vessels,vessel_ids, .before = Csquare)%>%
+      mutate (AverageGearWidth = NA  )%>% ## If this information is available modify this line of the script. By default is assumed not existing gear width information
       as.data.frame()
 
 colnames(table1Save) <-
   c(
-    "RecordType", "VesselFlagCountry", "Year", "Month", "C-square",
-    "LengthCat", "Gear", "Europeanlvl6", "Fishing hour", "KWhour",
-    "TotWeight", "TotEuro", "Av fish speed", "Av vessel length",
-    "Av vessel KW", "UniqueVessels", "AnonVesselIds"
+    "RecordType", "CountryCode", "Year", "Month", "NoDistinctVessels", "AnonymizedVesselID",
+    "C-square","MetierL4", "MetierL5", "LowerMeshSize", "UpperMeshSize", "MetierL6",  "VesselLengthRange",
+    "AverageFishingSpeed", "FishingHour", "AverageVesselLength", "AveragekW",
+    "kWFishingHour", "TotWeight", "TotValue" , "AverageGearWidth"
   )
 
 table2Save <-
-  table2 %>%
+  table2 %>%separate(col = LE_MET ,   c("met4", "met5", "mesh" ), sep = '_', remove = FALSE)%>%separate(mesh , c("min", "max"))%>%
   group_by(
-    RT, VE_COU, Year, Month, LE_RECT, LE_GEAR, LE_MET,
+    RT, VE_COU, Year, Month, LE_RECT,LE_GEAR, met5, min, max, LE_MET, 
     LENGTHCAT, tripInTacsat
-  ) %>%
+  ) %>%  
   summarise(
     sum_intv = sum(INTV, na.rm = TRUE),
     sum_kwDays = sum(kwDays, na.rm = TRUE),
     sum_le_kg_tot = sum(LE_KG_TOT, na.rm = TRUE),
     sum_le_euro_tot = sum(LE_EURO_TOT, na.rm = TRUE),
     n_vessels = n_distinct(VE_ID, na.rm = TRUE),
-    VE_IDs =
+    vessel_ids =
       ifelse (
         n_distinct(VE_ID) < 3,
         paste(
           unique(VE_ID), collapse = ";"),
           NA_character_
         )
-  ) %>%
+  ) %>%  relocate( n_vessels,vessel_ids, .before = LE_RECT)%>%
 as.data.frame()
 
 colnames(table2Save) <-
   c(
-    "RecordType", "VesselFlagCountry", "Year", "Month", "ICESrect",
-    "Gear", "Europeanlvl6", "LengthCat", "VMS enabled", "FishingDays",
-    "KWDays", "TotWeight", "TotValue", "UniqueVessels", "AnonVesselIds"
+    "RecordType", "CountryCode", "Year", "Month", "NoDistinctVessels", "AnonymizedVesselID", "ICESrectangle",
+    "MetierL4", "MetierL5", "LowerMeshSize", "UpperMeshSize", "MetierL6", "VesselLengthRange", "VMSEnabled", "FishingDays",
+    "kWFishingDays", "TotWeight", "TotValue" 
   )
 
 ## Save the final table 1 and table 2 . Headers and quotes have been removed to be compatible with required submission format.  
-write.table(table2Save, file.path(outPath, "table2.csv"),row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
-write.table(table2Save, file.path(outPath, "table2.csv"),row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
+write.table(table1Save, na = "", file.path(outPath, "table1Save.csv"),row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
+write.table(table2Save, na = "", file.path(outPath, "table2Save.csv"),row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
 
