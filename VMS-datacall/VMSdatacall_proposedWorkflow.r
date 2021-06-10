@@ -895,11 +895,11 @@ for(year in yearsToSubmit){
   tacsatEflalo$LENGTHCAT <- cut(tacsatEflalo$VE_LEN, breaks=c(0, 8, 10, 12, 15, 200), include.lowest = TRUE)
   tacsatEflalo$LENGTHCAT <- as.character(tacsatEflalo$LENGTHCAT)
   ### following new ICES DATSU vocabulary format for vessel length categories http://vocab.ices.dk/?ref=1502
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(0,8]")] <- "A"
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(8,10]")] <- "B"
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(10,12]")] <- "C"
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(12,15]")] <- "D"
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(15,200]")] <- "E"
+  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "[0,8)")] <- "A"
+  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "[8,10)")] <- "B"
+  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "[10,12)")] <- "C"
+  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "[12,15)")] <- "D"
+  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "[15,200)")] <- "E"
 
   RecordType <- "VE"
 
