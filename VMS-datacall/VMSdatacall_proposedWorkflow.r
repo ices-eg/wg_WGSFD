@@ -892,7 +892,7 @@ for(year in yearsToSubmit){
   tacsatEflalo$Month     <- month(tacsatEflalo$SI_DATIM)
   tacsatEflalo$kwHour    <- tacsatEflalo$VE_KW * tacsatEflalo$INTV / 60
   tacsatEflalo$INTV      <- tacsatEflalo$INTV / 60
-  tacsatEflalo$LENGTHCAT <- cut(tacsatEflalo$VE_LEN, breaks=c(0, 8, 10, 12, 15, 200))
+  tacsatEflalo$LENGTHCAT <- cut(tacsatEflalo$VE_LEN, breaks=c(0, 8, 10, 12, 15, 200), include.lowest = TRUE)
   tacsatEflalo$LENGTHCAT <- as.character(tacsatEflalo$LENGTHCAT)
   ### following new ICES DATSU vocabulary format for vessel length categories http://vocab.ices.dk/?ref=1502
   tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(0,8]")] <- "A"
