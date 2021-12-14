@@ -435,45 +435,6 @@ for(year in yearsToSubmit){
     )
 
   #-------------------------------------------------------------------------------
-  #- Remove trip with overlap with another trip
-  #-------------------------------------------------------------------------------
-
-  eflalo <- orderBy(~ VE_COU + VE_REF + FT_DDATIM + FT_LDATIM, data = eflalo)
-  overlaps <-
-    lapply(
-      split(eflalo, as.factor(eflalo$VE_REF)),
-      function(x)
-      {
-        x  <- x[!duplicated( paste(x$VE_REF, x$FT_REF)), ]
-        idx <-
-          apply(
-            triu(
-              matrix(
-                as.numeric(
-                  outer(x$FT_DDATIM, x$FT_LDATIM, "-")
-                ),
-                nrow = nrow(x), ncol = nrow(x)
-              )),
-            2,
-            function(y) {
-              which(y > 0, arr.ind = TRUE)
-            }
-          )
-        rows <- which(unlist(lapply(idx, length)) > 0)
-        rows
-      })
-  eflalo$ID <- 1:nrow(eflalo) # this doesn't work properly - needs some thinking
-  #for (iOver in 1:length(overlaps)) {
-  #  if (length(overlaps[[iOver]]) > 0) {
-  #    eflalo <-
-  #      eflalo[
-  #        which(eflalo$VE_REF == names(overlaps)[iOver]),
-  #      ]
-  #    eflalo <- eflalo[-overlaps[[iOver]], ]
-  #  }
-  #}
-
-  #-------------------------------------------------------------------------------
   #- Remove records with arrival date before departure date
   #-------------------------------------------------------------------------------
   eflalop <- eflalo
@@ -483,13 +444,76 @@ for(year in yearsToSubmit){
     c(
       nrow(eflalo),
       100 +
-      round(
-        (nrow(eflalo) - as.numeric(remrecsEflalo["total", 1])) /
-        as.numeric(remrecsEflalo["total", 1]) *
-        100,
-      2)
+        round(
+          (nrow(eflalo) - as.numeric(remrecsEflalo["total", 1])) /
+            as.numeric(remrecsEflalo["total", 1]) *
+            100,
+          2)
     )
-
+  
+  #-------------------------------------------------------------------------------
+  #- Remove trip with overlap with another trip
+  #-------------------------------------------------------------------------------
+  eflalo <- orderBy(~ VE_COU + VE_REF + FT_DDATIM + FT_LDATIM, data = eflalo)
+  
+  overlaps <-
+    lapply(
+      split(eflalo, as.factor(eflalo$VE_REF)),
+      function(x)
+      {
+        x  <- x[!duplicated( paste(x$VE_REF, x$FT_REF)), ]
+        idx <-
+          apply(
+            tril(
+              matrix(
+                as.numeric(
+                  outer(x$FT_DDATIM, x$FT_LDATIM, "-")
+                ),
+                nrow = nrow(x), ncol = nrow(x)
+              ),-1),
+            2,
+            function(y) {
+              which(y < 0, arr.ind = TRUE)
+            }
+          )
+        
+        rows <- which(unlist(lapply(idx, length)) > 0) # first part of the overlapping trips
+        if(length(rows)>0){
+          cols = c()
+          
+          for(k in 1:length(rows)){
+            cols <-c(cols, idx[[rows[k]]] ) # second part of the overlapping trips
+          }
+          
+          x[unique(c(rows, cols)),1:15] # returns all the overlapping trips for the given VE_REF
+          #rownames(x[unique(c(rows, cols)),]) # either the line above or this one, not sure which is better
+          
+        }else{
+          data.frame()
+        }
+        
+      })
+  
+  overlappingTrips = data.frame()
+  for (iOver in 1:length(overlaps)) {
+    if (nrow(overlaps[[iOver]]) > 0) { # if there are overlapping trips for the given VE_REF put them all into one file
+      
+      overlappingTrips = rbind(overlappingTrips, overlaps[[iOver]] )      # returns all overlapping trips
+      
+    }
+  }
+  
+  if(nrow(overlappingTrips>0)){
+    
+    print("THERE ARE OVERLAPPING TRIPS IN THE DATASET -> SEE THE FILE overlappingTrip SAVED IN THE RESULTS FOLDER")
+    
+    save(
+      overlappingTrips,
+      file = file.path(outPath, paste0("overlappingTrips", year, ".RData"))
+    )
+  }
+  
+  
   #-------------------------------------------------------------------------------
   #- Save the remrecsEflalo file
   #-------------------------------------------------------------------------------
