@@ -85,7 +85,8 @@ input.data <- input.data %>%
   transform(area = ifelse((is.na(F_CODE1) & !is.na(F_CODE2)), F_CODE2, F_CODE1))%>%
   select(-c(F_CODE1, F_CODE2))
 
-
+#### Merge by area
+input.data <- merge(input.data, area.list, all.x = T, by = "area")
 
 
 
