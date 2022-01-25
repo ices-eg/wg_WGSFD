@@ -454,3 +454,23 @@ vesselPatternsByLevel <- function(input.data,level,sequence.def){
   return(rbind(input.data, input.data.rare.to.process,input.data.rare.processed, 
                input.data.no.metier, fill=T))
 }
+
+## Added by Genoveva Gonzalez Mirelis
+# Function to spatially extract FAO area code for the centroid of each fishing operation
+ExtractFaoCode <- function(input.data){
+  fao <- readOGR(dsn = file.path(path2fun,"Shapefiles"), layer = "FAO_AREAS_SUBDIVISION")
+  proj4string(fao)=CRS("+init=epsg:4326")
+  x <- over(eflalosp,fao)
+  input.data <- input.data %>% mutate(F_CODE1 = as.character(x$F_SUBDIVIS))
+  fao <- readOGR(dsn = file.path(path2fun,"Shapefiles"), layer = "FAO_AREAS_DIVISION")
+  proj4string(fao)=CRS("+init=epsg:4326")
+  x <- over(eflalosp,fao)
+  input.data <- input.data %>% mutate(F_CODE2 = as.character(y$F_DIVISION))
+  input.data <- input.data %>%
+    transform(area = ifelse((is.na(F_CODE1) & !is.na(F_CODE2)), F_CODE2, F_CODE1))
+  #data.frame()%>%
+  #  select(-c(F_CODE1,F_CODE2))
+  input.data <- input.data[,-which(colnames(input.data)%in%c(F_CODE1,F_CODE2))]
+}
+  
+
