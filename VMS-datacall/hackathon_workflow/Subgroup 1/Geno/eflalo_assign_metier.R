@@ -68,22 +68,9 @@ lats <- eflalo %>% select(LE_SLAT, LE_ELAT) %>% rowMeans()
 eflalosp <- SpatialPoints(cbind(lons, lats))
 proj4string(eflalosp)=CRS("+init=epsg:4326")
 
-# need to write a wrapper for next three lines
-fao <- readOGR(dsn = file.path(path2fun,"Shapefiles"), layer = "FAO_AREAS_SUBDIVISION")
-proj4string(fao)=CRS("+init=epsg:4326")
-x <- over(eflalosp,fao)
-
-input.data <- input.data %>% mutate(F_CODE1 = as.character(x$F_SUBDIVIS))
-
-fao <- readOGR(dsn = file.path(path2fun,"Shapefiles"), layer = "FAO_AREAS_DIVISION")
-proj4string(fao)=CRS("+init=epsg:4326")
-x <- over(eflalosp,fao)
-
-input.data <- input.data %>% mutate(F_CODE2 = as.character(x$F_SUBDIVIS))
-
+### Get FAO area code
 input.data <- input.data %>%
-  transform(area = ifelse((is.na(F_CODE1) & !is.na(F_CODE2)), F_CODE2, F_CODE1))%>%
-  select(-c(F_CODE1, F_CODE2))
+  ExtractFaoCode()
 
 #### Merge by area
 input.data <- merge(input.data, area.list, all.x = T, by = "area")
