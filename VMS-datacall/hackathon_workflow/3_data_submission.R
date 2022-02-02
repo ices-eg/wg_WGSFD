@@ -4,6 +4,10 @@ VE_lut <- data.frame(VE_REF = unique(c(table1$VE_REF, table2$VE_REF)))
 fmt <- paste0("%0", floor(log10(nrow(VE_lut))) + 1, "d")
 VE_lut$VE_ID <- paste0(table1$VE_COU[1], sprintf(fmt, 1:nrow(VE_lut))) # use relevant country code!
 
+
+
+ 
+
 # join onto data tables
 table1 <- left_join(table1, VE_lut)
 table2 <- left_join(table2, VE_lut)
