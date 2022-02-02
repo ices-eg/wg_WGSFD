@@ -1,15 +1,24 @@
-#-------------------------------------------------------------------------------
-#- 4) Merge the tacsat and eflalo data together
-#-------------------------------------------------------------------------------
 
-  #-------------------------------------------------------------------------------
-  #- Merge eflalo and tacsat
-  #-------------------------------------------------------------------------------
+
+for(year in yearsToSubmit)  {
+  
+  print(year)
+  
+  eflalo <- load(file = paste0(outPath,paste0("cleanEflalo",year,".RData")) )
+  tacsat <- load(file = paste0(outPath, paste("cleanTacsat", year, ".RData")) )
+            
+
+  
+
+# 2.1 Merge the TACSAT and EFLALO data together --------------------------------------------
+
+  # Merge eflalo and tacsat =================================
+   
   tacsatp <- mergeEflalo2Tacsat(eflalo,tacsat)
+  
+  # Assign gear and length to tacsat =================================
 
-  #-------------------------------------------------------------------------------
-  #- Assign gear and length to tacsat
-  #-------------------------------------------------------------------------------
+   
   tacsatp$LE_GEAR  <- eflalo$LE_GEAR[ match(tacsatp$FT_REF, eflalo$FT_REF)]
   tacsatp$LE_MSZ   <- eflalo$LE_MSZ[  match(tacsatp$FT_REF, eflalo$FT_REF)]
   tacsatp$VE_LEN   <- eflalo$VE_LEN[  match(tacsatp$FT_REF, eflalo$FT_REF)]
@@ -22,9 +31,9 @@
   tacsatp$VE_COU   <- eflalo$VE_COU[  match(tacsatp$FT_REF, eflalo$FT_REF)]
 
 
-  #-------------------------------------------------------------------------------
-  #- Save not merged tacsat data
-  #-------------------------------------------------------------------------------
+  # Save not merged tacsat data = 
+  
+ 
   tacsatpmin <- subset(tacsatp, FT_REF == 0)
   save(
     tacsatpmin,
@@ -37,18 +46,22 @@
     file = file.path(outPath, paste0("tacsatMerged", year, ".RData"))
   )
 
-#-------------------------------------------------------------------------------
-#- 5) Define activitity
-#-------------------------------------------------------------------------------
-
-  #- Calculate time interval between points
+  
+# 2.2  Define activity  ---------------------------------------------------------------------
+  
+ 
+  # Calculate time interval between points ===================================
   tacsatp <- intervalTacsat(tacsatp, level = "trip", fill.na = TRUE)
-  #- Reset values that are simply too high to 2x the regular interval rate
+  
+  # Reset values that are simply too high to 2x the regular interval rate  
+  
+  
   tacsatp$INTV[tacsatp$INTV > intvThres] <- 2 * intvThres
 
-  #-------------------------------------------------------------------------------
-  #- Remove points with NA's in them in critial places
-  #-------------------------------------------------------------------------------
+  
+  # Remove points with NA's in them in critial places ========================
+  
+   
   idx <-
     which(
       is.na(tacsatp$VE_REF) == TRUE |
@@ -61,11 +74,13 @@
     tacsatp <- tacsatp[-idx, ]
   }
 
-  #-------------------------------------------------------------------------------
-  #- Define speed thresholds associated with fishing for gears
-  #-------------------------------------------------------------------------------
-
-  #- Investigate speed pattern through visual inspection of histograms
+  
+  # Define speed thresholds associated with fishing for gears =====================
+  
+   
+  # Investigate speed pattern through visual inspection of histograms # 
+  
+  
   png(filename = file.path(outPath, paste0("SpeedHistogram_", year, ".png")))
   ggplot(data = tacsatp, aes(SI_SP)) +
     geom_histogram(
@@ -84,7 +99,9 @@
       panel.border = element_rect(colour = "black", fill = NA)
     )
   dev.off()
-  #- Create speed threshold object
+  
+  # Create speed threshold object # 
+  
   speedarr <-
     as.data.frame(
       cbind(
@@ -96,9 +113,10 @@
   speedarr$max <- rep(6, nrow(speedarr))
 
 
-  #-------------------------------------------------------------------------------
-  #- Analyse activity automated for common gears only. Use the speedarr for the other gears
-  #-------------------------------------------------------------------------------
+ 
+  # Analyse activity automated for common gears only. Use the speedarr for the other gears =============== 
+  
+ 
 
   subTacsat <- subset(tacsatp, LE_GEAR %in% autoDetectionGears)
   nonsubTacsat <- subset(tacsatp, !LE_GEAR %in% autoDetectionGears)
@@ -125,11 +143,13 @@
     storeScheme$fixPeaks <- FALSE
     storeScheme$sigma0 <- 0.911
 
-    #-------------------------------------------------------------------------------
-    #- Fill the storeScheme values based on analyses of the pictures
-    #-------------------------------------------------------------------------------
-
-    #- Define mean values of the peaks and the number of peaks when they are different from 5
+    
+    # Fill the storeScheme values based on analyses of the pictures = 
+    
+   
+    # Define mean values of the peaks and the number of peaks when they are different from 5 # 
+    
+     
     storeScheme$means[which(storeScheme$analyse.by == "TBB")] <- c("-11.5 -6 0 6 11.5")
     storeScheme$means[which(storeScheme$analyse.by == "OTB")] <- c("-9 -3 0 3 9")
     storeScheme$means[which(storeScheme$analyse.by == "OTT")] <- c("-9 -3 0 3 9")
@@ -153,9 +173,9 @@
       level = "all")
   subTacsat$SI_STATE <- acTa
   subTacsat$ID <- 1:nrow(subTacsat)
-
-  #- Check results, and if results are not satisfactory, run analyses again but now
-  #   with fixed peaks
+  
+  # Check results, and if results are not satisfactory, run analyses again but now with fixed peaks # 
+ 
   for (iGear in autoDetectionGears) {
     subDat <- subset(subTacsat,LE_GEAR == iGear)
     minS <-
@@ -184,9 +204,9 @@
       -rev(grep("ID", colnames(subTacsat)))[1]
     ]
 
-  #-------------------------------------------------------------------------------
-  #- Assign for visually inspected gears a simple speed rule classification
-  #-------------------------------------------------------------------------------
+  # Assign for visually inspected gears a simple speed rule classification =============== 
+  
+ 
 
   metiers <- unique(nonsubTacsat$LE_GEAR)
   nonsubTacsat$SI_STATE <- NA
@@ -204,12 +224,16 @@
   ] <- "f"
   nonsubTacsat$SI_STATE[ is.na(nonsubTacsat$SI_STATE) ] <- "s"
 
-  #-------------------------------------------------------------------------------
-  #- Combine the two dataset together again
-  #-------------------------------------------------------------------------------
+  
+  # Combine the two dataset together again =============== 
+  
+  
   tacsatp <- rbindTacsat(subTacsat, nonsubTacsat)
   tacsatp <- orderBy( ~ VE_REF + SI_DATIM, data = tacsatp)
-  #- Set fishing sequences with hauling in the middle to "f"
+  
+  # Set fishing sequences with hauling in the middle to "f" ##################
+  
+ 
   idx <-
     which(
       tacsatp$SI_STATE[2:(nrow(tacsatp) - 1)] == "h" &
@@ -226,9 +250,12 @@
   )
 
   message("Defining activity completed")
-#-------------------------------------------------------------------------------
-#- 6) Dispatch landings of merged eflalo at the ping scale
-#-------------------------------------------------------------------------------
+  
+  
+  
+  # 2.3 Dispatch landings of merged eflalo at the ping scale  -------------------------------------------------
+  
+   
   idxkgeur <- kgeur(colnames(eflalo))
   eflalo$LE_KG_TOT <- rowSums(eflalo[,grep("LE_KG_",colnames(eflalo))],na.rm=T)
   eflalo$LE_EURO_TOT <- rowSums(eflalo[,grep("LE_EURO_",colnames(eflalo))],na.rm=T)
@@ -307,22 +334,16 @@
 
   print("Dispatching landings completed")
 
-#-------------------------------------------------------------------------------
-#- 7) Assign c-square, year, month, quarter, area and create table 1
-#-------------------------------------------------------------------------------
+  
+  # 2.4 Assign c-square, year, month, quarter, area and create table 1 ----------------------------------------
+   
 
   tacsatEflalo$Csquare   <- CSquare(tacsatEflalo$SI_LONG, tacsatEflalo$SI_LATI, degrees = 0.05)
   tacsatEflalo$Year      <- year(tacsatEflalo$SI_DATIM)
   tacsatEflalo$Month     <- month(tacsatEflalo$SI_DATIM)
   tacsatEflalo$kwHour    <- tacsatEflalo$VE_KW * tacsatEflalo$INTV / 60
   tacsatEflalo$INTV      <- tacsatEflalo$INTV / 60
-  tacsatEflalo$LENGTHCAT <- cut(tacsatEflalo$VE_LEN, breaks=c(0, 8, 10, 12, 15, 200))
-  tacsatEflalo$LENGTHCAT <- as.character(tacsatEflalo$LENGTHCAT)
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(0,8]")] <- "<8"
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(8,10]")] <- "8-10"
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(10,12]")] <- "10-12"
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(12,15]")] <- "12-15"
-  tacsatEflalo$LENGTHCAT[which(tacsatEflalo$LENGTHCAT == "(15,200]")] <- ">15"
+  
 
   RecordType <- "VE"
 
@@ -332,11 +353,12 @@
         RT = RecordType,
         tacsatEflalo[,
           c(
-            "VE_REF", "VE_COU", "Year", "Month", "Csquare", "LENGTHCAT", "LE_GEAR",
+            "VE_REF", "VE_COU", "Year", "Month", "Csquare", "LE_GEAR",
             "LE_MET", "SI_SP", "INTV", "VE_LEN", "kwHour", "VE_KW", "LE_KG_TOT", "LE_EURO_TOT"
           )
         ])
   } else {
+    
     table1 <-
       rbind(
         table1,
@@ -344,16 +366,30 @@
           RT = RecordType,
           tacsatEflalo[,
             c(
-              "VE_REF", "VE_COU", "Year", "Month", "Csquare", "LENGTHCAT", "LE_GEAR",
-              "LE_MET", "SI_SP", "INTV", "VE_LEN", "kwHour", "VE_KW", "LE_KG_TOT", "LE_EURO_TOT"
+              "VE_REF", "VE_COU", "Year", "Month", "Csquare", "LE_GEAR",
+              "VE_LEN","LE_MET", "SI_SP", "INTV", "VE_LEN", "kwHour", "VE_KW", "LE_KG_TOT", "LE_EURO_TOT"
             )
           ])
       )
+    
   }
+  
+  
+  # Save table1   ====================
+  
+  
+  
+  save(
+    table1,
+    file = file.path(outPath, "table1.RData" )
+  )
+  
+  message(glue ("Table 1 for year {year} is completed") )
 
-#-------------------------------------------------------------------------------
-#- 8) Assign  year, month, quarter, area and create table 2
-#-------------------------------------------------------------------------------
+  
+  # 2.5 Assign  year, month, quarter, area and create table 2 ----------------------------------------
+  
+ 
 
   eflalo$Year <- year(eflalo$FT_LDATIM)
   eflalo$Month <- month(eflalo$FT_LDATIM)
@@ -370,19 +406,14 @@
   eflalo <- merge(eflalo, res, by = c("VE_COU", "VE_REF", "LE_CDAT"))
   eflalo$INTV <- eflalo$INTV / eflalo$nrRecords
   eflalo$kwDays <- eflalo$VE_KW * eflalo$INTV
-  eflalo$tripInTacsat <- ifelse(eflalo$FT_REF %in% tacsatp$FT_REF, "Yes", "No")
+  eflalo$tripInTacsat <- ifelse(eflalo$FT_REF %in% tacsatp$FT_REF, "Y", "N") # Y = Yes and N = No
 
-  eflalo$LENGTHCAT <- cut(eflalo$VE_LEN, breaks = c(0, 8, 10, 12, 15, 200))
-  eflalo$LENGTHCAT <- ac(eflalo$LENGTHCAT)
-  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(0,8]")] <- "<8"
-  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(8,10]")] <- "8-10"
-  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(10,12]")] <- "10-12"
-  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(12,15]")] <- "12-15"
-  eflalo$LENGTHCAT[which(eflalo$LENGTHCAT == "(15,200]")] <- ">15"
+ 
 
   RecordType <- "LE"
 
   if (year == yearsToSubmit[1]) {
+    
     table2 <-
       cbind(
         RT = RecordType,
@@ -390,11 +421,13 @@
           ,
           c(
             "VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET",
-            "LENGTHCAT", "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
+            "VE_LEN", "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
           )
         ]
       )
+    
   } else {
+    
     table2 <-
       rbind(
         table2,
@@ -404,10 +437,36 @@
             ,
             c(
               "VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET",
-              "LENGTHCAT", "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
+               "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
             )
           ]
         )
       )
+    
   }
+  
+  
+  
+
+  # Save table2   ====================
+
+
+  
+  save(
+    table2,
+    file = file.path(outPath, "table2.RData" )
+  )
+  
+  message(glue ("Table 2 for year {year} is completed") )
+  
+  
+  
+  
 }
+
+
+ 
+
+
+
+ 

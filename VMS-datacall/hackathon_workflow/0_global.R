@@ -31,9 +31,11 @@ library(dplyr)    #- available on CRAN
 library(sp)
 library(doBy)
 library(mixtools)
-library(dplyr)
-library(tidyverse)
+library(tidyr)
+library (glue)
+library(gt)
 
+ 
 #- Settings paths
 codePath  <- "VMSdatacall/R"          #Location where you store R scripts
 dataPath  <- "VMSdatacall/Data"       #Location where you store tacsat (VMS) and eflalo (logbook) data

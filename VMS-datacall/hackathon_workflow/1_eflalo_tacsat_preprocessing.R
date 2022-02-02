@@ -507,3 +507,5 @@ for(year in yearsToSubmit){
   )
 
   message("Cleaning eflalo completed")
+  
+}
