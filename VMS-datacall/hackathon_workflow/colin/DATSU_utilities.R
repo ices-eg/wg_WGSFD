@@ -96,6 +96,30 @@ datsuFieldNames <- function(datasetverID, RecordType) {
   datsuFields$fieldcode
 }
 
+# * get list of field names for DATSU format
+#'
+#' @examples
+#' datsuFieldTypes(145, "VE")
+datsuFieldTypes <- function(datasetverID, RecordType) {
+  datsuFields <- getDataFieldsDescription(datasetverID, RecordType)
+
+  fieldType <- gsub("[(][0-9]*[)]", "", datsuFields$name)
+  mode <-
+    ifelse(
+      fieldType %in% c("nvarchar", "char"), "character",
+      ifelse(
+        fieldType == "int", "integer",
+        ifelse(
+          fieldType == "float",
+          "numeric",
+          "unknown"
+        )
+      )
+    )
+
+  mode
+}
+
 # * get if field is mandatory
 
 #'
@@ -115,10 +139,14 @@ datsuIsMandatory <- function(datasetverID, RecordType, FieldName) {
 #' @examples
 #' datsuHasVocabulary(145, "VE", "AverageVesselLength")
 #' datsuHasVocabulary(145, "VE", "CountryCode")
-datsuHasVocabulary <- function(datasetverID, RecordType, FieldName) {
+datsuHasVocabulary <- function(datasetverID, RecordType, FieldName = NULL) {
   datsuFields <- getDataFieldsDescription(datasetverID, RecordType)
 
-  codeType <- datsuFields[datsuFields$fieldcode == FieldName, "codeGroup"]
+  if (is.null(FieldName)) {
+    codeType <- datsuFields$codeGroup
+  } else {
+    codeType <- datsuFields[datsuFields$fieldcode == FieldName, "codeGroup"]
+  }
 
   !is.na(codeType)
 }
@@ -126,6 +154,25 @@ datsuHasVocabulary <- function(datasetverID, RecordType, FieldName) {
 
 # * get vocabulary for field
 
+#'
+#'
+#' @examples
+#' datsuGetVocabulary(145, "VE", "AverageVesselLength")
+datsuGetVocabulary <- function(datasetverID, RecordType, FieldName = NULL) {
+  datsuFields <- getDataFieldsDescription(datasetverID, RecordType)
+
+  if (is.null(FieldName)) {
+    codeType <- datsuFields$codeGroup
+  } else {
+    codeType <- datsuFields[datsuFields$fieldcode == FieldName, "codeGroup"]
+  }
+
+  codeList <- icesVocab::getCodeList(codeType)
+
+  codeList[!codeList$Deprecated, "Key"]
+}
+
+# * check vector against a vocabulary
 #'
 #'
 #' @examples
@@ -140,7 +187,20 @@ datsuGetVocabulary <- function(datasetverID, RecordType, FieldName) {
   codeList[!codeList$Deprecated, "Key"]
 }
 
-# * check vector against a vocabulary
+
+
+makeEmptyTable <- function(datasetverID, RecordType) {
+  df <-
+    lapply(
+      datsuFieldTypes(datasetverID, RecordType),
+      function(x) {
+        FUN <- match.fun(x)
+        FUN(0)
+      }
+    )
+  names(df) <- datsuFieldNames(datasetverID, RecordType)
+  as.data.frame(df)
+}
 
 
 
