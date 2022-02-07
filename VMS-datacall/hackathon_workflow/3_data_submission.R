@@ -1,10 +1,10 @@
 
 
 # 3.1 Load TABLE 1 (VMS) and TABLE 2 (LOGBOOK) --------------------------------------------
- 
+
 load(file = paste0(outPath, "table1.RData")  )
 load( file = paste0(outPath, "table2.RData")  )
- 
+
 
 # 3.2 Replace vessel id by an anonymized id column  --------------------------------------------
 
@@ -20,50 +20,51 @@ VE_lut$VE_ID <- paste0(table1$VE_COU[1], sprintf(fmt, 1:nrow(VE_lut))) # use rel
 table1 <- left_join(table1, VE_lut)
 table2 <- left_join(table2, VE_lut)
 
- 
 
 
-# 3.3 Assign the vessel length category based in DATSU vocabulary   ---------------------- 
 
- 
+# 3.3 Assign the vessel length category based in DATSU vocabulary   ----------------------
+
+
 
 #  Use of the "icesVocab" ICES developed R package that fetch the DATSU vocabulary values for a given vocabulary theme #
+# install.packages("icesVocab", repos = "https://ices-tools-prod.r-universe.dev")
 
-library(icesVocab)   #install_github("ices-tools-prod/icesVocab")
- 
+library(icesVocab)
+
 # Get the values accepted in this vocabualry dataset
 
 vlen_ices <- getCodeList("BYC_VesselLRange") ### TBD which to be used (e.g. "RS_VesselLengthCategory")
 
-  
-# Filter values that aren't deprecated, overlapped  or not accepted by data call requirements 
+
+# Filter values that aren't deprecated, overlapped  or not accepted by data call requirements
 
 vlen_icesc <-  vlen_ices%>%filter(Deprecated == FALSE  &   !Key %in% c('F', 'G' ,'H', 'I'))%>%select(Key)
- 
-# TABLE 1. Add the vessel length category using  LENGTHCAT field  
+
+# TABLE 1. Add the vessel length category using  LENGTHCAT field
 
 
 
-table1$LENGTHCAT <-  table1$VE_LEN%>%cut(    breaks=c(0, 8, 10, 12, 15,'inf' ), 
+table1$LENGTHCAT <-  table1$VE_LEN%>%cut(    breaks=c(0, 8, 10, 12, 15,'inf' ),
                                                      right = FALSE    ,include.lowest = TRUE,
                                                      labels =  vlen_icesc[c(1, 2, 3,  4, 5 ), "Key" ]
 )
 
 
-# TABLE 2. Add the vessel length category using  LENGTHCAT field  
+# TABLE 2. Add the vessel length category using  LENGTHCAT field
 
-table2$LENGTHCAT <-  table2$VE_LEN%>%cut(  breaks=c(0, 8, 10, 12, 15,'inf' ), 
+table2$LENGTHCAT <-  table2$VE_LEN%>%cut(  breaks=c(0, 8, 10, 12, 15,'inf' ),
                                            right = FALSE    ,include.lowest = TRUE,
                                            labels =  vlen_icesc[c(1, 2, 3,  4, 5 ), "Key" ]
 )
- 
 
-# 3.4 Aggregate and summarise TABLE 1 and TABLE2   ---------------------- 
+
+# 3.4 Aggregate and summarise TABLE 1 and TABLE2   ----------------------
 
 # Table 1
 
 table1Save <-
-  table1 %>%  
+  table1 %>%
   separate(col = LE_MET ,   c("met4", "met5" ), sep = '_', remove = FALSE)%>%
     group_by(RT,VE_COU,Year,Month,Csquare,LE_GEAR, met5,  LE_MET,LENGTHCAT) %>%
     summarise(
@@ -73,7 +74,7 @@ table1Save <-
       mean_ve_kf = mean(VE_KW),
       sum_kwHour = sum(kwHour),
       sum_le_kg_tot = sum(LE_KG_TOT),
-      sum_le_euro_tot  = sum(LE_EURO_TOT),      
+      sum_le_euro_tot  = sum(LE_EURO_TOT),
       n_vessels = n_distinct(VE_ID),
       vessel_ids =
         ifelse (
@@ -93,7 +94,7 @@ colnames(table1Save) <-
     "kWFishingHour", "TotWeight", "TotValue" , "AverageGearWidth"
   )
 
- 
+
 
 
 # Table 2
@@ -102,9 +103,9 @@ table2Save <-
   table2 %>%
   separate(col = LE_MET ,   c("met4", "met5"  ), sep = '_', remove = FALSE)%>%
   group_by(
-    RT, VE_COU, Year, Month, LE_RECT,LE_GEAR, met5,  LE_MET, 
+    RT, VE_COU, Year, Month, LE_RECT,LE_GEAR, met5,  LE_MET,
     LENGTHCAT, tripInTacsat
-  ) %>%  
+  ) %>%
   summarise(
     sum_intv = sum(INTV, na.rm = TRUE),
     sum_kwDays = sum(kwDays, na.rm = TRUE),
@@ -125,7 +126,7 @@ colnames(table2Save) <-
   c(
     "RecordType", "CountryCode", "Year", "Month", "NoDistinctVessels", "AnonymizedVesselID", "ICESrectangle",
     "MetierL4", "MetierL5",   "MetierL6", "VesselLengthRange", "VMSEnabled", "FishingDays",
-    "kWFishingDays", "TotWeight", "TotValue" 
+    "kWFishingDays", "TotWeight", "TotValue"
   )
 
 
@@ -136,9 +137,10 @@ colnames(table2Save) <-
 
 
 
-##Get vocabulary for mandatory and fields with associated vocabulary using the DATSU API 
-library(icesVocab)   #install_github("ices-tools-prod/icesVocab")
- 
+##Get vocabulary for mandatory and fields with associated vocabulary using the DATSU API
+# install.packages("icesVocab", repos = "https://ices-tools-prod.r-universe.dev")
+library(icesVocab)
+
 
 # TABLE 1 =============================================================
 
@@ -148,16 +150,16 @@ library(icesVocab)   #install_github("ices-tools-prod/icesVocab")
   csquares_d      <-  table1Save%>%
                       select('C-square')%>%
                       distinct( )
-  
-  csquares_dcoord <-  cbind ( csquares_d ,  CSquare2LonLat (csqr = csquares_d$`C-square` ,degrees =  0.05)   ) 
+
+  csquares_dcoord <-  cbind ( csquares_d ,  CSquare2LonLat (csqr = csquares_d$`C-square` ,degrees =  0.05)   )
   valid_csquare   <-  csquares_dcoord%>%
                       filter(SI_LATI >= 30 & SI_LATI <= 90  )%>%
                       select('C-square')%>%
                       pull()
-  
-   
-  
-  table1Save      <-  table1Save%>%filter(`C-square` %in% valid_csquare) 
+
+
+
+  table1Save      <-  table1Save%>%filter(`C-square` %in% valid_csquare)
 
 
 ### 3.5.2 Check Vessel Lengths categories are accepted ==================================
@@ -165,23 +167,23 @@ library(icesVocab)   #install_github("ices-tools-prod/icesVocab")
 
   vlen_ices       <-  getCodeList("BYC_VesselLRange")
   table ( table1Save$VesselLengthRange%in%vlen_ices$Key )  # TRUE records accepted in DATSU, FALSE aren't
-  
+
   # Get summary  of   DATSU valid/not valid records
   table1Save [ !table1Save$VesselLengthRange %in%vlen_ices$Key,]%>%group_by(VesselLengthRange)%>%select(VesselLengthRange)%>%tally()
-  
-  # Correct them if any not valid and filter only valid ones 
-  table1Save      <-  table1Save%>%filter(VesselLengthRange %in% vlen_ices$Key) 
+
+  # Correct them if any not valid and filter only valid ones
+  table1Save      <-  table1Save%>%filter(VesselLengthRange %in% vlen_ices$Key)
 
 ### 3.5.3 Check Metier L4 (Gear) categories are accepted =================================
 
   m4_ices         <-  getCodeList("GearTypeL4")
   table (table1Save$MetierL4 %in%m4_ices$Key )   # TRUE records accepted in DATSU, FALSE aren't
-  
+
   # Get summary  of   DATSU valid/not valid records
   table1Save [ !table1Save$MetierL4 %in%m4_ices$Key,]%>%group_by(MetierL4)%>%select(MetierL4)%>%tally()
-  
-  # Correct them if any not valid and filter only valid ones 
-  table1Save      <-  table1Save%>%filter(MetierL4 %in% m4_ices$Key) 
+
+  # Correct them if any not valid and filter only valid ones
+  table1Save      <-  table1Save%>%filter(MetierL4 %in% m4_ices$Key)
 
 
 ### 3.5.4 Check Metier L5 (Target Assemblage) categories are accepted =====================
@@ -189,94 +191,94 @@ library(icesVocab)   #install_github("ices-tools-prod/icesVocab")
   m5_ices         <-  getCodeList("TargetAssemblage")
 
   table (table1Save$MetierL5 %in%m5_ices$Key )   # TRUE records accepted in DATSU, FALSE aren't
-  
+
   # Get summary  of   DATSU valid/not valid records
   table1Save [ !table1Save$MetierL5 %in%m5_ices$Key,]%>%group_by(MetierL5)%>%select(MetierL5)%>%tally()
-  
-  # Correct them if any not valid and filter only valid ones 
-  table1Save      <-  table1Save%>%filter(MetierL5 %in% m5_ices$Key) 
+
+  # Correct them if any not valid and filter only valid ones
+  table1Save      <-  table1Save%>%filter(MetierL5 %in% m5_ices$Key)
 
 
 
 # TABLE 2  =============================================================
 
-  
+
 ### 3.5.5 Check ICES rect are valid  =====================
-  
+
   statrect_ices <- getCodeList("StatRec")
-  
+
   table (table2Save$ICESrectangle %in%statrect_ices$Key )   # TRUE records accepted in DATSU, FALSE aren't
-  
+
   # Get summary  of   DATSU valid/not valid records
   table2Save [ !table2Save$ICESrectangle %in%statrect_ices$Key,]%>%group_by(ICESrectangle)%>%select(ICESrectangle)%>%tally()
-  
-  # Correct them if any not valid and filter only valid ones 
-  table2Save      <-  table2Save%>%filter(ICESrectangle %in% statrect_ices$Key) 
-  
-  
+
+  # Correct them if any not valid and filter only valid ones
+  table2Save      <-  table2Save%>%filter(ICESrectangle %in% statrect_ices$Key)
+
+
 
 ### 3.5.6 Check Vessel Lengths categories are accepted ==================================
-  
-  
+
+
   vlen_ices       <-  getCodeList("BYC_VesselLRange")
   table ( table2Save$VesselLengthRange%in%vlen_ices$Key )  # TRUE records accepted in DATSU, FALSE aren't
-  
+
   # Get summary  of   DATSU valid/not valid records
   table2Save [ !table2Save$VesselLengthRange %in%vlen_ices$Key,]%>%group_by(VesselLengthRange)%>%select(VesselLengthRange)%>%tally()
-  
-  # Correct them if any not valid and filter only valid ones 
-  table2Save      <-  table2Save%>%filter(VesselLengthRange %in% vlen_ices$Key) 
-  
-  
+
+  # Correct them if any not valid and filter only valid ones
+  table2Save      <-  table2Save%>%filter(VesselLengthRange %in% vlen_ices$Key)
+
+
 ### 3.5.7 Check Metier L4 (Gear) categories are accepted =================================
-  
+
   m4_ices         <-  getCodeList("GearTypeL4")
   table (table2Save$MetierL4 %in%m4_ices$Key )   # TRUE records accepted in DATSU, FALSE aren't
-  
+
   # Get summary  of   DATSU valid/not valid records
   table2Save [ !table2Save$MetierL4 %in%m4_ices$Key,]%>%group_by(MetierL4)%>%select(MetierL4)%>%tally()
-  
-  # Correct them if any not valid and filter only valid ones 
-  table2Save      <-  table2Save%>%filter(MetierL4 %in% m4_ices$Key) 
-  
-  
+
+  # Correct them if any not valid and filter only valid ones
+  table2Save      <-  table2Save%>%filter(MetierL4 %in% m4_ices$Key)
+
+
 ### 3.5.8 Check Metier L5 (Target Assemblage) categories are accepted =====================
-  
+
   m5_ices         <-  getCodeList("TargetAssemblage")
-  
+
   table (table2Save$MetierL5 %in%m5_ices$Key )   # TRUE records accepted in DATSU, FALSE aren't
-  
+
   # Get summary  of   DATSU valid/not valid records
   table2Save [ !table2Save$MetierL5 %in%m5_ices$Key,]%>%group_by(MetierL5)%>%select(MetierL5)%>%tally()
-  
-  # Correct them if any not valid and filter only valid ones 
-  table2Save      <-  table2Save%>%filter(MetierL5 %in% m5_ices$Key) 
-  
- 
+
+  # Correct them if any not valid and filter only valid ones
+  table2Save      <-  table2Save%>%filter(MetierL5 %in% m5_ices$Key)
+
+
 ### 3.5.9 Check Metier L5 (Target Assemblage) categories are accepted =====================
-  
-  
+
+
   yn <- getCodeList("YesNoFields")
- 
+
   table (table2Save$VMSEnabled %in%yn$Key )   # TRUE records accepted in DATSU, FALSE aren't
-  
+
   # Get summary  of   DATSU valid/not valid records
   table2Save [ !table2Save$VMSEnabled %in%yn$Key,]%>%group_by(VMSEnabled)%>%select(VMSEnabled)%>%tally()
-  
-  # Correct them if any not valid and filter only valid ones 
-  table2Save      <-  table2Save%>%filter(VMSEnabled %in% yn$Key) 
+
+  # Correct them if any not valid and filter only valid ones
+  table2Save      <-  table2Save%>%filter(VMSEnabled %in% yn$Key)
 
 
 # DATSU Vocabulary check finish
 
 
-  
+
 
 # 3.6 DATA QC REPORT (OPTIONAL)   ------------------------------------------
 
 
 
-# Null values are only accepted for NON MANDATORY fields   
+# Null values are only accepted for NON MANDATORY fields
 
 # TABLE 1 =============================================================
 
@@ -286,24 +288,24 @@ table_nas <- NULL
 for ( nn in colnames(table1Save)) {
   table_na <- table(table1Save[, nn]%>%is.na() )
   row <- c(field = nn, is_na =  ifelse(is.na (table_na['TRUE']), 0, table_na['TRUE'] ), total_records =  table1Save[, nn]%>%length(), field_type =class(  table1Save[, nn]  ) )
-  table_nas <- rbind(table_nas,  row) 
+  table_nas <- rbind(table_nas,  row)
 }
 
-# Print a summary table in Viewer 
+# Print a summary table in Viewer
 
-gt( 
-  table_nas%>%as_tibble(), 
+gt(
+  table_nas%>%as_tibble(),
   rowname_col = 'field'
 ) %>%
   tab_header(
     title = md('Summary of **Table 1**  number of NA and records types')
   ) %>%
   cols_label(  `is_na.NA`=  md('Number of  <br> NA\'s') ,
-               total_records = md('Total <br> records'), 
-               field_type = md('Field <br> type')   
+               total_records = md('Total <br> records'),
+               field_type = md('Field <br> type')
   ) %>%
   tab_footnote(
-    footnote = md('Non mandatory fields can include null values if not available'), 
+    footnote = md('Non mandatory fields can include null values if not available'),
     locations = cells_stub( rows = c( 'TotValue', 'AverageGearWidth')  )
   )
 
@@ -316,37 +318,37 @@ table_nas <- NULL
 for ( nn in colnames(table2Save)) {
   table_na <- table(table2Save[, nn]%>%is.na() )
   row <- c(field = nn, is_na =  ifelse(is.na (table_na['TRUE']), 0, table_na['TRUE'] ), total_records =  table2Save[, nn]%>%length(), field_type =class(  table2Save[, nn]  ) )
-  table_nas <- rbind(table_nas,  row) 
+  table_nas <- rbind(table_nas,  row)
 }
 
-# Print a summary table in Viewer 
+# Print a summary table in Viewer
 
-gt( 
-  table_nas%>%as_tibble(), 
+gt(
+  table_nas%>%as_tibble(),
   rowname_col = 'field'
 ) %>%
   tab_header(
     title = md('Summary of **Table 2**  number of NA and records types')
   ) %>%
   cols_label(  `is_na.NA`=  md('Number of  <br> NA\'s') ,
-               total_records = md('Total <br> records'), 
-               field_type = md('Field <br> type')   
+               total_records = md('Total <br> records'),
+               field_type = md('Field <br> type')
   ) %>%
   tab_footnote(
-    footnote = md('Non mandatory fields can include null values if not available'), 
+    footnote = md('Non mandatory fields can include null values if not available'),
     locations = cells_stub( rows = c( 'TotValue')  )
   )
 
 
-# Check if TABLE 1 fishing hours > 0 
+# Check if TABLE 1 fishing hours > 0
 
-table( table1$INTV > 0  ) 
+table( table1$INTV > 0  )
 
-# Check if TABLE 2 fishing days  > 0 
+# Check if TABLE 2 fishing days  > 0
 
-table( table2$INTV > 0  ) 
+table( table2$INTV > 0  )
 
-# End of QC checks 
+# End of QC checks
 
 
 
@@ -354,7 +356,7 @@ table( table2$INTV > 0  )
 
 # 3.7 Save the final TABLE 1 and TABLE 2 for datacall submission --------------------------------------------
 
-## Headers and quotes have been removed to be compatible with required submission and ICES SQL DB format. 
+## Headers and quotes have been removed to be compatible with required submission and ICES SQL DB format.
 
 write.table(table1Save, file.path(outPath, "table1Save_t.csv"), na = "",row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
 write.table(table2Save, file.path(outPath, "table2Save_t.csv"), na = "",row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
@@ -364,8 +366,11 @@ write.table(table2Save, file.path(outPath, "table2Save_t.csv"), na = "",row.name
 
 ############### PLACEHOLDER FOR WEB API SUBMISSION (OPTIONAL)  ##################
 
- 
+# install.packages("icesVMS", repos = "https://ices-tools-prod.r-universe.dev")
+library(icesVMS)
 
+screen_vms_file(vms = file.path(outPath, "table1Save_t.csv"))
+screen_vms_file(vms = file.path(outPath, "table2Save_t.csv"))
 
 
 ######################################################################
