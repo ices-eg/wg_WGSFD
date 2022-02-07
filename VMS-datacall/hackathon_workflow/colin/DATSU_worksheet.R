@@ -1,54 +1,65 @@
 
 source("VMS-datacall/hackathon_workflow/colin/DATSU_utilities.R")
 
-datasetverID <- 145
-RecordType <- "VE"
+makeExampleDatsuTable(126, "AA")
+
+getRecordIDs(126)
+getDataFieldsDescription(126, "AA")
+
 
 formats <- getDataverIDs()
 vms_format <- formats[grep("vms", tolower(formats$description)),]
 vms_format
 
-getRecordIDs(145)
+datasetverID <- vms_format$datasetVerID
 
-getDataFieldsDescription(145)
-getDataFieldsDescription(145, "VE")
+recordIDs <- getRecordIDs(datasetverID)
+recordIDs
 
-datsuFieldNames(145, "VE")
+recordType <- recordIDs$recordType[2]
+recordType
 
-datsuFieldTypes(145, "VE")
+getRecordIDs(datasetverID)
 
-datsuIsMandatory(145, "VE", "AverageVesselLength")
+getDataFieldsDescription(datasetverID)
+getDataFieldsDescription(datasetverID, recordType)
 
-datsuHasVocabulary(145, "VE", "AverageVesselLength")
-datsuHasVocabulary(145, "VE", "CountryCode")
+datsuFieldNames(datasetverID, recordType)
 
-datsuGetVocabulary(145, "VE", "CountryCode")
+datsuFieldTypes(datasetverID, recordType)
+
+datsuIsMandatory(datasetverID, recordType, "AverageVesselLength")
+
+datsuHasVocabulary(datasetverID, recordType, "AverageVesselLength")
+datsuHasVocabulary(datasetverID, recordType, "CountryCode")
+
+datsuGetVocabulary(datasetverID, recordType, "CountryCode")
 
 # check a table
-n <- 10
-good <- as.list(makeEmptyTable(datasetverID, RecordType))
-for (i in which(datsuFieldTypes(145, "VE") == "integer")) {
-  good[[i]] <- sample(1:10, n, replace = TRUE)
-}
-for (i in which(datsuFieldTypes(145, "VE") == "numeric")) {
-  good[[i]] <- runif(n)
-}
-for (i in which(datsuFieldTypes(145, "VE") == "character")) {
-  good[[i]] <- rep("non-vocabulary", n)
-}
 
-for (i in which(datsuHasVocabulary(145, "VE"))) {
-  good[[i]] <-
-    sample(
-      datsuGetVocabulary(145, "VE", datsuFieldNames(145, "VE")[i]),
-      n,
-      replace = TRUE
-    )
-}
+makeExampleDatsuTable(145, "VE", 20)
+
+good <- makeExampleDatsuTable(datasetverID, "VE", 20)
+
+icesTAF::write.taf(good)
 
 good$MetierL6 <- paste0(good$MetierL4, "_", good$MetierL5, "_", good$LowerMeshSize, "_", good$UpperMeshSize, "_0")
 good$RecordType <- "VE"
 good$Year <- "2020"
 
-good <- as.data.frame(good)
+good <- data.frame(good, check.names = FALSE)
 good
+
+source("VMS-datacall/hackathon_workflow/colin/DATSU_utilities.R")
+
+
+makeExampleDatsuTable(145, "VE", 20)
+
+checkDatsuTable(good, 145, "VE")
+
+checkDatsuTable(good[-c(4:5)], 145, "VE")
+checkDatsuTable(cbind(good, new = 0), 145, "VE")
+
+checkDatsuTable(cbind(good[-c(4:5)], new = 0), 145, "VE")
+
+checkDatsuTable(good[ncol(good):1], 145, "VE")

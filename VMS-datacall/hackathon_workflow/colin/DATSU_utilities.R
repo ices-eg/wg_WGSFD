@@ -32,6 +32,10 @@ trimws_df <- function(df) {
   df
 }
 
+
+# * open datsu page
+# https://datsu.ices.dk/web/selRep.aspx?Dataset=145
+
 # * get list of formats
 
 #' get list of datasets
@@ -53,7 +57,9 @@ getDataverIDs <- function() {
 #' @examples
 #' getRecordIDs(145)
 getRecordIDs <- function(datasetverID) {
-  res <- datsu_api("getRecordIDs", datasetverID = datasetverID)
+  res <- datsu_api(
+    paste0("getRecordIDs/", datasetverID)
+  )
   out <- content(res, simplifyVector = TRUE)
 
   trimws_df(out)
@@ -68,14 +74,13 @@ getDataFieldsDescription <- function(datasetverID, RecordType) {
   if (missing(RecordType)) {
     res <-
       datsu_api(
-        "getDataFieldsDescription",
-        datasetverID = datasetverID
+        paste0("getDataFieldsDescription/", datasetverID)
       )
   } else {
     res <-
       datsu_api(
-        "getDataFieldsDescription",
-        datasetverID = datasetverID, RecordType = RecordType
+        paste0("getDataFieldsDescription/", datasetverID),
+        RecordType = RecordType
       )
   }
 
@@ -199,7 +204,43 @@ makeEmptyTable <- function(datasetverID, RecordType) {
       }
     )
   names(df) <- datsuFieldNames(datasetverID, RecordType)
-  as.data.frame(df)
+  data.frame(df, check.names = FALSE)
+}
+
+
+# * check vector against a vocabulary
+#'
+#'
+#' @examples
+#' makeExampleDatsuTable(145, "VE", 20)
+makeExampleDatsuTable <- function(datasetverID, recordType, n = 10) {
+  good <- as.list(makeEmptyTable(datasetverID, recordType))
+
+  for (i in which(datsuFieldTypes(datasetverID, recordType) == "integer")) {
+    good[[i]] <- sample(1:n, n, replace = TRUE)
+  }
+
+  for (i in which(datsuFieldTypes(datasetverID, recordType) == "numeric")) {
+    good[[i]] <- runif(n)
+  }
+
+  for (i in which(datsuFieldTypes(datasetverID, recordType) == "character")) {
+    good[[i]] <- rep("non-vocabulary", n)
+  }
+
+  for (i in which(datsuHasVocabulary(datasetverID, recordType))) {
+    good[[i]] <-
+      sample(
+        datsuGetVocabulary(datasetverID, recordType, datsuFieldNames(datasetverID, recordType)[i]),
+        n,
+        replace = TRUE
+      )
+  }
+
+  good$RecordType <- recordType
+
+  good <- data.frame(good, check.names = FALSE)
+  good
 }
 
 
@@ -211,5 +252,74 @@ makeEmptyTable <- function(datasetverID, RecordType) {
 #   - check order of feilds
 #   - check for missing feilds
 #   - check for extra feilds
+
+checkDatsuTable <- function(df, datasetverID, RecordType) {
+
+  # check for missing feild names
+  warnings <- character(0)
+  df_names <- names(df)
+  datsu_names <- datsuFieldNames(datasetverID, RecordType)
+  if (!all(datsu_names %in% df_names)) {
+    warnings <-
+      c(
+        warnings,
+        paste0(
+          "Missing names in table: ",
+          paste0(
+            datsu_names[!datsu_names %in% df_names],
+            collapse = ", "
+          )
+        )
+      )
+  }
+
+  # check for extra feild names
+  if (any(!df_names %in% datsu_names)) {
+        warnings <-
+          c(
+            warnings,
+            paste0(
+              "Extra names in table: ",
+              paste0(
+                df_names[!df_names %in% datsu_names],
+                collapse = ", "
+              )
+            )
+          )
+  }
+
+  # check for the ordering of the feild names
+  if (
+      all(datsu_names %in% df_names) &&
+      !any(!df_names %in% datsu_names) &&
+      !identical(df_names, datsu_names)
+    ) {
+    warnings <-
+      c(
+        warnings,
+        paste0(
+          "Column names are not in the correct order ",
+          "see datsuFieldNames(", datasetverID, ",", RecordType, ")"
+        )
+      )
+  }
+
+
+  if (length(warnings)) {
+    cat(warnings, sep = "\n")
+    return(FALSE)
+  }
+
+  # check vocabularied feilds against vocab
+
+
+#    - check mandatory feilds for NA or empty etc.
+#   - check order of feilds
+#   - check for missing feilds
+#   - check for extra feilds
+
+  return(TRUE)
+}
+
 
 # * submit file
