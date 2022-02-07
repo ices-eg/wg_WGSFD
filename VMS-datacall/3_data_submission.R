@@ -28,8 +28,9 @@ table2 <- left_join(table2, VE_lut)
 
 
 #  Use of the "icesVocab" ICES developed R package that fetch the DATSU vocabulary values for a given vocabulary theme #
+# install.packages("icesVocab", repos = "https://ices-tools-prod.r-universe.dev")
 
-library(icesVocab)   #install_github("ices-tools-prod/icesVocab")
+library(icesVocab)
 
 # Get the values accepted in this vocabualry dataset
 
@@ -137,7 +138,8 @@ colnames(table2Save) <-
 
 
 ##Get vocabulary for mandatory and fields with associated vocabulary using the DATSU API
-library(icesVocab)   #install_github("ices-tools-prod/icesVocab")
+# install.packages("icesVocab", repos = "https://ices-tools-prod.r-universe.dev")
+library(icesVocab)
 
 
 # TABLE 1 =============================================================
@@ -364,8 +366,11 @@ write.table(table2Save, file.path(outPath, "table2Save_t.csv"), na = "",row.name
 
 ############### PLACEHOLDER FOR WEB API SUBMISSION (OPTIONAL)  ##################
 
+# install.packages("icesVMS", repos = "https://ices-tools-prod.r-universe.dev")
+library(icesVMS)
 
-
+screen_vms_file(file.path(outPath, "table1Save_t.csv"))
+screen_vms_file(file.path(outPath, "table2Save_t.csv"))
 
 
 ######################################################################
