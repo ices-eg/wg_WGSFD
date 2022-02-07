@@ -369,8 +369,8 @@ write.table(table2Save, file.path(outPath, "table2Save_t.csv"), na = "",row.name
 # install.packages("icesVMS", repos = "https://ices-tools-prod.r-universe.dev")
 library(icesVMS)
 
-screen_vms_file(vms = file.path(outPath, "table1Save_t.csv"))
-screen_vms_file(vms = file.path(outPath, "table2Save_t.csv"))
+screen_vms_file(file.path(outPath, "table1Save_t.csv"))
+screen_vms_file(file.path(outPath, "table2Save_t.csv"))
 
 
 ######################################################################
