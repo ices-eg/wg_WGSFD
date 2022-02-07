@@ -32,30 +32,30 @@ table2 <- left_join(table2, VE_lut)
 
 library(icesVocab)
 
-# Get the values accepted in this vocabualry dataset
+# Get the values accepted in this vocabulary dataset
 
-vlen_ices <- getCodeList("BYC_VesselLRange") ### TBD which to be used (e.g. "RS_VesselLengthCategory")
+vlen_ices <- getCodeList("VesselLengthClass") ### Get DATSU Vocabulary list for selected dataset
 
 
 # Filter values that aren't deprecated, overlapped  or not accepted by data call requirements
 
-vlen_icesc <-  vlen_ices%>%filter(Deprecated == FALSE  &   !Key %in% c('F', 'G' ,'H', 'I'))%>%select(Key)
+vlen_icesc <-  vlen_ices%>%slice(2, 4, 6, 7, 8, 10, 11, 12, 13 )%>%select(Key)
 
 # TABLE 1. Add the vessel length category using  LENGTHCAT field
 
 
 
-table1$LENGTHCAT <-  table1$VE_LEN%>%cut(    breaks=c(0, 8, 10, 12, 15,'inf' ),
-                                                     right = FALSE    ,include.lowest = TRUE,
-                                                     labels =  vlen_icesc[c(1, 2, 3,  4, 5 ), "Key" ]
+table1$LENGTHCAT <-  table1$VE_LEN%>%cut(    breaks=c(0, 6, 8, 10, 12, 15, 18, 24, 40, 'inf' ), 
+                                             right = FALSE    ,include.lowest = TRUE,
+                                             labels =  vlen_icesc$Key 
 )
 
 
 # TABLE 2. Add the vessel length category using  LENGTHCAT field
 
-table2$LENGTHCAT <-  table2$VE_LEN%>%cut(  breaks=c(0, 8, 10, 12, 15,'inf' ),
-                                           right = FALSE    ,include.lowest = TRUE,
-                                           labels =  vlen_icesc[c(1, 2, 3,  4, 5 ), "Key" ]
+table2$LENGTHCAT <-  table2$VE_LEN%>%cut(   breaks=c(0, 6, 8, 10, 12, 15, 18, 24, 40, 'inf' ), 
+                                            right = FALSE    ,include.lowest = TRUE,
+                                            labels =  vlen_icesc$Key 
 )
 
 
@@ -358,19 +358,21 @@ table( table2$INTV > 0  )
 
 ## Headers and quotes have been removed to be compatible with required submission and ICES SQL DB format.
 
-write.table(table1Save, file.path(outPath, "table1Save_t.csv"), na = "",row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
-write.table(table2Save, file.path(outPath, "table2Save_t.csv"), na = "",row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
+write.table(table1Save, file.path(outPath, "table1Save.csv"), na = "",row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
+write.table(table2Save, file.path(outPath, "table2Save.csv"), na = "",row.names=FALSE,col.names=FALSE,sep=",",quote=FALSE)
 
 
 
 
-############### PLACEHOLDER FOR WEB API SUBMISSION (OPTIONAL)  ##################
+############### DATACALL SUBMISSION USING ICESVMS R PACKAGE (OPTIONAL)  ##################
 
 # install.packages(c("icesVMS", "icesConnect"), repos = "https://ices-tools-prod.r-universe.dev")
 library(icesVMS)
 
-screen_vms_file(file.path(outPath, "table1Save_t.csv"))
-screen_vms_file(file.path(outPath, "table2Save_t.csv"))
+icesConnect::set_username('submitter_ices_user_id') ## replace with  your ICES user name and you will be requested with your password
+
+screen_vms_file(file.path(outPath, "table1Save.csv"))
+screen_vms_file(file.path(outPath, "table2Save.csv"))
 
 
 ######################################################################
