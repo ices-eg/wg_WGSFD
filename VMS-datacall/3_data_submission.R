@@ -366,7 +366,7 @@ write.table(table2Save, file.path(outPath, "table2Save_t.csv"), na = "",row.name
 
 ############### PLACEHOLDER FOR WEB API SUBMISSION (OPTIONAL)  ##################
 
-# install.packages("icesVMS", repos = "https://ices-tools-prod.r-universe.dev")
+# install.packages(c("icesVMS", "icesConnect"), repos = "https://ices-tools-prod.r-universe.dev")
 library(icesVMS)
 
 screen_vms_file(file.path(outPath, "table1Save_t.csv"))
