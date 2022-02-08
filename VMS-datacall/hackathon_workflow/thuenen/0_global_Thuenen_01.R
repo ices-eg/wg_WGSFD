@@ -32,14 +32,21 @@ library(sp)
 library(doBy)
 library(mixtools)
 library(tidyr)
-library(glue)
+library (glue)
 library(gt)
 
  
 #- Settings paths
-codePath  <- "VMSdatacall/R"          #Location where you store R scripts
-dataPath  <- "VMSdatacall/Data"       #Location where you store tacsat (VMS) and eflalo (logbook) data
-outPath   <- "VMSdatacall/Results"    #Location where you want to store the results
+# codePath  <- "VMSdatacall/R"          #Location where you store R scripts
+# dataPath  <- "VMSdatacall/Data"       #Location where you store tacsat (VMS) and eflalo (logbook) data
+# outPath   <- "VMSdatacall/Results"    #Location where you want to store the results
+
+
+#- Settings paths DEU THUENEN
+codePath   <- "/media/fssf01bhv/R/03_LinuxProjects/wg_WGSFD/VMS-datacall"                 #Location where you store R scripts
+dataPath   <- "/media/fssf01bhv/vmsdata/eflalo_vms/0_IntermediateProducts/v202201"       #Location where you store tacsat (VMS) and eflalo (logbook) data
+outPath    <- "/home/VTI_AD/schulze_t/R/03_LinuxProjects/wg_WGSFD_resultsThuenen/"               #Location where you want to store the results
+
 
 #- Setting specific thresholds
 spThres       <- 20   #Maximum speed threshold in analyses in nm
@@ -48,7 +55,7 @@ intvThres     <- 240  #Maximum difference in time interval in minutes to prevent
 lanThres      <- 1.5  #Maximum difference in log10-transformed sorted weights
 
 #- Re-run all years as we have new field for no. vessels
-yearsToSubmit <- sort(2009:2020)
+yearsToSubmit <- sort(2020:2020)
 
 #- Set the gear names for which automatic fishing activity is wanted
 #  It is important to fill out the gears you want to apply auto detection for
@@ -59,9 +66,9 @@ autoDetectionGears        <- c("TBB","OTB","OTT","SSC","SDN","DRB","PTB","HMD")
 visualInspection          <- FALSE
 
 #- Specify how landings should be distributed over the VMS pings: By day, ICES rectangle, trip basis or otherwise
-linkEflaloTacsat          <- c("day","ICESrectangle","trip")
+# linkEflaloTacsat          <- c("day","ICESrectangle","trip")
 # other options
 # linkEflaloTacsat          <- c("day","ICESrectangle","trip")
 # linkEflaloTacsat          <- c("ICESrectangle","trip")
 # linkEflaloTacsat          <- c("day","trip")
-# linkEflaloTacsat          <- c("trip")
+linkEflaloTacsat          <- c("trip")   
