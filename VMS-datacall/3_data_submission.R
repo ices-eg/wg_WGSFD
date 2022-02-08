@@ -366,13 +366,18 @@ write.table(table2Save, file.path(outPath, "table2Save.csv"), na = "",row.names=
 
 ############### DATACALL SUBMISSION USING ICESVMS R PACKAGE (OPTIONAL)  ##################
 
+# R packages required to be installed:
 # install.packages(c("icesVMS", "icesConnect"), repos = "https://ices-tools-prod.r-universe.dev")
+
 library(icesVMS)
 
-icesConnect::set_username('submitter_ices_user_id') ## replace with  your ICES user name and you will be requested with your password
+icesConnect::set_username('submitter_ices_user_id')
+# icesConnect::ices_token(refresh = TRUE)
+# icesConnect::decode_token()$UserEmail # Check the email associated to your ices user name is the correct one
 
-screen_vms_file(file.path(outPath, "table1Save.csv"))
-screen_vms_file(file.path(outPath, "table2Save.csv"))
+screen_vms_file(file.path(outPath, "table1Save_t.csv"))
+screen_vms_file(file.path(outPath, "table2Save_t.csv"))
 
+ 
 
 ######################################################################
