@@ -375,8 +375,8 @@ icesConnect::set_username('submitter_ices_user_id')
 # icesConnect::ices_token(refresh = TRUE)
 # icesConnect::decode_token()$UserEmail # Check the email associated to your ices user name is the correct one
 
-screen_vms_file(file.path(outPath, "table1Save_t.csv"))
-screen_vms_file(file.path(outPath, "table2Save_t.csv"))
+screen_vms_file(file.path(outPath, "table1Save.csv"))
+screen_vms_file(file.path(outPath, "table2Save.csv"))
 
  
 
