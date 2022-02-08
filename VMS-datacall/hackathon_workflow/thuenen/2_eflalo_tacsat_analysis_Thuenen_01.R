@@ -343,7 +343,8 @@ for(year in yearsToSubmit)  {
   tacsatEflalo$Month     <- month(tacsatEflalo$SI_DATIM)
   tacsatEflalo$kwHour    <- tacsatEflalo$VE_KW * tacsatEflalo$INTV / 60
   tacsatEflalo$INTV      <- tacsatEflalo$INTV / 60
-  
+
+  tacsatEflalo_active <-subset(tacsatEflalo, SI_STATE=1) #subset with active fishing
 
   RecordType <- "VE"
 
@@ -351,7 +352,7 @@ for(year in yearsToSubmit)  {
     table1 <-
       cbind(
         RT = RecordType,
-        tacsatEflalo[,
+        tacsatEflalo_active[,
           c(
             "VE_REF", "VE_COU", "Year", "Month", "Csquare", "LE_GEAR",
             "LE_MET", "SI_SP", "INTV", "VE_LEN", "kwHour", "VE_KW", "LE_KG_TOT", "LE_EURO_TOT"
@@ -364,7 +365,7 @@ for(year in yearsToSubmit)  {
         table1,
         cbind(
           RT = RecordType,
-          tacsatEflalo[,
+          tacsatEflalo_active[,
             c(
               "VE_REF", "VE_COU", "Year", "Month", "Csquare", "LE_GEAR",
               "VE_LEN","LE_MET", "SI_SP", "INTV", "VE_LEN", "kwHour", "VE_KW", "LE_KG_TOT", "LE_EURO_TOT"

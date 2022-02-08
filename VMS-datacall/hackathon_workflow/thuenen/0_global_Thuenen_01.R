@@ -66,9 +66,9 @@ autoDetectionGears        <- c("TBB","OTB","OTT","SSC","SDN","DRB","PTB","HMD")
 visualInspection          <- FALSE
 
 #- Specify how landings should be distributed over the VMS pings: By day, ICES rectangle, trip basis or otherwise
-# linkEflaloTacsat          <- c("day","ICESrectangle","trip")
+# linkEflaloTacsat          <- c("day","ICESrectangle","trip") # conserve=TRUE
 # other options
-# linkEflaloTacsat          <- c("day","ICESrectangle","trip")
-# linkEflaloTacsat          <- c("ICESrectangle","trip")
-# linkEflaloTacsat          <- c("day","trip")
-linkEflaloTacsat          <- c("trip")   
+# linkEflaloTacsat          <- c("day","ICESrectangle","trip") # conserve=TRUE
+# linkEflaloTacsat          <- c("ICESrectangle","trip")       # conserve=TRUE
+# linkEflaloTacsat          <- c("day","trip")                 # conserve=TRUE
+linkEflaloTacsat          <- c("trip")                       # conserve=TRUE (trip and conserve=TRUE is not an option in splitAmongPings)
