@@ -371,12 +371,14 @@ write.table(table2Save, file.path(outPath, "table2Save.csv"), na = "",row.names=
 
 library(icesVMS)
 
-icesConnect::set_username('submitter_ices_user_id')
+# Replace with your ICES user name and you will be requested with your password
+icesConnect::set_username('submitter_ices_user_id') 
+
 # icesConnect::ices_token(refresh = TRUE)
 # icesConnect::decode_token()$UserEmail # Check the email associated to your ices user name is the correct one
 
-screen_vms_file(file.path(outPath, "table1Save.csv"))
-screen_vms_file(file.path(outPath, "table2Save.csv"))
+screen_vms_file(file.path(outPath, "table1Save.csv"))  # Submit for screening Table 1
+screen_vms_file(file.path(outPath, "table2Save.csv"))  # Submit for screening Table 2
 
  
 
