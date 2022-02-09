@@ -3,7 +3,7 @@
 # 3.1 Load TABLE 1 (VMS) and TABLE 2 (LOGBOOK) --------------------------------------------
 
 load(file = paste0(outPath, "table1.RData")  )
-load( file = paste0(outPath, "table2.RData")  )
+load(file = paste0(outPath, "table2.RData")  )
 
 
 # 3.2 Replace vessel id by an anonymized id column  --------------------------------------------
@@ -84,7 +84,7 @@ table1Save <-
         )
       ) %>%  relocate( n_vessels,vessel_ids, .before = Csquare)%>%
       mutate (AverageGearWidth = NA%>%as.numeric()  )%>% ## If this information is available modify this line of the script. By default is assumed not existing gear width information
-      as.data.frame()
+      as.data.frame() # Warning ok since most observations have more than 2 pieces (e.g. TBB_CRU_16-32_0_0)
 
 colnames(table1Save) <-
   c(
@@ -220,7 +220,9 @@ library(icesVocab)
 ### 3.5.6 Check Vessel Lengths categories are accepted ==================================
 
 
-  vlen_ices       <-  getCodeList("BYC_VesselLRange")
+  # vlen_ices       <-  getCodeList("BYC_VesselLRange")
+  vlen_ices <- getCodeList("VesselLengthClass") ### Get DATSU Vocabulary list for selected dataset
+  
   table ( table2Save$VesselLengthRange%in%vlen_ices$Key )  # TRUE records accepted in DATSU, FALSE aren't
 
   # Get summary  of   DATSU valid/not valid records
@@ -303,10 +305,11 @@ gt(
   cols_label(  `is_na.NA`=  md('Number of  <br> NA\'s') ,
                total_records = md('Total <br> records'),
                field_type = md('Field <br> type')
-  ) %>%
+               )%>%
   tab_footnote(
-    footnote = md('Non mandatory fields can include null values if not available'),
-    locations = cells_stub( rows = c( 'TotValue', 'AverageGearWidth')  )
+     footnote = md('Non mandatory fields can include null values if not available'),
+     #locations = cells_stub( rows = c( 'TotValue', 'AverageGearWidth')  )
+     locations = cells_stub( rows = c( 'TotValue')  )
   )
 
 
@@ -366,13 +369,21 @@ write.table(table2Save, file.path(outPath, "table2Save.csv"), na = "",row.names=
 
 ############### DATACALL SUBMISSION USING ICESVMS R PACKAGE (OPTIONAL)  ##################
 
-# R packages required to be installed:
-# install.packages(c( "icesConnect", "icesVMS", dependencies=TRUE), repos = "https://ices-tools-prod.r-universe.dev")
-
+# R ICES packages required to be installed:
+if(1=0){
+# Enable universe(s) by ices-tools-prod (see https://ices-tools-prod.r-universe.dev)
+options(repos = c(
+  icestoolsprod = 'https://ices-tools-prod.r-universe.dev',
+  CRAN = 'https://cloud.r-project.org'))
+install.packages("keyring") # needed extra installation with Rstudio Server on a Linux system
+install.packages(c( "icesConnect", "icesVMS", dependencies=TRUE), repos = "https://ices-tools-prod.r-universe.dev")
+}
 library(icesVMS)
+library(icesConnect)
 
 # Replace with your ICES user name and you will be requested with your password
 icesConnect::set_username('submitter_ices_user_id') 
+icesConnect::set_username('schulze') 
 
 # icesConnect::ices_token(refresh = TRUE)
 # icesConnect::decode_token()$UserEmail # Check the email associated to your ices user name is the correct one
