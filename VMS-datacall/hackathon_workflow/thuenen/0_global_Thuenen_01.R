@@ -32,7 +32,7 @@ library(sp)
 library(doBy)
 library(mixtools)
 library(tidyr)
-library (glue)
+library(glue)
 library(gt)
 
  
