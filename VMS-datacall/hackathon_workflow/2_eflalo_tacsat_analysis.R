@@ -264,7 +264,7 @@ for(year in yearsToSubmit)  {
   tacsatp$SI_STATE[which(tacsatp$SI_STATE != "f")] <- 0
   tacsatp$SI_STATE[which(tacsatp$SI_STATE == "f")] <- 1
   
-  
+  tacsatEflalo <- tacsatEflalo[tacsatEflalo$SI_STATE == 1,]
   
 
   #- There are several options, specify at the top of this script what type of linking you require
