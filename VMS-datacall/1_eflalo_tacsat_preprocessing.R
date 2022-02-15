@@ -60,6 +60,9 @@ for(year in yearsToSubmit){
     )
   tacsat <- tacsat[which(idxI > 0), ]
   
+  
+   #- Take only eflalo records in ICES areas
+  
   coordsEflalo <- ICESrectangle2LonLat( na.omit( unique( eflalo$LE_RECT )))
   coordsEflalo$LE_RECT <- na.omit( unique( eflalo$LE_RECT ))
   coordsEflalo <-
