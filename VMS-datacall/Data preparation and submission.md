@@ -215,7 +215,8 @@ Soforthemomentwewillignorethisblock(#-1b) **Looping**** through ****the**** data
 ![Shape10](RackMultipart20220215-4-1krebzr_html_7654d64c61b2602a.gif)
 
 ```r
-year<-2009
+
+yearsToSubmit <- sort(2009:2009)
 
 ```
 
