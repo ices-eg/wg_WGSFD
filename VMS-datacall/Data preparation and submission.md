@@ -1,8 +1,10 @@
 
 
-**2**** Part 2 7**
+**2** **Part 2 7**
 
-**2.1**** Load the data 9**
+
+
+**2.1** **Load the data**
 
 #- 1a) Load VMStools underlying data 9
 
@@ -44,7 +46,7 @@ The document is designed to aid all users, regardless of their experience using 
 All the instructions and code below were tested in windows version newest than 7 and 8. However, if for any reason something is not working you can contact one of the members of our support team (emails at the end of the document).
 
   1.
-## Step 1: Installation ofR
+## Step 1: Installation of R
 
 (Where R is already installed (any 3.x.x 32 bits version) move to step 2)
 
@@ -98,13 +100,34 @@ Next, download a compiled version of vmstools 0.76 by clicking the link below. M
 
 ![Shape7](RackMultipart20220215-4-1krebzr_html_851005f3d5727d6a.gif)
 
+```r 
 install.packages(c(&quot;cluster&quot;,&quot;data.table&quot;,&quot;doBy&quot;,&quot;maps&quot;,&quot;mapdata&quot;,&quot;ma ptools&quot;,&quot;PBSmapping&quot;,&quot;sp&quot;,&quot;Matrix&quot;,&quot;ggplot2&quot;))
+```
 
 [https://github.com/nielshintzen/vmstools/releases/download/0.76/vmstools\_0.76.zip](https://github.com/nielshintzen/vmstools/releases/download/0.76/vmstools_0.76.zip)
 
 Now start Rstudio to install all the necessary R packages that vmstools depends on. Copy the following text
 
-intotheconsoleandpressenter.Itshouldstartinstallingallthepackagesneeded.This might take two or three minutes and your console should look like this once it has finished.
+into the console and press enter.It should start installing all the packages needed ( referenced in the workflow file 0_global.R) .This might take two or three minutes and your console should look like this once it has finished.
+
+List of current workflow libraries required: 
+
+```r 
+#- Clear workspace
+rm(list=ls())
+
+library(vmstools) #- download from www.vmstools.org
+library(Matrix)   #- available on CRAN
+library(ggplot2)  #- available on CRAN
+library(dplyr)    #- available on CRAN
+library(sp)
+library(doBy)
+library(mixtools)
+library(tidyr)
+library (glue)
+library(gt)
+
+```
 
 ![](RackMultipart20220215-4-1krebzr_html_87cc747119b9d5b6.jpg)
 
