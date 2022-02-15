@@ -94,21 +94,21 @@ Once downloaded, double click on it. Depending on your security settings you mig
 That&#39;s it. Step 2 is complete, RStudiois now installed.
 
   1.
-## Step 3: Installingvmstools
+## Step 3: Installing vmstools
 
 Next, download a compiled version of vmstools 0.76 by clicking the link below. Make sure you click save rather than open...
 
 ![Shape7](RackMultipart20220215-4-1krebzr_html_851005f3d5727d6a.gif)
 
 ```r 
-install.packages(c(&quot;cluster&quot;,&quot;data.table&quot;,&quot;doBy&quot;,&quot;maps&quot;,&quot;mapdata&quot;,&quot;ma ptools&quot;,&quot;PBSmapping&quot;,&quot;sp&quot;,&quot;Matrix&quot;,&quot;ggplot2&quot;))
+
+  install.packages(c("cluster","data.table","doBy","maps","mapdata","ma ptools","PBSmapping","sp","Matrix","ggplot2"))
+  
 ```
 
 [https://github.com/nielshintzen/vmstools/releases/download/0.76/vmstools\_0.76.zip](https://github.com/nielshintzen/vmstools/releases/download/0.76/vmstools_0.76.zip)
 
-Now start Rstudio to install all the necessary R packages that vmstools depends on. Copy the following text
-
-into the console and press enter.It should start installing all the packages needed ( referenced in the workflow file 0_global.R) .This might take two or three minutes and your console should look like this once it has finished.
+Now start Rstudio to install all the necessary R packages that vmstools depends on. Copy the following text into the console and press enter.It should start installing all the packages needed ( referenced in the workflow file [0_global.R] (https://github.com/ices-eg/wg_WGSFD/blob/test-workflow/VMS-datacall/0_global.R ) ) .This might take two or three minutes and your console should look like this once it has finished.
 
 List of current workflow libraries required: 
 
@@ -140,9 +140,9 @@ That&#39;s it; you now have all you need to process your data.
 1.
 # Part2
 
-Partoneoftheseguidelineshaveguidedyouthroughtheinstallationofallthesoftware needed to process your data into the formats specified in the data call. Now, part two willfocusonguidingyouthroughtheeightsteps3 blocksthatcomprisetheworkflow: eflalo\_tacsat\_preprocessing.R, eflalo\_tacsat\_analysis\_R and data\_submission.R
+Partoneoftheseguidelineshaveguidedyouthroughtheinstallationofallthesoftware needed to process your data into the formats specified in the data call. Now, part two will focus on guiding you through the steps3 blocksthatcomprisetheworkflow: eflalo\_tacsat\_preprocessing.R, eflalo\_tacsat\_analysis\_R and data\_submission.R
 
-.Theaim is to get your data converted into the format specified in ICES DATSU: [http://datsu.ices.dk/web/selRep.aspx?Dataset=145](http://datsu.ices.dk/web/selRep.aspx?Dataset=145)
+.The aim is to get your data converted into the format specified in ICES DATSU: [http://datsu.ices.dk/web/selRep.aspx?Dataset=145](http://datsu.ices.dk/web/selRep.aspx?Dataset=145)
 
 The work flow was developed in R, the principal objective being to facilitate the submission of data in the specified format by providing all country institutions with a standardised tool for data extraction. This will make data outputs more comparable and easier to work with.
 
@@ -214,7 +214,10 @@ Soforthemomentwewillignorethisblock(#-1b) **Looping**** through ****the**** data
 
 ![Shape10](RackMultipart20220215-4-1krebzr_html_7654d64c61b2602a.gif)
 
-year\&lt;-2009
+```r
+year<-2009
+
+```
 
 ## #- 1c) load tacsat and eflalo data from file
 
@@ -226,9 +229,12 @@ Now that you have just loaded both tacsat and eflalo for 2009 the next two lines
 
 ![Shape11](RackMultipart20220215-4-1krebzr_html_7a43faac36ba21ba.gif)
 
-tacsat \&lt;- get(paste(year,&quot;Tacsat&quot;,sep=&quot;&quot;))
+```r
 
-tacsat \&lt;- get(paste(&quot;Tac&quot;,substr(year,3,4),sep=&quot;&quot;))
+tacsat <- get(paste(year,"Tacsat",sep=""))
+tacsat <- get(paste("Tac",substr(year,3,4),sep=""))
+
+```
 
 If the objects are already called tacsat and eflalo then, you don&#39;t need to run those two lines and you can add an # at the beginning of each line. However, make sure that whatever you have called your objects the naming structure is consistent across all years otherwise the &quot;For&quot; loop won&#39;t run.
 
