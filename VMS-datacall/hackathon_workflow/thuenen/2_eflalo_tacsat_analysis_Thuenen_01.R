@@ -344,7 +344,7 @@ for(year in yearsToSubmit)  {
   tacsatEflalo$kwHour    <- tacsatEflalo$VE_KW * tacsatEflalo$INTV / 60
   tacsatEflalo$INTV      <- tacsatEflalo$INTV / 60
 
-  tacsatEflalo_active <-subset(tacsatEflalo, SI_STATE=1) #subset with active fishing
+  tacsatEflalo_active <-subset(tacsatEflalo, SI_STATE==1) #subset with active fishing
 
   RecordType <- "VE"
 

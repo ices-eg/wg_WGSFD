@@ -82,10 +82,10 @@ table1Save <-
     group_by(RT,VE_COU,Year,Month,Csquare,LE_GEAR, met5,  LE_MET,LENGTHCAT) %>%
     summarise(
       mean_si_sp = mean(SI_SP),
-      sum_intv =sum(INTV),
+      sum_intv =sum(INTV, na.rm=TRUE),
       mean_ve_len = mean(VE_LEN),
       mean_ve_kf = mean(VE_KW),
-      sum_kwHour = sum(kwHour),
+      sum_kwHour = sum(kwHour,na.rm=TRUE),
       sum_le_kg_tot = sum(LE_KG_TOT),
       sum_le_euro_tot  = sum(LE_EURO_TOT),
       n_vessels = n_distinct(VE_ID),
@@ -216,11 +216,11 @@ library(icesVocab)
   
   cntrcode <- getCodeList("ISO_3166")
   
-  table (table1Save$CountryCode %in%yn$Key )   # TRUE records accepted in DATSU, FALSE aren't
+  table (table1Save$CountryCode %in%cntrcode$Key )   # TRUE records accepted in DATSU, FALSE aren't
   
   # Get summary  of   DATSU valid/not valid records
-  table1Save [ !table1Save$VMSEnabled %in% cntrcode$Key,]%>% group_by(CountryCode) %>% select(CountryCode) %>% tally()
-  
+  table1Save [ !table1Save$CountryCode %in% cntrcode$Key,]%>% group_by(CountryCode) %>% select(CountryCode) %>% tally()
+
   # Correct them if any not valid and filter only valid ones
   table1Save      <-  table1Save%>%filter(CountryCode %in% cntrcode$Key)
   
@@ -301,10 +301,10 @@ library(icesVocab)
   
   cntrcode <- getCodeList("ISO_3166")
   
-  table (table2Save$CountryCode %in%yn$Key )   # TRUE records accepted in DATSU, FALSE aren't
+  table (table2Save$CountryCode %in%cntrcode$Key )   # TRUE records accepted in DATSU, FALSE aren't
   
   # Get summary  of   DATSU valid/not valid records
-  table2Save [ !table2Save$VMSEnabled %in% cntrcode$Key,]%>% group_by(CountryCode) %>% select(CountryCode) %>% tally()
+  table2Save [ !table2Save$CountryCode %in% cntrcode$Key,]%>% group_by(CountryCode) %>% select(CountryCode) %>% tally()
   
   # Correct them if any not valid and filter only valid ones
   table2Save      <-  table2Save%>%filter(CountryCode %in% cntrcode$Key)
@@ -409,7 +409,7 @@ write.table(table2Save, file.path(outPath, "table2Save.csv"), na = "",row.names=
 ############### DATACALL SUBMISSION USING ICESVMS R PACKAGE (OPTIONAL)  ##################
 
 # R ICES packages required to be installed:
-if(1=0){
+if(1==0){
 # Enable universe(s) by ices-tools-prod (see https://ices-tools-prod.r-universe.dev)
 options(repos = c(
   icestoolsprod = 'https://ices-tools-prod.r-universe.dev',
