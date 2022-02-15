@@ -4,10 +4,8 @@ for(year in yearsToSubmit)  {
   
   print(year)
   
-  eflalo <- load(file = paste0(outPath,paste0("cleanEflalo",year,".RData")) )
-  tacsat <- load(file = paste0(outPath, paste("cleanTacsat", year, ".RData")) )
-            
-
+  load(file = paste0(outPath,paste0("cleanEflalo",year,".RData")) )
+  load(file = paste0(outPath, paste("cleanTacsat", year, ".RData")) )
   
 
 # 2.1 Merge the TACSAT and EFLALO data together --------------------------------------------
@@ -265,6 +263,9 @@ for(year in yearsToSubmit)  {
 
   tacsatp$SI_STATE[which(tacsatp$SI_STATE != "f")] <- 0
   tacsatp$SI_STATE[which(tacsatp$SI_STATE == "f")] <- 1
+  
+  tacsatEflalo <- tacsatEflalo[tacsatEflalo$SI_STATE == 1,]
+  
 
   #- There are several options, specify at the top of this script what type of linking you require
   if (!"trip" %in% linkEflaloTacsat) stop("trip must be in linkEflaloTacsat")
@@ -320,7 +321,7 @@ for(year in yearsToSubmit)  {
               eflalo = eflaloM,
               variable = "all",
               level = "trip",
-              conserve = TRUE
+              conserve = FALSE
             )
         }
       }

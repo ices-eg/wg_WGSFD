@@ -80,7 +80,7 @@ table1Save <-
         ifelse (
           n_distinct(VE_ID) < 3,
           paste(unique(VE_ID), collapse = ";"),
-          ''
+          'no_required'
         )
       ) %>%  relocate( n_vessels,vessel_ids, .before = Csquare)%>%
       mutate (AverageGearWidth = NA%>%as.numeric()  )%>% ## If this information is available modify this line of the script. By default is assumed not existing gear width information
@@ -165,7 +165,7 @@ library(icesVocab)
 ### 3.5.2 Check Vessel Lengths categories are accepted ==================================
 
 
-  vlen_ices       <-  getCodeList("BYC_VesselLRange")
+  vlen_ices       <-  getCodeList("VesselLengthClass")
   table ( table1Save$VesselLengthRange%in%vlen_ices$Key )  # TRUE records accepted in DATSU, FALSE aren't
 
   # Get summary  of   DATSU valid/not valid records
@@ -220,7 +220,7 @@ library(icesVocab)
 ### 3.5.6 Check Vessel Lengths categories are accepted ==================================
 
 
-  vlen_ices       <-  getCodeList("BYC_VesselLRange")
+  vlen_ices       <-  getCodeList("VesselLengthClass")
   table ( table2Save$VesselLengthRange%in%vlen_ices$Key )  # TRUE records accepted in DATSU, FALSE aren't
 
   # Get summary  of   DATSU valid/not valid records
@@ -367,7 +367,7 @@ write.table(table2Save, file.path(outPath, "table2Save.csv"), na = "",row.names=
 ############### DATACALL SUBMISSION USING ICESVMS R PACKAGE (OPTIONAL)  ##################
 
 # R packages required to be installed:
-# install.packages(c("icesVMS", "icesConnect"), repos = "https://ices-tools-prod.r-universe.dev")
+# install.packages(c("icesVMS", "icesConnect"), repos = "https://ices-tools-prod.r-universe.dev")  
 
 library(icesVMS)
 
