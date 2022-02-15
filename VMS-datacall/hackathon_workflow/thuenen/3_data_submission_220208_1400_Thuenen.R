@@ -5,6 +5,19 @@
 load(file = paste0(outPath, "table1.RData")  )
 load(file = paste0(outPath, "table2.RData")  )
 
+# in German data only
+# change TBC to TBB
+table1$LE_GEAR[table1$LE_GEAR=="TBC"]<-"TBB"  
+table2$LE_GEAR[table2$LE_GEAR=="TBC"]<-"TBB"  
+# change PUL & PUK to TBB
+table1$LE_GEAR[table1$LE_GEAR=="PUL"]<-"TBB"  
+table2$LE_GEAR[table2$LE_GEAR=="PUL"]<-"TBB" 
+table1$LE_GEAR[table1$LE_GEAR=="PUK"]<-"TBB"  
+table2$LE_GEAR[table2$LE_GEAR=="PUK"]<-"TBB" 
+# change DEU to DE  in VE_COUNTRY
+table1$VE_COU<-"DE"
+table2$VE_COU<-"DE"
+
 
 # 3.2 Replace vessel id by an anonymized id column  --------------------------------------------
 
@@ -160,12 +173,12 @@ library(icesVocab)
 
 
   table1Save      <-  table1Save%>%filter(`C-square` %in% valid_csquare)
-
+  
 
 ### 3.5.2 Check Vessel Lengths categories are accepted ==================================
 
 
-  vlen_ices       <-  getCodeList("BYC_VesselLRange")
+  vlen_ices       <-  getCodeList("VesselLengthClass")
   table ( table1Save$VesselLengthRange%in%vlen_ices$Key )  # TRUE records accepted in DATSU, FALSE aren't
 
   # Get summary  of   DATSU valid/not valid records
@@ -198,12 +211,24 @@ library(icesVocab)
   # Correct them if any not valid and filter only valid ones
   table1Save      <-  table1Save%>%filter(MetierL5 %in% m5_ices$Key)
 
-
+### 3.5.5 Check country codes =====================
+  
+  
+  cntrcode <- getCodeList("ISO_3166")
+  
+  table (table1Save$CountryCode %in%yn$Key )   # TRUE records accepted in DATSU, FALSE aren't
+  
+  # Get summary  of   DATSU valid/not valid records
+  table1Save [ !table1Save$VMSEnabled %in% cntrcode$Key,]%>% group_by(CountryCode) %>% select(CountryCode) %>% tally()
+  
+  # Correct them if any not valid and filter only valid ones
+  table1Save      <-  table1Save%>%filter(CountryCode %in% cntrcode$Key)
+  
 
 # TABLE 2  =============================================================
 
 
-### 3.5.5 Check ICES rect are valid  =====================
+### 3.5.6 Check ICES rect are valid  =====================
 
   statrect_ices <- getCodeList("StatRec")
 
@@ -217,7 +242,7 @@ library(icesVocab)
 
 
 
-### 3.5.6 Check Vessel Lengths categories are accepted ==================================
+### 3.5.7 Check Vessel Lengths categories are accepted ==================================
 
 
   # vlen_ices       <-  getCodeList("BYC_VesselLRange")
@@ -232,7 +257,7 @@ library(icesVocab)
   table2Save      <-  table2Save%>%filter(VesselLengthRange %in% vlen_ices$Key)
 
 
-### 3.5.7 Check Metier L4 (Gear) categories are accepted =================================
+### 3.5.8 Check Metier L4 (Gear) categories are accepted =================================
 
   m4_ices         <-  getCodeList("GearTypeL4")
   table (table2Save$MetierL4 %in%m4_ices$Key )   # TRUE records accepted in DATSU, FALSE aren't
@@ -244,7 +269,7 @@ library(icesVocab)
   table2Save      <-  table2Save%>%filter(MetierL4 %in% m4_ices$Key)
 
 
-### 3.5.8 Check Metier L5 (Target Assemblage) categories are accepted =====================
+### 3.5.9 Check Metier L5 (Target Assemblage) categories are accepted =====================
 
   m5_ices         <-  getCodeList("TargetAssemblage")
 
@@ -257,7 +282,7 @@ library(icesVocab)
   table2Save      <-  table2Save%>%filter(MetierL5 %in% m5_ices$Key)
 
 
-### 3.5.9 Check VMS enables or not (YesNoFields) =====================
+### 3.5.10 Check VMS enables or not (YesNoFields) =====================
 
 
   yn <- getCodeList("YesNoFields")
@@ -265,11 +290,25 @@ library(icesVocab)
   table (table2Save$VMSEnabled %in%yn$Key )   # TRUE records accepted in DATSU, FALSE aren't
 
   # Get summary  of   DATSU valid/not valid records
-  table2Save [ !table2Save$VMSEnabled %in%yn$Key,]%>%group_by(VMSEnabled)%>%select(VMSEnabled)%>%tally()
+  table2Save [ !table2Save$VMSEnabled %in% yn$Key,] %>% group_by(VMSEnabled) %>% select(VMSEnabled)%>%tally()
 
   # Correct them if any not valid and filter only valid ones
   table2Save      <-  table2Save%>%filter(VMSEnabled %in% yn$Key)
 
+  
+  ### 3.5.11 Check country codes =====================
+  
+  
+  cntrcode <- getCodeList("ISO_3166")
+  
+  table (table2Save$CountryCode %in%yn$Key )   # TRUE records accepted in DATSU, FALSE aren't
+  
+  # Get summary  of   DATSU valid/not valid records
+  table2Save [ !table2Save$VMSEnabled %in% cntrcode$Key,]%>% group_by(CountryCode) %>% select(CountryCode) %>% tally()
+  
+  # Correct them if any not valid and filter only valid ones
+  table2Save      <-  table2Save%>%filter(CountryCode %in% cntrcode$Key)
+  
 
 # DATSU Vocabulary check finish
 
