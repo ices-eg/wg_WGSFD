@@ -97,7 +97,7 @@
 **4**** Change log **
 
 
-1.
+
 # Part1
 
 This document is designed to aid analysts streamline the process of extracting VMS data in accordance with requirements of the ICES VMS data call.
@@ -161,18 +161,19 @@ That's it. Step 2 is complete, RStudio is now installed.
 
 Next, download a compiled version of vmstools 0.76 by clicking the link below. Make sure you click save rather than open...
 
-![Shape7](RackMultipart20220215-4-1krebzr_html_851005f3d5727d6a.gif)
+[https://github.com/nielshintzen/vmstools/releases/download/0.76/vmstools\_0.76.zip](https://github.com/nielshintzen/vmstools/releases/download/0.76/vmstools_0.76.zip)
 
-```r 
+Now start Rstudio to install all the necessary R packages that vmstools depends on. Copy the following text 
+( referenced in the workflow file [0_global.R] (https://github.com/ices-eg/wg_WGSFD/blob/test-workflow/VMS-datacall/0_global.R ) )
+```
+r 
 
   install.packages(c("cluster","data.table","doBy","maps","mapdata","ma ptools","PBSmapping","sp","Matrix","ggplot2"))
   
 ```
 
-[https://github.com/nielshintzen/vmstools/releases/download/0.76/vmstools\_0.76.zip](https://github.com/nielshintzen/vmstools/releases/download/0.76/vmstools_0.76.zip)
+into the console and press enter. It should start installing all the packages needed This might take two or three minutes and your console should look like this once it has finished. Please contact your system administrator if you have issues installing these packages.
 
-Now start Rstudio to install all the necessary R packages that vmstools depends on. Copy the following text into the console and press enter.It should start installing all the packages needed ( referenced in the workflow file [0_global.R] (https://github.com/ices-eg/wg_WGSFD/blob/test-workflow/VMS-datacall/0_global.R ) ).This might take two or three minutes and your console should look like this once it has finished.  
-Please contact your system administrator if you have issues installing these packages
 
 List of current workflow libraries required: 
 
