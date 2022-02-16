@@ -65,10 +65,6 @@
 
 **4**** Change log **
 
-**Annex 1 Format specification for VMS data (VE) **
-
-**Annex 2 Format specification for Logbook data (LE) **
-
 
 **2** **Part 2 **
 
@@ -100,9 +96,6 @@
 
 **4**** Change log **
 
-**Annex 1 Format specification for VMS data (VE) **
-
-**Annex 2 Format specification for Logbook data (LE) **
 
 1.
 # Part1
@@ -144,14 +137,14 @@ Rather than accepting the default(C:Files-4.1.2) you should click on the browse 
 
 ### Next.
 
-- Click **Next** all the menus until the end of instalation, and that&#39;s it; R is now in- stalled on thecomputer.
+- Click **Next** all the menus until the end of instalation, and that's it; R is now in- stalled on thecomputer.
 
-  1.
-## Step 2: Installation ofRStudio
+  
+## Step 2: Installation of RStudio
 
-(Where R studio is already installed move to step 3)
+(Where Rstudio is already installed move to step 3)
 
-If you don't have administrator privilege on your computer you will need to call your IT/computer support to install R Studio.First download R Studio by clicking on the link below
+If you don't have administrator privilege on your computer you will need to call your IT/computer support to install R Studio.First download RStudio by clicking on the link below
 
 [https://www.rstudio.com/products/rstudio/download/](https://www.rstudio.com/products/rstudio/download/)
 
@@ -159,11 +152,11 @@ For Window 10 (64-bit):
 
 [https://download1.rstudio.org/desktop/windows/RStudio-2021.09.2-382.exe](https://download1.rstudio.org/desktop/windows/RStudio-2021.09.2-382.exe)
 
-Once downloaded, double click on it. Depending on your security settings you might get a popup security warning asking if you want to Run or Cancel the installation, Click on **Run**. At this point you should be on the RStudio installation Wizard menu. RStudioisveryeasytoinstallsojustacceptalldefaultsandclick **Next** inallthemenus until theend.
+Once downloaded, double click on it. Depending on your security settings you might get a popup security warning asking if you want to Run or Cancel the installation, Click on **Run**. At this point you should be on the RStudio installation Wizard menu. RStudio is very easy to install so just accept all defaults and click **Next** in all the menus until the end.
 
-That's it. Step 2 is complete, R Studio is now installed.
+That's it. Step 2 is complete, RStudio is now installed.
 
-  1.
+  
 ## Step 3: Installing vmstools
 
 Next, download a compiled version of vmstools 0.76 by clicking the link below. Make sure you click save rather than open...
