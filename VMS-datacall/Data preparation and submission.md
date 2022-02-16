@@ -28,9 +28,6 @@
 
 **[4](#_Toc94885615)****Changelog 23**
 
-**[Annex1 Format specificationforVMS data (VE) ](#_Toc94885616)**
-
-**[Annex 2 Format specificationforLogbook data (LE) ](#_Toc94885617)**
 
 **1**** Part 1 **
 
@@ -387,37 +384,37 @@ The above block headers are self-explanatory and the code in each of the blocks 
 
 #- Save the remrecsEflalo file #- Save the cleaned eflalo file
 
-The&quot;remrecsEflalo&quot;fileissavedforfuturereference.Soisthecleanedeflalofilewhich, likethetacsat,willbereadytouseinthefuture.
+The 'remrecsEflalo' file is saved for future reference. So is the cleaned eflalo file which, like the tacsat, will be ready to use in the future.
 
 ## 2.2 Data analysis
 
 ##
 
-### Mergethetacsatandeflalodatatogether
+### Merge the tacsat and eflalo data together
 
-Insectionfourwebringthetacsatandeflalotogetherbymergingtocreateanewobject. Thiswillenableustorelatethelandingscomponent(eflalo)tothethevesselactivity
+In section four we bring the tacsat and eflalo together by merging to create a new object. This will enable us to relate the landings component (eflalo) to the vessel activity
 
 i.e. VMS (tacsat)
 
 #- Merge eflalo and tacsat
 
-Thefilestacsatandeflalowillbecombinedusingsomeverycleveralgorithmsthatuse the vessel identifier and date and time in both data sets to relate the landings to the correspondingVMSdataforthesametrip.
+The files tacsat and eflalo will be combined using some very clever algorithms that use the vessel identifier and date and time in both data sets to relate the landings to the corresponding VMS data for the same trip.
 
-###-AssigngearandlengthtotacsatThenewobjecttacsatpisnowamergedversion ofthecleanedtacsatandeflaloobjects.However,thenewobjecthasn&#39;tinheritedallthe fieldsfromeflaloduetoreasonsofprocessingspeedandworkability.Atthispointwe willextractsomedatafromtheeflalodatasettopopulatethecorrespondingtacsatp fields.Thedataweareinterestedinaredatathatwillbeusedlateroninthecodeto populatethefinaldatatables.Thingslikegear;kw;metiers,etc.
+###-Assigngearandlengthtotacsat The new object tacsatp is now a merged version of the cleaned tacsat and eflalo objects.However, the new object hasn't inherited all the fields from eflalo due to reasons of processing speed and work ability. At this point we will extract some data from the eflalo dataset to populate the corresponding tacsatp fields. The data we are interested in are data that will be used later on in the code to populate the final data tables.Things like gear;kw;metiers,etc.
 
 # Assign gear and length to tacsat
 
 #- Save not merged tacsat data
 
-Not all vessel activity is associated with fishing events; quite often vessels may be testingequipmentorcharteredtodojobsotherthanfishing.So,themergeexecutedin the previous block only includesVMS data that can be linked to corresponding landings records. As such, it will not be possible to merge all tacsat data for allocation to the tacsatp object. This block will save both the merged and non-merged data into the &quot;Results&quot;folder.
+Not all vessel activity is associated with fishing events; quite often vessels may be testing equipment or chartered to do jobs other than fishing. So, the merge executedin the previous block only includesVMS data that can be linked to corresponding landings records. As such, it will not be possible to merge all tacsat data for allocation to the tacsatp object. This block will save both the merged and non-merged data into the 'Results' folder.
 
-### Defineactivity
+### Define activity
 
-Thisisacrucialsection,asvesselactivitywillbedefinedhere.Also,thisisthesection thatneedsthemostcustomizationforwhichsomeknowledgeoffisheriesactivitieswill beneeded.Inthissectionwewilltrytoexplainthestepsinmoredetailandincorporate some reproducible examples as well. The first couple of lines in this section will calculate time interval between points. The time values and the interval threshold will be paramount in identifying vessel activity lateron.
+This is a crucial section, as vessel activity will be defined here. Also, this is the section that needs the most customization for which some knowledge of fisheries activities will be needed. In this section we will try to explain the steps in more detail and incorporate some reproducible examples as well. The first couple of lines in this section will calculate time interval between points. The time values and the interval threshold will be paramount in identifying vessel activity lateron.
 
 # Calculate time interval between points
 
-#- Remove points with NA&#39;s in them in critical places
+#- Remove points with NA's in them in critical places
 
 This block gets rid of any rows in the tacsatp for which critical information (vessel reference, latitude, longitude, speed, date and time) is missing. If this data wasn&#39;t removed it would most likely lead to errors.
 
@@ -429,9 +426,9 @@ The code in this block creates a very useful plot of speed frequency by gear. Th
 
 # Create speed threshold object
 
-The three last lines of this block will create a threshold object. However, your input and knowledge of the relevant fisheries will be needed at this stage. The threshold objectwillholdtheminimumandmaximumspeedoffishingforeachofthegears(i.e. the minimum and maximum speeds at which the specific fishing activity is thought to occur).Tohelpyouwiththistaskyoushouldlookatthepreviousspeedfrequencyplot to help distinguish steaming from fishingevents.
+The three last lines of this block will create a threshold object. However, your input and knowledge of the relevant fisheries will be needed at this stage. The threshold object will hold the minimum and maximum speed of fishing for each of the gears(i.e. the minimum and maximum speeds at which the specific fishing activity is thought to occur).To help you with this task you should look at the previous speed frequency plot to help distinguish steaming from fishing events.
 
-By running the third last line in this block you create an object &quot;speedarr&quot; with all the different gears in your data. The second and third lines will fill in column 2 and 3 of the &quot;speedarr&quot; object with the minimum and maximum fishing speeds. These values are set to 1kt and 6kt by default. At this stage you will need to set up the upper and lower limits for each of the gears. Although there are several ways of accomplishing this, we will demonstrate one of them here. In the example below we use a list of 5 gears(DRB;PTB;OTT;GN;FPO)althoughyouarelikelytohavemanymoregearsin yourdatasetsoyouwillneedtoextendthecodetoaccommodateallgearsaccordingly.
+By running the third last line in this block you create an object &quot;speedarr&quot; with all the different gears in your data. The second and third lines will fill in column 2 and 3 of the 'speedarr' object with the minimum and maximum fishing speeds. These values are set to 1kt and 6kt by default. At this stage you will need to set up the upper and lower limits for each of the gears. Although there are several ways of accomplishing this, we will demonstrate one of them here. In the example below we use a list of 5 gears(DRB;PTB;OTT;GN;FPO) although you are likely to have many more gears in your dataset so you will need to extend the code to accommodate all gears accordingly.
 
 To create our example, copy the code below into the console:
 
@@ -443,15 +440,15 @@ speedarr
 
 ![Shape17](RackMultipart20220215-4-1krebzr_html_bbccfc5b04932d63.gif)
 
-So, in the example above you can easily see how each line applies to one gear and on theleftyouhavetheminimumvaluesontherightthemaximum.Makesurewhenyou copy and paste the lines you change the gears and values on bothsides.
+So, in the example above you can easily see how each line applies to one gear and on the left you have the minimum values on the right the maximum. Make sure when you copy and paste the lines you change the gears and values on both sides.
 
 If your data varies from year to year you might want to check if you have different gears in different years. Before running the full code, you should make sure that all gears are included in the code above.
 
-#-Analyseactivityautomatedforcommongearsonly.Usethespeedarrfortheother gears
+#-Analyse activity automated for common gears only. Use the speedarr for the other gears
 
 This block allows you to select some gears for which the detection can be done automatically. This is another functionality of VMStools which applies for the most common gears. So, in this block you will need to choose which gears to want to apply auto detection. You can add or delete gears in the first line of code in this block.
 
-The remainder of the code in the block will split the tacsatp object in two depending on whether gears will be detected automatically or whether the thresholds need to be userdefinedaccordingtothecodefromthepreviousblock.Theremaininglinesinthe block don&#39;t need to bechanged.
+The remainder of the code in the block will split the tacsatp object in two depending on whether gears will be detected automatically or whether the thresholds need to be user defined according to the code from the previous block. The remaining lines in the block don't need to bechanged.
 
 #- Fill the storeScheme values based on analyses of the pictures
 
@@ -459,29 +456,29 @@ The remainder of the code in the block will split the tacsatp object in two depe
 
 In this block the speed histogram plot created previously will be used once more. You will have to identify the peaks in the plot for the gears for which you want the activity to be automatically detected (bear in mind that the algorithm was developed with trawling in mind).
 
-So,firstofallmakesureyouhavealineforeachofthegears(seelinebelow)changing the gears and mean speedsaccordingly.
+So, first of all make sure you have a line for each of the gears (see line below) changing the gears and mean speedsaccordingly.
 
 ![Shape18](RackMultipart20220215-4-1krebzr_html_624a874ecde17481.gif)
 
-storeScheme$means[which(storeScheme$analyse.by == &quot;SSC&quot;)] \&lt;- c(&quot;-9 0 9&quot;)
+storeScheme$means[which(storeScheme$analyse.by == 'SSC')] <- c('-9 0 9')
 
-Nowusingtheplot,identifywherethepeaksareandusethistochangethecode.Make sure you follow the same nomenclature as the example provided. Also, for the algorithm to perform better, we need to create a mirror image of the peaks and with 0 (zero) in the middle .If the number of peaks for a particular gear is greater or less than 5 you will need to add a line (like the one below) with the true number of peaks observed. In the example above there were three peaks -9, 0, 9 so we would need to add the line below to thecode.
+Now using the plot, identify where the peaks are and use this to change the code. Make sure you follow the same nomenclature as the example provided. Also, for the algorithm to perform better, we need to create a mirror image of the peaks and with 0 (zero) in the middle .If the number of peaks for a particular gear is greater or less than 5 you will need to add a line (like the one below) with the true number of peaks observed. In the example above there were three peaks -9, 0, 9 so we would need to add the line below to thecode.
 
 ![Shape19](RackMultipart20220215-4-1krebzr_html_f9e04cd3e8c1bcf.gif)
 
-storeScheme$peaks[which(storeScheme$analyse.by==&quot;SSC&quot;)] \&lt;-
+toreScheme$means[which(storeScheme$analyse.by == 'SSC')] <- 3
 
-3
+
 
 ![Shape20](RackMultipart20220215-4-1krebzr_html_f9e04cd3e8c1bcf.gif)
 
-The second half of the block, checks the results of the auto detection; if they are not satisfactorytheanalysisisrunoncemore;thistimeusingfixedpeaks.However,inthis workflowwewillnotbeusingfixedpeakssononeedtoworryaboutthis.
+The second half of the block, checks the results of the auto detection; if they are not satisfactory the analysis is run once more; this time using fixed peaks.However, in this workflow we will not be using fixed peaks so no need to worry about this.
 
 # Check results, and if results are not satisfactory, run analyses again but now with fixed peaks #
 
 #- Assign for visually inspected gears a simple speed rule classification
 
-This block deals with all the other gears that are not automatically detected. The code simplyappliestheupperandlowerlimitsdefinedpreviouslytodefineifvesselactivity as either steaming orfishing.
+This block deals with all the other gears that are not automatically detected. The code simply applies the upper and lower limits defined previously to define if vessel activity as either steaming orfishing.
 
 #- Combine the two dataset together again
 
@@ -497,13 +494,13 @@ This section calculates the total daily landings (weight and value) and splits t
 
 ### Assign c-square, year, month, quarter, area and create table1
 
-Weareatfinalstageandthecodeinthisblockwillgenerateoneofthetablesrequested by the data call (see annex 1). The first part of the code pulls together all the fields needed to create the table. The second part deals with the aggregation byCSquare.
+We are at final stage and the code in this block will generate one of the tables requested by the data call. The first part of the code pulls together all the fields needed to create the table. The second part deals with the aggregation by CSquare.
 
 ### Assign year, month, quarter, area and create table2
 
-We have reached the last section. As in the previous one, the first part of the code will create all the fields needed for table 2 (see annex 2) as requested in the data call. The second part of the code deals with the aggregation into CSquares.
+We have reached the last section. As in the previous one, the first part of the code will create all the fields needed for table 2 as requested in the data call. The second part of the code deals with the aggregation into CSquares.
 
-Runningthelasttwolinessavesthedataintothe&quot;Results&quot;folder.Don&#39;tforgettocheck the outputs to make sure that everything iscorrect.
+Running the last two lines saves the data into the 'Results' folder. Don't forget to check the outputs to make sure that everything iscorrect.
 
 If you are happy with all the results then you can proceed running the entire code. Make sure you double check the names of the input files, ensuring they follow the convention (as in the example) and run the entire code.
 
@@ -558,121 +555,8 @@ Rui Catarino, ICES |
 | 1 February 2019 | Update | Lara Salvany, ICES |
 
 1 February 2021 Update Lara Salvany, ICES
+15 February 2022 Update Roi Martinez, UK
+                        Lara Salvany, ICES
 
-# Annex1 Format specificationforVMS data (VE)
 
-The specification of the format for VMS can be found here: [datsu.ices.dk/web/selRep.aspx?Dataset=145](http://datsu.ices.dk/web/selRep.aspx?Dataset=145)
 
-and in the table below
-
-| Start | FieldCode | Datatype | Code List | Mandatory | Description |
-| --- | --- | --- | --- | --- | --- |
-| 1 | RecordType | char(2) |
- | M | RecordType field consists of a 2-character code,
- which defines the record type and thus the layout of the data fields included on that record. |
-| 2 | CountryCode | char(3) | ISO\_3166 | M | ISO 3166-1 alpha-3 codes. The flag country
- of the vessel. |
-| 3 | Year | char(4) |
- | M | Year |
-| 4 | Month | int(2) |
- | M | Month |
-| 5 | NoDistinctVessels | int(5) |
- | M | Number of disctinct vessels |
-| 6 | AnonymizedVesselID | nvarchar(500) |
- | M | Anonimyzed vessel ID: Country code + 3 digits and semicolon separated.
- For example: ESP001; ESP003; |
-| 7 | C-square | nvarchar(15) |
- | M | 0.05x0.05 degree,
- C-square reference XXXX:XXX:XXX:X |
-| 8 | MetierL4 | char(25) | Metier-4 | M | Gear code |
-| 9 | MetierL5 | char(50) | Metier-5 | M | Target assemblage |
-| 10 | LowerMeshSize | int(50) |
- |
- | LowerMeshSize |
-| 11 | UpperMeshSize | int(50) |
- |
- | UpperMeshSize |
-| 12 | MetierL6 | char(40) |
- | M | Metier level 6 |
-| 13 | VesselLengthRange | char(20) | [BYC\_VesselLRange](http://vocab.ices.dk/?ref=1502) | M | Vessel Length range |
-| 14 | AverageFishingSpeed | float(15) |
- | M | Average fishing speed within the aggregation: year, month, c-square, vessel length category, gear code and DCF métier |
-| 15 | FishingHour | float(15) |
- | M | Fishing hour calculated from VMS data (excluding nonfishing activity) |
-| 16 | AverageVesselLength | float(15) |
- | M | Average vessel length within the aggregation: year,
- month, c-square, gear code and DCF metier |
-| 17 | AveragekW | float(15) |
- | M | Average vessel power( kW) within the aggregation: year,
- month, c-square, gear code and DCF metier |
-| 18 | kWFishingHour | float(15) |
- | M | kW\*Fishing hours |
-| 19 | TotWeight | float(15) |
- | M | Total landings of all species caught in kg |
-| 20 | TotValue | float(15) |
- |
- | Total Value of all species caught in Euro |
-| 21 | AverageGearWidth | float(15) |
- | M | Averagfe Gear width |
-
-M = mandatory
-
-\*DCF level = Fishing activity – Metier: [http://datacollection.jrc.ec.europa.eu/wordef/fishing-activity-metier](http://datacollection.jrc.ec.europa.eu/wordef/fishing-activity-metier)
-
-[http://ices.dk/marine-data/Documents/RDB/RDB%20Metiers%20by%20fishing%20grounds.csv](http://ices.dk/marine-data/Documents/RDB/RDB%20Metiers%20by%20fishing%20grounds.csv)
-
-# Annex 2 Format specificationforLogbook data (LE)
-
-The specification of the format for VMS can be found here: [datsu.ices.dk/web/selRep.aspx?Dataset=145](http://datsu.ices.dk/web/selRep.aspx?Dataset=145)
-
-and in the table below:
-
-| Start | FieldCode | Datatype | Code List | Mandatory | Description |
-| --- | --- | --- | --- | --- | --- |
-| 1 | RecordType | char(2) |
- | M | RecordType field consists of a 2-character code,
- which defines the record type and thus the layout of the data fields included on that record. |
-| 2 | CountryCode | char(3) | ISO\_3166 | M | ISO 3166-1 alpha-3 codes. The flag country
- of the vessel. |
-| 3 | Year | char(4) |
- | M | Year |
-| 4 | Month | int(2) |
- | M | Month |
-| 5 | NoDistinctVessels | int(5) |
- | M | Number of disctinct vessels |
-| 6 | AnonymizedVesselID | nvarchar(500) |
- | M | Anonimyzed vessel ID: Country code + 3 digits and semicolon separated.
- For example: ESP001; ESP003; |
-| 7 | ICESrectangle | char(4) | [StatRec](http://vocab.ices.dk/?ref=107) | M | ICES Statistical Rectangle |
-| 8 | MetierL4 | char(25) | [Metier-4](http://vocab.ices.dk/?ref=1498) | M | Metier level 4 |
-| 9 | MetierL5 | char(50) | [Metier-5](http://vocab.ices.dk/?ref=1499) | M | Gear code |
-| 10 | LowerMeshSize | int(50) |
- |
- | LowerMeshSize |
-| 11 | UpperMeshSize | int(50) |
- |
- | UpperMeshSize |
-| 12 | MetierL6 | char(40) |
- | M | Metier level 6 |
-| 13 | VesselLengthRange | char(20) | [BYC\_VesselLRange](http://vocab.ices.dk/?ref=1502) | M | Vessel Length range |
-| 14 | VMSEnabled |
- | [YesNoFields](http://vocab.ices.dk/?ref=316) |
- | Yes/No |
-| 15 | FishingDays | float(15) |
- | M | Number of fishing days by ICES rectangle. If a
- vessel fished in several ICEs squares one day, the day will be divided by the number of ICES rectangles |
-| 16 | kWFishingDays |
- |
- |
- | kW\*FishingDays |
-| 17 | TotWeight | float(15) |
- | M | Total landings of all species caught in kg |
-| 18 | TotValue | float(15) |
- |
- | Total value of all species caught in Euro |
-
-M = mandatory
-
-\*DCF level = Fishing activity – Metier: [http://datacollection.jrc.ec.europa.eu/wordef/fishing-activity-metier](http://datacollection.jrc.ec.europa.eu/wordef/fishing-activity-metier)
-
-[http://ices.dk/marine-data/Documents/RDB/RDB%20Metiers%20by%20fishing%20grounds.cs](http://ices.dk/marine-data/Documents/RDB/RDB%20Metiers%20by%20fishing%20grounds.cs)
