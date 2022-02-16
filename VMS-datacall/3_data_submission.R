@@ -69,10 +69,10 @@ table1Save <-
     group_by(RT,VE_COU,Year,Month,Csquare,LE_GEAR, met5,  LE_MET,LENGTHCAT) %>%
     summarise(
       mean_si_sp = mean(SI_SP),
-      sum_intv =sum(INTV),
+      sum_intv =sum(INTV, na.rm=TRUE),
       mean_ve_len = mean(VE_LEN),
       mean_ve_kf = mean(VE_KW),
-      sum_kwHour = sum(kwHour),
+      sum_kwHour = sum(kwHour, na.rm=TRUE),
       sum_le_kg_tot = sum(LE_KG_TOT),
       sum_le_euro_tot  = sum(LE_EURO_TOT),
       n_vessels = n_distinct(VE_ID),
