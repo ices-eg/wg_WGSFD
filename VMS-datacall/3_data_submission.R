@@ -68,20 +68,19 @@ table1Save <-
   separate(col = LE_MET ,   c("met4", "met5" ), sep = '_', remove = FALSE)%>%
     group_by(RT,VE_COU,Year,Month,Csquare,LE_GEAR, met5,  LE_MET,LENGTHCAT) %>%
     summarise(
-      mean_si_sp = mean(SI_SP),
-      sum_intv =sum(INTV, na.rm=TRUE),
-      mean_ve_len = mean(VE_LEN),
-      mean_ve_kf = mean(VE_KW),
-      sum_kwHour = sum(kwHour, na.rm=TRUE),
-      sum_le_kg_tot = sum(LE_KG_TOT),
-      sum_le_euro_tot  = sum(LE_EURO_TOT),
-      n_vessels = n_distinct(VE_ID),
-      vessel_ids =
-        ifelse (
-          n_distinct(VE_ID) < 3,
-          paste(unique(VE_ID), collapse = ";"),
-          'not_required'
-        )
+      mean_si_sp       = mean(SI_SP),
+      sum_intv         = sum(INTV, na.rm=TRUE),
+      mean_ve_len      = mean(VE_LEN, na.rm = TRUE),
+      mean_ve_kf       = mean(VE_KW, na.rm = TRUE),
+      sum_kwHour       = sum(kwHour, na.rm=TRUE),
+      sum_le_kg_tot    = sum(LE_KG_TOT, na.rm = TRUE),
+      sum_le_euro_tot  = sum(LE_EURO_TOT, na.rm = TRUE),
+      n_vessels        = n_distinct(VE_ID, na.rm = TRUE),
+      vessel_ids       = ifelse (
+                            n_distinct(VE_ID) < 3,
+                            paste(unique(VE_ID), collapse = ";"),
+                            'not_required'
+                          )
       ) %>%  relocate( n_vessels,vessel_ids, .before = Csquare)%>%
       mutate (AverageGearWidth = NA%>%as.numeric()  )%>% ## If this information is available modify this line of the script. By default is assumed not existing gear width information
       as.data.frame()
@@ -101,26 +100,22 @@ colnames(table1Save) <-
 
 table2Save <-
   table2 %>%
-  separate(col = LE_MET ,   c("met4", "met5"  ), sep = '_', remove = FALSE)%>%
-  group_by(
-    RT, VE_COU, Year, Month, LE_RECT,LE_GEAR, met5,  LE_MET,
-    LENGTHCAT, tripInTacsat
-  ) %>%
+  separate( col = LE_MET ,   c("met4", "met5"  ), sep = '_', remove = FALSE)%>%
+  group_by( RT, VE_COU, Year, Month, LE_RECT,LE_GEAR, met5,  LE_MET,LENGTHCAT, tripInTacsat ) %>%
   summarise(
-    sum_intv = sum(INTV, na.rm = TRUE),
-    sum_kwDays = sum(kwDays, na.rm = TRUE),
-    sum_le_kg_tot = sum(LE_KG_TOT, na.rm = TRUE),
+    sum_intv        = sum(INTV, na.rm = TRUE),
+    sum_kwDays      = sum(kwDays, na.rm = TRUE),
+    sum_le_kg_tot   = sum(LE_KG_TOT, na.rm = TRUE),
     sum_le_euro_tot = sum(LE_EURO_TOT, na.rm = TRUE),
-    n_vessels = n_distinct(VE_ID, na.rm = TRUE),
-    vessel_ids =
-      ifelse (
-        n_distinct(VE_ID) < 3,
-        paste(
-          unique(VE_ID), collapse = ";"),
-          ''
-        )
+    n_vessels       = n_distinct(VE_ID, na.rm = TRUE),
+    vessel_ids      = ifelse (
+                          n_distinct(VE_ID) < 3,
+                          paste(
+                          unique(VE_ID), collapse = ";"),
+                          'not_required'
+                        )
   ) %>%  relocate( n_vessels,vessel_ids, .before = LE_RECT)%>%
-as.data.frame()
+  as.data.frame()
 
 colnames(table2Save) <-
   c(
@@ -198,12 +193,25 @@ library(icesVocab)
   # Correct them if any not valid and filter only valid ones
   table1Save      <-  table1Save%>%filter(MetierL5 %in% m5_ices$Key)
 
+  
+### 3.5.5 Check country codes =====================
+  
+  cntrcode <- getCodeList("ISO_3166")
+  table (table1Save$CountryCode %in%cntrcode$Key )   # TRUE records accepted in DATSU, FALSE aren't
+  
+  # Get summary  of   DATSU valid/not valid records
+  table1Save [ !table1Save$VMSEnabled %in% cntrcode$Key,]%>% group_by(CountryCode) %>% select(CountryCode) %>% tally()
+  
+  # Correct them if any not valid and filter only valid ones
+  table1Save      <-  table1Save%>%filter(CountryCode %in% cntrcode$Key)
+  
+
 
 
 # TABLE 2  =============================================================
 
 
-### 3.5.5 Check ICES rect are valid  =====================
+### 3.5.6 Check ICES rect are valid  =====================
 
   statrect_ices <- getCodeList("StatRec")
 
@@ -217,7 +225,7 @@ library(icesVocab)
 
 
 
-### 3.5.6 Check Vessel Lengths categories are accepted ==================================
+### 3.5.7 Check Vessel Lengths categories are accepted ==================================
 
 
   vlen_ices       <-  getCodeList("VesselLengthClass")
@@ -230,7 +238,7 @@ library(icesVocab)
   table2Save      <-  table2Save%>%filter(VesselLengthRange %in% vlen_ices$Key)
 
 
-### 3.5.7 Check Metier L4 (Gear) categories are accepted =================================
+### 3.5.8 Check Metier L4 (Gear) categories are accepted =================================
 
   m4_ices         <-  getCodeList("GearTypeL4")
   table (table2Save$MetierL4 %in%m4_ices$Key )   # TRUE records accepted in DATSU, FALSE aren't
@@ -242,7 +250,7 @@ library(icesVocab)
   table2Save      <-  table2Save%>%filter(MetierL4 %in% m4_ices$Key)
 
 
-### 3.5.8 Check Metier L5 (Target Assemblage) categories are accepted =====================
+### 3.5.9 Check Metier L5 (Target Assemblage) categories are accepted =====================
 
   m5_ices         <-  getCodeList("TargetAssemblage")
 
@@ -255,7 +263,7 @@ library(icesVocab)
   table2Save      <-  table2Save%>%filter(MetierL5 %in% m5_ices$Key)
 
 
-### 3.5.9 Check Metier L5 (Target Assemblage) categories are accepted =====================
+### 3.5.10 Check Metier L5 (Target Assemblage) categories are accepted =====================
 
 
   yn <- getCodeList("YesNoFields")
@@ -267,9 +275,22 @@ library(icesVocab)
 
   # Correct them if any not valid and filter only valid ones
   table2Save      <-  table2Save%>%filter(VMSEnabled %in% yn$Key)
+  
+  
+### 3.5.11 Check country codes =====================
+  
+  cntrcode <- getCodeList("ISO_3166")
+  table (table2Save$CountryCode %in%cntrcode$Key )   # TRUE records accepted in DATSU, FALSE aren't
+  
+  # Get summary  of   DATSU valid/not valid records
+  table2Save [ !table2Save$VMSEnabled %in% cntrcode$Key,]%>% group_by(CountryCode) %>% select(CountryCode) %>% tally()
+  
+  # Correct them if any not valid and filter only valid ones
+  table2Save      <-  table2Save%>%filter(CountryCode %in% cntrcode$Key)
+  
 
 
-# DATSU Vocabulary check finish
+# DATSU Vocabulary check finished
 
 
 
