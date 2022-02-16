@@ -1,58 +1,121 @@
+**Contents**
+
+**[1](#_Toc94885602)****Part 1 **
+
+[1.1 Step 1: Installation of R](#_Toc94885603)
+
+[1.2 Step 2: Installation of RStudio ](#_Toc94885604)
+
+[1.3 Step 3: Installing vmstools ](#_Toc94885605)
+
+**[2](#_Toc94885606)****Part 2 **
+
+[2,1 Data preprocessing](#_Toc94885607)
+
+[#- 1a) Load VMStools underlying data ](#_Toc94885608)
+
+[#-1b) Looping through the data years ](#_Toc94885609)
+
+[#- 1c) load tacsat and eflalo data from file ](#_Toc94885610)
+
+[2.2Data analysis](#_Toc94885611)
+
+[2.3 Data submission](#_Toc94885612)
+
+[Add description ](#_Toc94885613)
+
+**[3](#_Toc94885614)****Contacts 22**
+
+**[4](#_Toc94885615)****Changelog 23**
 
 
-**2** **Part 2 7**
+**1**** Part 1 **
+
+1.1Step 1: Installation of R 
+
+1.2Step 2: Installation of RStudio 
+
+1.3Step 3: Installing vmstools 
+
+**2**** Part 2 **
+
+**2.1**** Load the data **
+
+#- 1a) Load VMStools underlying data 
+
+#-1b) Looping through the data 
+
+#- 1c) load tacsat and eflalo data from file 
+
+**2.2**** Clean the tacsat data **
+
+**2.3**** Clean the eflalo data **
+
+**2.4**** Merge the tacsat and eflalo data together **
+
+**2.5**** Define activity **
+
+**2.6**** Dispatch landings of merged eflalo at the ping scale **
+
+**2.7**** Assign c-square, year, month, quarter, area and create table 1 **
+
+**2.8**** Assign year, month, quarter, area and create table 2 **
+
+**3**** Contacts **
+
+**4**** Change log **
+
+
+**2** **Part 2 **
 
 
 
 **2.1** **Load the data**
 
-#- 1a) Load VMStools underlying data 9
+#- 1a) Load VMStools underlying data 
 
-#-1b) Looping through the data 9
+#-1b) Looping through the data 
 
-#- 1c) load tacsat and eflalo data from file 9
+#- 1c) load tacsat and eflalo data from file 
 
-**2.2**** Clean the tacsat data 11**
+**2.2**** Clean the tacsat data **
 
-**2.3**** Clean the eflalo data 12**
+**2.3**** Clean the eflalo data **
 
-**2.4**** Merge the tacsat and eflalo data together 13**
+**2.4**** Merge the tacsat and eflalo data together **
 
-**2.5**** Define activity 14**
+**2.5**** Define activity **
 
-**2.6**** Dispatch landings of merged eflalo at the ping scale 17**
+**2.6**** Dispatch landings of merged eflalo at the ping scale **
 
-**2.7**** Assign c-square, year, month, quarter, area and create table 1 18**
+**2.7**** Assign c-square, year, month, quarter, area and create table 1 **
 
-**2.8**** Assign year, month, quarter, area and create table 2 19**
+**2.8**** Assign year, month, quarter, area and create table 2 **
 
-**3**** Contacts 20**
+**3**** Contacts **
 
-**4**** Change log 21**
+**4**** Change log **
 
-**Annex 1 Format specification for VMS data (VE) 22**
 
-**Annex 2 Format specification for Logbook data (LE) 23**
 
-1.
 # Part1
 
 This document is designed to aid analysts streamline the process of extracting VMS data in accordance with requirements of the ICES VMS data call.
 
 Part 1 of the document is provides guidelines for installing all the software necessary for data manipulation and aggregation into the requested format. The software used, R and RStudio, are available asfreeware.
 
-The document is designed to aid all users, regardless of their experience using R. The steps listed cover the installation of R and RStudio and detailed information will be providedtocoverallstagesoftheinstallationprocesstoensuresuccess.Dependingon yourskillsyoumightwanttojumpsomeofthesteps.Toensureconsistencyacrossall usersweadviseinstallingVMStoolsversion0.72.6Followingthesestepsshouldenable quick and simple processing of alldata.
+The document is designed to aid all users, regardless of their experience using R. The steps listed cover the installation of R and RStudio and detailed information will be provided to cover all stages of the installation process to ensure success. Depending on your skills you might want to jump some of the steps. To ensure consistency across all users we advise installing VMStoolsversion 0.76. Following these steps should enable quick and simple processing of all data.
 
-All the instructions and code below were tested in windows version newest than 7 and 8. However, if for any reason something is not working you can contact one of the members of our support team (emails at the end of the document).
+All the instructions and code below were tested in windows versions newest than 7 and 8. However, if for any reason something is not working you can contact one of the members of our support team (emails at the end of the document).
 
-  1.
+  
 ## Step 1: Installation of R
 
 (Where R is already installed (any 3.x.x 32 bits version) move to step 2)
 
-Completion of the first two steps of these guidelines is dependent on the user&#39;s computersecuritysetting.Ininstanceswhereadministratorprivilegeisrequiredthen pleaseaskamemberofyourIT/computersupportteamtorunthefirsttwostepsfor you.
+Completion of the first two steps of these guidelines is dependent on the users computer security setting. In instances where administrator privilege is required then please ask a member of your IT/computer support team to run the first two steps for you.
 
-So let&#39;s start by instaling R; click on the link below to download R version 4.1.2.
+So let's start by instaling R; click on the link below to download R version 4.1.2.
 
 [https://cran.r-project.org/](https://cran.r-project.org/)
 
@@ -60,28 +123,28 @@ Once it is downloaded, double click on the file (.exe). Depending on your securi
 
 - Select a language (when you select the language, bear in mind that these instructions are inEnglish)
 
-- AtthispointyoushouldbeontheRinstallationWizardmenu.Justclick **Next**
+- At this point you should be on the R installation Wizard menu.Just click **Next**
 
-- HereyouarepresentedwiththeGNUgeneralpubliclicensewhichyouaremost welcome to read. Click **Next**
+- Here you are presented with the GNU general public license which you are most welcome to read. Click **Next**
 
 - The menu (picture below) will appear and you will be asked to select the destinationfolder
 
 ![](RackMultipart20220215-4-1krebzr_html_54eb63a1f0be9fff.png)
 
-Ratherthanacceptingthedefault(C:Files-4.1.2)youshouldclickonthebrowsebutton andcreateadirectoryC:-4.2.1thiswillallowyoutoinstallpackageswithouthaving administratorprivileges.Onceyouhavechangedthefolderjustclick **Next**
+Rather than accepting the default(C:Files-4.1.2) you should click on the browse button and create a directory C:-4.2.1 this will allow you to install packages without having administrator privileges.Once you have changed the folder just click **Next**
 
-- Inthemenu&quot;Selectcomponents&quot;simplydeselect/untickthe64-bitfiles.Click
+- In the menu &quot;Selectcomponents&quot;simplydeselect/untickthe64-bitfiles.Click
 
 ### Next.
 
-- Click **Next** all the menus until the end of instalation, and that&#39;s it; R is now in- stalled on thecomputer.
+- Click **Next** all the menus until the end of instalation, and that's it; R is now in- stalled on thecomputer.
 
-  1.
-## Step 2: Installation ofRStudio
+  
+## Step 2: Installation of RStudio
 
-(Where R studio is already installed move to step 3)
+(Where Rstudio is already installed move to step 3)
 
-Ifyoudon&#39;thaveadministratorprivilegeonyourcomputeryouwillneedtocallyour IT/computersupporttoinstallRStudio.FirstdownloadRStudiobyclickingonthelink below
+If you don't have administrator privilege on your computer you will need to call your IT/computer support to install R Studio.First download RStudio by clicking on the link below
 
 [https://www.rstudio.com/products/rstudio/download/](https://www.rstudio.com/products/rstudio/download/)
 
@@ -89,26 +152,28 @@ For Window 10 (64-bit):
 
 [https://download1.rstudio.org/desktop/windows/RStudio-2021.09.2-382.exe](https://download1.rstudio.org/desktop/windows/RStudio-2021.09.2-382.exe)
 
-Once downloaded, double click on it. Depending on your security settings you might get a popup security warning asking if you want to Run or Cancel the installation, Click on **Run**. At this point you should be on the RStudio installation Wizard menu. RStudioisveryeasytoinstallsojustacceptalldefaultsandclick **Next** inallthemenus until theend.
+Once downloaded, double click on it. Depending on your security settings you might get a popup security warning asking if you want to Run or Cancel the installation, Click on **Run**. At this point you should be on the RStudio installation Wizard menu. RStudio is very easy to install so just accept all defaults and click **Next** in all the menus until the end.
 
-That&#39;s it. Step 2 is complete, RStudiois now installed.
+That's it. Step 2 is complete, RStudio is now installed.
 
-  1.
+  
 ## Step 3: Installing vmstools
 
 Next, download a compiled version of vmstools 0.76 by clicking the link below. Make sure you click save rather than open...
 
-![Shape7](RackMultipart20220215-4-1krebzr_html_851005f3d5727d6a.gif)
+[https://github.com/nielshintzen/vmstools/releases/download/0.76/vmstools\_0.76.zip](https://github.com/nielshintzen/vmstools/releases/download/0.76/vmstools_0.76.zip)
 
-```r 
+Now start Rstudio to install all the necessary R packages that vmstools depends on. Copy the following text 
+( referenced in the workflow file [0_global.R] (https://github.com/ices-eg/wg_WGSFD/blob/test-workflow/VMS-datacall/0_global.R ) )
+```
+r 
 
   install.packages(c("cluster","data.table","doBy","maps","mapdata","ma ptools","PBSmapping","sp","Matrix","ggplot2"))
   
 ```
 
-[https://github.com/nielshintzen/vmstools/releases/download/0.76/vmstools\_0.76.zip](https://github.com/nielshintzen/vmstools/releases/download/0.76/vmstools_0.76.zip)
+into the console and press enter. It should start installing all the packages needed This might take two or three minutes and your console should look like this once it has finished. Please contact your system administrator if you have issues installing these packages.
 
-Now start Rstudio to install all the necessary R packages that vmstools depends on. Copy the following text into the console and press enter.It should start installing all the packages needed ( referenced in the workflow file [0_global.R] (https://github.com/ices-eg/wg_WGSFD/blob/test-workflow/VMS-datacall/0_global.R ) ) .This might take two or three minutes and your console should look like this once it has finished.
 
 List of current workflow libraries required: 
 
@@ -131,26 +196,26 @@ library(gt)
 
 ![](RackMultipart20220215-4-1krebzr_html_87cc747119b9d5b6.jpg)
 
-To install vmstools click on the Tools tab on the main menu in RStudio. Then select InstallPackages.Thiswilltriggerapopupmenuliketheonebelow.Clickonthedown arrowinthe&quot;Installfrom:&quot;dialogueboxandselectthesecondoption&quot;PackageArchive File(Zip;tar.gz)&quot; then browse to the vmstools zip file that you just downloaded and pressInstall.
+To install vmstools click on the Tools tab on the main menu in RStudio. Then select Install Packages.This will trigger a pop up menu like the one below. Click on the down arrow in the 'Install from:'dialogue box and select the second option 'PackageArchive File(Zip;tar.gz)'; then browse to the vmstools zip file that you just downloaded and pressInstall.
 
 ![](RackMultipart20220215-4-1krebzr_html_4cba68b437cc424b.png)
 
-That&#39;s it; you now have all you need to process your data.
+That's it; you now have all you need to process your data.
 
-1.
+
 # Part2
 
-Partoneoftheseguidelineshaveguidedyouthroughtheinstallationofallthesoftware needed to process your data into the formats specified in the data call. Now, part two will focus on guiding you through the steps3 blocksthatcomprisetheworkflow: eflalo\_tacsat\_preprocessing.R, eflalo\_tacsat\_analysis\_R and data\_submission.R
+Part one of these guidelines have guided you through the installation of all the software needed to process your data into the formats specified in the data call. Now, part two will focus on guiding you through the steps3 blocks that comprise the workflow: eflalo\_tacsat\_preprocessing.R, eflalo\_tacsat\_analysis\_R and data\_submission.R
 
-.The aim is to get your data converted into the format specified in ICES DATSU: [http://datsu.ices.dk/web/selRep.aspx?Dataset=145](http://datsu.ices.dk/web/selRep.aspx?Dataset=145)
+The aim is to get your data converted into the format specified in ICES DATSU: [http://datsu.ices.dk/web/selRep.aspx?Dataset=145](http://datsu.ices.dk/web/selRep.aspx?Dataset=145)
 
 The work flow was developed in R, the principal objective being to facilitate the submission of data in the specified format by providing all country institutions with a standardised tool for data extraction. This will make data outputs more comparable and easier to work with.
 
-ManyofthespecificfunctionsthatthisworkflowusestoextractandprocessVMS and landings data are part of the open-source vmstools package. This package was specificallydevelopedtoworkwithVMSandlandingsdata.Ifyouwanttolearnmore about this tool you will find plenty of information and tutorials in the linkbelow.
+Many of the specific functions that this workflow uses to extract and process VMS and landings data are part of the open-source vmstools package. This package was specifically developed to work with VMS and landings data. If you want to learn more about this tool you will find plenty of information and tutorials in the linkbelow.
 
 [https://github.com/nielshintzen/VMStools/wiki](https://github.com/nielshintzen/VMStools/wiki)
 
-Beforeinitiatingtheworkflow,itisfirstnecessarythatyouhaveallVMSandlandings datainthetacsat2andeflalo2formatsrespectively.Ifyouneedmoreinformationabout either format you can download a document with the detailed specifications for both in the linkbelow.
+Before initiating the workflow, it is first necessary that you have all VMS and landings data in the tacsat2 and eflalo2 format srespectively. If you need more information about either format you can download a document with the detailed specifications for both in the linkbelow.
 
 [https://github.com/nielshintzen/VMStools/releases/download/0.0/Exchange\_EFLALO](https://github.com/nielshintzen/VMStools/releases/download/0.0/Exchange_EFLALO2_v2-1.doc)[2\_v2-1.doc](https://github.com/nielshintzen/VMStools/releases/download/0.0/Exchange_EFLALO2_v2-1.doc)
 
@@ -158,31 +223,30 @@ If you are experiencing difficulties and your data is not yet in the tacsat and/
 
 The proposed workflow is not a one-size-fits-all solution and there are parts of the script that may need to be adapted to allow for the specific nature of the fisheries data from each country. Throughout this document all parts of code that need adjustment will be highlighted and explained so you should have a good understanding of what is happening at alltimes.
 
-The code is divided in 3 main blocks. Eight sections and within these there are many blocks. We will explain briefly what each section and block does and its purpose within the code. The ideaoftheguidelinesisnottoexplainindetailwhateachlineofcodedoesbuttogive an overview of what is happening at each stage. The script itself is well annotated, so ifyouarefamiliarwithRandthevmstoolspackage,youprobablywon&#39;&#39;tneedtofollow these guidelines asclosely.
+The code is divided in 3 main blocks. Eight sections and within these there are many blocks. We will explain briefly what each section and block does and its purpose within the code. The ideaoftheguidelinesisnottoexplainindetailwhateachlineofcodedoesbuttogive an overview of what is happening at each stage. The script itself is well annotated, so if you are familiar with R and the vmstools package, you probably won't need to follow these guidelines as closely.
 
-Let&#39;&#39;s begin:
+Let's begin:
 
 House keeping
 
-Open &quot;&quot;Rstudio&quot;&quot; and load the workflow. Before making any changes save the script with a different name. This will allow you to quickly refer back to the original code in case anything unexpected happens.
+Open 'Rstudio' and load the workflow. Before making any changes save the script with a different name. This will allow you to quickly refer back to the original code in case anything unexpected happens.
 
-Justaquicknote,whichmaybeveryobviousforallofthoseusingR,butnotsomuch for someone just trying to follow the guidelines. Anything in the code after a hashtag (#)signisnotcodeanditwon&#39;&#39;tbereadbytheprogram.The#signisusedtoadd
-
-sections and block headers or general annotations. As such, the first line of code starts on line 23.
+Just a quick note, which may be very obvious for all of those using R, but not so much for someone just trying to follow the guidelines. Anything in the code after a hashtag (#)sign is not code and it won't be read by the program. The # sign is used to add sections and block headers or general annotations. 
+As such, the first line of code starts on line 23.
 
 To make it easier to follow the guidelines we will explain the code, referencing the sections, headers (numbered) and blocks by highlighting them in bold.
 
 # - Clear workspace
 
-This code will just clear your work space to allow you to start afresh. Also, the three packages that will be needed to run the code will be loaded into the session. If you followed the instructions in part one these should already be installed and loading them shouldn&#39;&#39;t be a problem.
+This code will just clear your work space to allow you to start afresh. Also, the three packages that will be needed to run the code will be loaded into the session. If you followed the instructions in part one these should already be installed and loading them shouldn't be a problem.
 
 #- Settings paths
 
-Atthispointyouneedtoreplacethepathsshowninthecodewithyourownones.The approach used in the code is one of best practice, as everything will be in one main folder &quot;&quot;VMSdatacall&quot;&quot;. This will make it very easy to navigate between folders and to backup.So,foryourownconvenienceitisrecommendedthatyouusethedefaultpaths aslistedinthecode.However,itispossibletochangethesebysimplyspecifyingyour personal destination folders and defining the chosenpath.
+At this point you need to replace the paths shown in the code with your own ones.The approach used in the code is one of best practice, as everything will be in one main folder 'VMSdatacall'. This will make it very easy to navigate between folders and to backup.So, for your own convenience it is recommended that you use the default paths as listed in the code. However, it is possible to change these by simply specifying your personal destination folders and defining the chosenpath.
 
 #- Settings and specific thresholds
 
-The thresholds here defined will be used later in different processes throughout the code. These will include, data cleaning or definition of vessel state (i.e. fishing/not fishing). The values set for the thresholds are considered to be reasonable and unless there are particularities in your data there shouldn&#39;&#39;t be a need to change these values.
+The thresholds here defined will be used later in different processes throughout the code. These will include, data cleaning or definition of vessel state (i.e. fishing/not fishing). The values set for the thresholds are considered to be reasonable and unless there are particularities in your data there shouldn't be a need to change these values.
 
 #- Re-run all years as we have new field for no. vessels
 
@@ -196,21 +260,21 @@ The thresholds here defined will be used later in different processes throughout
 
 #- Specify how landings should be distributed over the VMS pings: By day, ICES rectangle, trip basis or otherwise
 
-## 2,1 Data preprocessing
+## 2.1 Data preprocessing
 
 ### Load thedata
 
 ## #- 1a) Load VMStools underlying data
 
-ThiswillloadintothesessionsupportdatasuchasamapofEurope,listofharbours andICESareasthatwillbeusedthroughoutthecode.
+This will load in to the session support data such as a map of Europe, list of harbours and ICES areas that will be used throughout the code.
 
 ## #-1b) Looping through the data years
 
-Thenextlineofcodehasa&quot;for&quot;loopwhichmeansthattheallthecodewithintheloop willrunatthesametime.Thisparticularloopstretchesfromline51toline496leaving onlyacoupleoflinesattheendofthecode.However,beforerunningthe&quot;for&quot;loop thereareafewthingsthatneedtobechanged/adaptedtoyourcase.
+The next line of code has a 'for' loop which means that all the code within the loop will run at the same time. This particular loop stretches from line 51 to line 496 leaving only a couple of lines at the end of the code.However, before running the 'for' loop there are a few things that need to be changed/adapted to your case.
 
-In order to ensure that everything is working properly and to have a better understandingofwhatthecodeisdoinginsidetheloopwewillrunonesingleyearas atest.Ifweareabletorunoneyearofdatawithoutcomingacrosserrorsthenwecan runthecodeforalltheyearsatonce.
+In order to ensure that everything is working properly and to have a better understanding of what the code is doing inside the loop we will run one single year as a test. If we are able to run one year of data without coming across errors then we can run the code for all the years at once.
 
-Soforthemomentwewillignorethisblock(#-1b) **Looping**** through ****the**** data**andcopy the line below into theconsole:
+So for the moment we will ignore this block (#-1b) **Looping**** through ****the**** data** and copy the line below into the console:
 
 ![Shape10](RackMultipart20220215-4-1krebzr_html_7654d64c61b2602a.gif)
 
@@ -222,11 +286,11 @@ yearsToSubmit <- sort(2009:2009)
 
 ## #- 1c) load tacsat and eflalo data from file
 
-In your &quot;Data&quot; folder you should have all your tacsat and eflalo files in the .RDATA format.Inthecodeitisexpectedthatyourfileshavethefollowingnamingconvention &quot;tacsat\_ XXXX&quot; i.e. tacsat\_2009; tacsat\_2010, etc. The same naming convention is applied to the eflalo files. This will allow the code to load the files as they are needed duringthe&quot;for&quot;loop.Failingtocorrectlynamethefileswillresultinanerror.
+In your 'Data' folder you should have all your tacsat and eflalo files in the .RDATA format. In the code it is expected that your files have the following naming convention 'tacsat\_ XXXX&quot; i.e. tacsat\_2009; tacsat\_2010, etc. The same naming convention is applied to the eflalo files. This will allow the code to load the files as they are needed during the 'for' loop. Failing to correctly name the files will result in an error.
 
-Sincewehavejustcopied **year\&lt;-**** 2009**totheconsole,whenwerunthisblockonlythe 2009 year data will beloaded.
+Since we have justcopied **year\&lt;-**** 2009** to the console, when we run this block only the 2009 year data will beloaded.
 
-Now that you have just loaded both tacsat and eflalo for 2009 the next two lines will just change the name of your objects to &quot;tacsat&quot; and &quot;eflalo&quot;. Depending on what your objects are called you may need to change the code. (tip: If at any stage you don&#39;t remember what the names are just type &quot;ls()&quot; and a list of all objects already loaded will appear). If your object names are not &quot;tacsat&quot; and &quot;eflalo&quot; you will need to adapt the code. However, this is a simple process. Below are two examples for changing objects names in this case the names are &quot;2009Tacsat&quot; and another called &quot;Tac09&quot;
+Now that you have just loaded both tacsat and eflalo for 2009 the next two lines will just change the name of your objects to 'tacsat' and 'eflalo'. Depending on what your objects are called you may need to change the code. (tip: If at any stage you don't remember what the names are just type 'ls()' and a list of all objects already loaded will appear). If your object names are not 'tacsat' and 'eflalo' you will need to adapt the code. However, this is a simple process. Below are two examples for changing objects names in this case the names are '2009Tacsat' and another called 'Tac09'
 
 ![Shape11](RackMultipart20220215-4-1krebzr_html_7a43faac36ba21ba.gif)
 
@@ -245,15 +309,15 @@ It just ensures that your files are formatted properly.
 
 #- Take only VMS pings and eflalo records in the ICES areas
 
-This block of code will identify all VMS pings (tacsat) ~~and landings (eflalo~~) within the ICES areas.
+This block of code will identify all VMS pings (tacsat) within the ICES areas.
 
 ### Clean the tacsatdata
 
-Thissectionwillfocuson&quot;cleaning&quot;thedatainthetacsatfile.Theinformationinthe tacsat(vms)comesfromanelectronicsystemthatusesGPSinformationtocollectthe data on board the vessel and uses a satellite link to send the data to the database. Despitethereliabilityofthissystemconditionsatseaarenotalwaysthebest.Thereare twomainopportunitiesforerrorstooccur,whenreceivingorsendingdatafromthe GPSandtothedatabase.Thecodeinthissectionwilllooktothemostcommonerrors andtrytoidentifyallofthem.Thecodewillnotonlydeletetheerrorsbutalsokeepa recordofwhatwasdeletedallowingyoutokeeptrackofhowmuchdatayouhavelost due toerrors.
+This section will focus on 'cleaning' the data in the tacsatfile. The information in the tacsat(vms)comes from an electronic system that uses GPS information to collect the data on board the vessel and uses a satellite link to send the data to the database. Despite the reliability of this system conditions at sea are not always the best.There are two main opportunities for errors to occur, when receiving or sending data from the GPS and to the database. The code in this section will look to the most common errors and try to identify all of them. The code will not only delete the errors but also keep a record of what was deleted allowing you to keep track of how much data you have lost due to errors.
 
 #- Keep track of removed points
 
-Thissectionwillcheckforfivecommontypesoferrors.Ateachofthesecheckserrors will be removed from the tacsat object. However, the data removed will be kept and savedinthe&quot;Results&quot;foldersoyoucanverifytheerrors.Also,thevolumeforeachof errorsforeachofthefivechecksisrecordedthe&quot;remrecsTacsat&quot;object.Thisobjectwill tell you percentage wise how much you have lost in relation to the original tacsat object.
+This section will check for five common types of errors. A teach of these checks errors will be removed from the tacsat object. However, the data removed will be kept and saved in the 'Results'folder so you can verify the errors. Also, the volume for each of errors for each of the five checks is recorded the 'remrecsTacsat'object. This object will tell you percentage wise how much you have lost in relation to the original tacsat object.
 
 #- Remove duplicate records
 
@@ -263,7 +327,7 @@ Thissectionwillcheckforfivecommontypesoferrors.Ateachofthesecheckserrors will be
 
 #- Remove points on land
 
-All of the above are self-explanatory and each of the five blocks will check for a particular type of error, remove them where they occur and store the removed entries in the &quot;Results&quot; folder and will quantify the number of values removed.
+All of the above are self-explanatory and each of the five blocks will check for a particular type of error, remove them where they occur and store the removed entries in the 'Results' folder and will quantify the number of values removed.
 
 #- Save the remrecsTacsat file
 
@@ -275,15 +339,15 @@ Now you have your file cleaned and saved so no need to repeat the process in fut
 
 ### Clean the eflalodata
 
-This section, like the previous one also focuses on &quot;cleaning&quot; the data. This time the target is the eflalo file. The types of errors are of a different nature but once again the codetriestoaccountforthemostcommonserrors.Asintheprevioussection,thecode will keep track of what data has been removed and how much. All these files can be found in the &quot;Results&quot; folder. One should spend a bit of time looking at the data removed as it can be very useful to understand why and where problemsoccur.
+This section, like the previous one also focuses on &quot;cleaning&quot; the data. This time the target is the eflalo file. The types of errors are of a different nature but once again the code tries to account for the most commons errors. As in the previous section, the code will keep track of what data has been removed and how much. All these files can be found in the 'Results' folder. One should spend a bit of time looking at the data removed as it can be very useful to understand why and where problemsoccur.
 
 #- Keep track of removed points
 
-The &quot;remrecsEflalo&quot; object will keep you informed of how much data has been removed.
+The 'remrecsEflalo' object will keep you informed of how much data has been removed.
 
 #- Warn for outlying catch records
 
-Basicallythisblocklooksforoutliers.Foreachspecies,itgeneratesadata-drivenoutlier threshold.Ifanyoutliersarefound,thesewillbeconvertedinto&quot;NA&quot;values.Youcan checkinthe&quot;Results&quot;folderforthefilescontainingalltheoutliersandyoucandouble check if they are correct or not. If they were correct then you can run the code again but the code will need someadjustments.
+Basically this block looks for outliers. For each species, it generates a data-driven outlier threshold.If any outliers are found, these will be converted into 'NA' values.You can check in the 'Results' folder for the files containing all the outliers and you can double check if they are correct or not. If they were correct then you can run the code again but the code will need some adjustments.
 
 #First get the species names in your eflalo dataset
 
@@ -309,41 +373,41 @@ Basicallythisblocklooksforoutliers.Foreachspecies,itgeneratesadata-drivenoutlier
 
 #- Remove records with arrival date before departure date
 
-Theaboveblockheadersareself-explanatoryandthecodeineachoftheblocksisjust identifyingthosecommonerrorsandremovingthemfromtheeflaloobject.
+The above block headers are self-explanatory and the code in each of the blocks is just identifying those common errors and removing them from the eflalo object.
 
 #- Save the remrecsEflalo file #- Save the cleaned eflalo file
 
-The&quot;remrecsEflalo&quot;fileissavedforfuturereference.Soisthecleanedeflalofilewhich, likethetacsat,willbereadytouseinthefuture.
+The 'remrecsEflalo' file is saved for future reference. So is the cleaned eflalo file which, like the tacsat, will be ready to use in the future.
 
 ## 2.2 Data analysis
 
 ##
 
-### Mergethetacsatandeflalodatatogether
+### Merge the tacsat and eflalo data together
 
-Insectionfourwebringthetacsatandeflalotogetherbymergingtocreateanewobject. Thiswillenableustorelatethelandingscomponent(eflalo)tothethevesselactivity
+In section four we bring the tacsat and eflalo together by merging to create a new object. This will enable us to relate the landings component (eflalo) to the vessel activity
 
 i.e. VMS (tacsat)
 
 #- Merge eflalo and tacsat
 
-Thefilestacsatandeflalowillbecombinedusingsomeverycleveralgorithmsthatuse the vessel identifier and date and time in both data sets to relate the landings to the correspondingVMSdataforthesametrip.
+The files tacsat and eflalo will be combined using some very clever algorithms that use the vessel identifier and date and time in both data sets to relate the landings to the corresponding VMS data for the same trip.
 
-###-AssigngearandlengthtotacsatThenewobjecttacsatpisnowamergedversion ofthecleanedtacsatandeflaloobjects.However,thenewobjecthasn&#39;tinheritedallthe fieldsfromeflaloduetoreasonsofprocessingspeedandworkability.Atthispointwe willextractsomedatafromtheeflalodatasettopopulatethecorrespondingtacsatp fields.Thedataweareinterestedinaredatathatwillbeusedlateroninthecodeto populatethefinaldatatables.Thingslikegear;kw;metiers,etc.
+###-Assigngearandlengthtotacsat The new object tacsatp is now a merged version of the cleaned tacsat and eflalo objects.However, the new object hasn't inherited all the fields from eflalo due to reasons of processing speed and work ability. At this point we will extract some data from the eflalo dataset to populate the corresponding tacsatp fields. The data we are interested in are data that will be used later on in the code to populate the final data tables.Things like gear;kw;metiers,etc.
 
 # Assign gear and length to tacsat
 
 #- Save not merged tacsat data
 
-Not all vessel activity is associated with fishing events; quite often vessels may be testingequipmentorcharteredtodojobsotherthanfishing.So,themergeexecutedin the previous block only includesVMS data that can be linked to corresponding landings records. As such, it will not be possible to merge all tacsat data for allocation to the tacsatp object. This block will save both the merged and non-merged data into the &quot;Results&quot;folder.
+Not all vessel activity is associated with fishing events; quite often vessels may be testing equipment or chartered to do jobs other than fishing. So, the merge executedin the previous block only includesVMS data that can be linked to corresponding landings records. As such, it will not be possible to merge all tacsat data for allocation to the tacsatp object. This block will save both the merged and non-merged data into the 'Results' folder.
 
-### Defineactivity
+### Define activity
 
-Thisisacrucialsection,asvesselactivitywillbedefinedhere.Also,thisisthesection thatneedsthemostcustomizationforwhichsomeknowledgeoffisheriesactivitieswill beneeded.Inthissectionwewilltrytoexplainthestepsinmoredetailandincorporate some reproducible examples as well. The first couple of lines in this section will calculate time interval between points. The time values and the interval threshold will be paramount in identifying vessel activity lateron.
+This is a crucial section, as vessel activity will be defined here. Also, this is the section that needs the most customization for which some knowledge of fisheries activities will be needed. In this section we will try to explain the steps in more detail and incorporate some reproducible examples as well. The first couple of lines in this section will calculate time interval between points. The time values and the interval threshold will be paramount in identifying vessel activity lateron.
 
 # Calculate time interval between points
 
-#- Remove points with NA&#39;s in them in critical places
+#- Remove points with NA's in them in critical places
 
 This block gets rid of any rows in the tacsatp for which critical information (vessel reference, latitude, longitude, speed, date and time) is missing. If this data wasn&#39;t removed it would most likely lead to errors.
 
@@ -355,9 +419,9 @@ The code in this block creates a very useful plot of speed frequency by gear. Th
 
 # Create speed threshold object
 
-The three last lines of this block will create a threshold object. However, your input and knowledge of the relevant fisheries will be needed at this stage. The threshold objectwillholdtheminimumandmaximumspeedoffishingforeachofthegears(i.e. the minimum and maximum speeds at which the specific fishing activity is thought to occur).Tohelpyouwiththistaskyoushouldlookatthepreviousspeedfrequencyplot to help distinguish steaming from fishingevents.
+The three last lines of this block will create a threshold object. However, your input and knowledge of the relevant fisheries will be needed at this stage. The threshold object will hold the minimum and maximum speed of fishing for each of the gears(i.e. the minimum and maximum speeds at which the specific fishing activity is thought to occur).To help you with this task you should look at the previous speed frequency plot to help distinguish steaming from fishing events.
 
-By running the third last line in this block you create an object &quot;speedarr&quot; with all the different gears in your data. The second and third lines will fill in column 2 and 3 of the &quot;speedarr&quot; object with the minimum and maximum fishing speeds. These values are set to 1kt and 6kt by default. At this stage you will need to set up the upper and lower limits for each of the gears. Although there are several ways of accomplishing this, we will demonstrate one of them here. In the example below we use a list of 5 gears(DRB;PTB;OTT;GN;FPO)althoughyouarelikelytohavemanymoregearsin yourdatasetsoyouwillneedtoextendthecodetoaccommodateallgearsaccordingly.
+By running the third last line in this block you create an object &quot;speedarr&quot; with all the different gears in your data. The second and third lines will fill in column 2 and 3 of the 'speedarr' object with the minimum and maximum fishing speeds. These values are set to 1kt and 6kt by default. At this stage you will need to set up the upper and lower limits for each of the gears. Although there are several ways of accomplishing this, we will demonstrate one of them here. In the example below we use a list of 5 gears(DRB;PTB;OTT;GN;FPO) although you are likely to have many more gears in your dataset so you will need to extend the code to accommodate all gears accordingly.
 
 To create our example, copy the code below into the console:
 
@@ -369,15 +433,15 @@ speedarr
 
 ![Shape17](RackMultipart20220215-4-1krebzr_html_bbccfc5b04932d63.gif)
 
-So, in the example above you can easily see how each line applies to one gear and on theleftyouhavetheminimumvaluesontherightthemaximum.Makesurewhenyou copy and paste the lines you change the gears and values on bothsides.
+So, in the example above you can easily see how each line applies to one gear and on the left you have the minimum values on the right the maximum. Make sure when you copy and paste the lines you change the gears and values on both sides.
 
 If your data varies from year to year you might want to check if you have different gears in different years. Before running the full code, you should make sure that all gears are included in the code above.
 
-#-Analyseactivityautomatedforcommongearsonly.Usethespeedarrfortheother gears
+#-Analyse activity automated for common gears only. Use the speedarr for the other gears
 
 This block allows you to select some gears for which the detection can be done automatically. This is another functionality of VMStools which applies for the most common gears. So, in this block you will need to choose which gears to want to apply auto detection. You can add or delete gears in the first line of code in this block.
 
-The remainder of the code in the block will split the tacsatp object in two depending on whether gears will be detected automatically or whether the thresholds need to be userdefinedaccordingtothecodefromthepreviousblock.Theremaininglinesinthe block don&#39;t need to bechanged.
+The remainder of the code in the block will split the tacsatp object in two depending on whether gears will be detected automatically or whether the thresholds need to be user defined according to the code from the previous block. The remaining lines in the block don't need to bechanged.
 
 #- Fill the storeScheme values based on analyses of the pictures
 
@@ -385,29 +449,29 @@ The remainder of the code in the block will split the tacsatp object in two depe
 
 In this block the speed histogram plot created previously will be used once more. You will have to identify the peaks in the plot for the gears for which you want the activity to be automatically detected (bear in mind that the algorithm was developed with trawling in mind).
 
-So,firstofallmakesureyouhavealineforeachofthegears(seelinebelow)changing the gears and mean speedsaccordingly.
+So, first of all make sure you have a line for each of the gears (see line below) changing the gears and mean speedsaccordingly.
 
 ![Shape18](RackMultipart20220215-4-1krebzr_html_624a874ecde17481.gif)
 
-storeScheme$means[which(storeScheme$analyse.by == &quot;SSC&quot;)] \&lt;- c(&quot;-9 0 9&quot;)
+storeScheme$means[which(storeScheme$analyse.by == 'SSC')] <- c('-9 0 9')
 
-Nowusingtheplot,identifywherethepeaksareandusethistochangethecode.Make sure you follow the same nomenclature as the example provided. Also, for the algorithm to perform better, we need to create a mirror image of the peaks and with 0 (zero) in the middle .If the number of peaks for a particular gear is greater or less than 5 you will need to add a line (like the one below) with the true number of peaks observed. In the example above there were three peaks -9, 0, 9 so we would need to add the line below to thecode.
+Now using the plot, identify where the peaks are and use this to change the code. Make sure you follow the same nomenclature as the example provided. Also, for the algorithm to perform better, we need to create a mirror image of the peaks and with 0 (zero) in the middle .If the number of peaks for a particular gear is greater or less than 5 you will need to add a line (like the one below) with the true number of peaks observed. In the example above there were three peaks -9, 0, 9 so we would need to add the line below to thecode.
 
 ![Shape19](RackMultipart20220215-4-1krebzr_html_f9e04cd3e8c1bcf.gif)
 
-storeScheme$peaks[which(storeScheme$analyse.by==&quot;SSC&quot;)] \&lt;-
+toreScheme$means[which(storeScheme$analyse.by == 'SSC')] <- 3
 
-3
+
 
 ![Shape20](RackMultipart20220215-4-1krebzr_html_f9e04cd3e8c1bcf.gif)
 
-The second half of the block, checks the results of the auto detection; if they are not satisfactorytheanalysisisrunoncemore;thistimeusingfixedpeaks.However,inthis workflowwewillnotbeusingfixedpeakssononeedtoworryaboutthis.
+The second half of the block, checks the results of the auto detection; if they are not satisfactory the analysis is run once more; this time using fixed peaks.However, in this workflow we will not be using fixed peaks so no need to worry about this.
 
 # Check results, and if results are not satisfactory, run analyses again but now with fixed peaks #
 
 #- Assign for visually inspected gears a simple speed rule classification
 
-This block deals with all the other gears that are not automatically detected. The code simplyappliestheupperandlowerlimitsdefinedpreviouslytodefineifvesselactivity as either steaming orfishing.
+This block deals with all the other gears that are not automatically detected. The code simply applies the upper and lower limits defined previously to define if vessel activity as either steaming orfishing.
 
 #- Combine the two dataset together again
 
@@ -423,13 +487,13 @@ This section calculates the total daily landings (weight and value) and splits t
 
 ### Assign c-square, year, month, quarter, area and create table1
 
-Weareatfinalstageandthecodeinthisblockwillgenerateoneofthetablesrequested by the data call (see annex 1). The first part of the code pulls together all the fields needed to create the table. The second part deals with the aggregation byCSquare.
+We are at final stage and the code in this block will generate one of the tables requested by the data call. The first part of the code pulls together all the fields needed to create the table. The second part deals with the aggregation by CSquare.
 
 ### Assign year, month, quarter, area and create table2
 
-We have reached the last section. As in the previous one, the first part of the code will create all the fields needed for table 2 (see annex 2) as requested in the data call. The second part of the code deals with the aggregation into CSquares.
+We have reached the last section. As in the previous one, the first part of the code will create all the fields needed for table 2 as requested in the data call. The second part of the code deals with the aggregation into CSquares.
 
-Runningthelasttwolinessavesthedataintothe&quot;Results&quot;folder.Don&#39;tforgettocheck the outputs to make sure that everything iscorrect.
+Running the last two lines saves the data into the 'Results' folder. Don't forget to check the outputs to make sure that everything iscorrect.
 
 If you are happy with all the results then you can proceed running the entire code. Make sure you double check the names of the input files, ensuring they follow the convention (as in the example) and run the entire code.
 
@@ -484,121 +548,8 @@ Rui Catarino, ICES |
 | 1 February 2019 | Update | Lara Salvany, ICES |
 
 1 February 2021 Update Lara Salvany, ICES
+15 February 2022 Update Roi Martinez, UK
+                        Lara Salvany, ICES
 
-# Annex1 Format specificationforVMS data (VE)
 
-The specification of the format for VMS can be found here: [datsu.ices.dk/web/selRep.aspx?Dataset=145](http://datsu.ices.dk/web/selRep.aspx?Dataset=145)
 
-and in the table below
-
-| Start | FieldCode | Datatype | Code List | Mandatory | Description |
-| --- | --- | --- | --- | --- | --- |
-| 1 | RecordType | char(2) |
- | M | RecordType field consists of a 2-character code,
- which defines the record type and thus the layout of the data fields included on that record. |
-| 2 | CountryCode | char(3) | ISO\_3166 | M | ISO 3166-1 alpha-3 codes. The flag country
- of the vessel. |
-| 3 | Year | char(4) |
- | M | Year |
-| 4 | Month | int(2) |
- | M | Month |
-| 5 | NoDistinctVessels | int(5) |
- | M | Number of disctinct vessels |
-| 6 | AnonymizedVesselID | nvarchar(500) |
- | M | Anonimyzed vessel ID: Country code + 3 digits and semicolon separated.
- For example: ESP001; ESP003; |
-| 7 | C-square | nvarchar(15) |
- | M | 0.05x0.05 degree,
- C-square reference XXXX:XXX:XXX:X |
-| 8 | MetierL4 | char(25) | Metier-4 | M | Gear code |
-| 9 | MetierL5 | char(50) | Metier-5 | M | Target assemblage |
-| 10 | LowerMeshSize | int(50) |
- |
- | LowerMeshSize |
-| 11 | UpperMeshSize | int(50) |
- |
- | UpperMeshSize |
-| 12 | MetierL6 | char(40) |
- | M | Metier level 6 |
-| 13 | VesselLengthRange | char(20) | [BYC\_VesselLRange](http://vocab.ices.dk/?ref=1502) | M | Vessel Length range |
-| 14 | AverageFishingSpeed | float(15) |
- | M | Average fishing speed within the aggregation: year, month, c-square, vessel length category, gear code and DCF métier |
-| 15 | FishingHour | float(15) |
- | M | Fishing hour calculated from VMS data (excluding nonfishing activity) |
-| 16 | AverageVesselLength | float(15) |
- | M | Average vessel length within the aggregation: year,
- month, c-square, gear code and DCF metier |
-| 17 | AveragekW | float(15) |
- | M | Average vessel power( kW) within the aggregation: year,
- month, c-square, gear code and DCF metier |
-| 18 | kWFishingHour | float(15) |
- | M | kW\*Fishing hours |
-| 19 | TotWeight | float(15) |
- | M | Total landings of all species caught in kg |
-| 20 | TotValue | float(15) |
- |
- | Total Value of all species caught in Euro |
-| 21 | AverageGearWidth | float(15) |
- | M | Averagfe Gear width |
-
-M = mandatory
-
-\*DCF level = Fishing activity – Metier: [http://datacollection.jrc.ec.europa.eu/wordef/fishing-activity-metier](http://datacollection.jrc.ec.europa.eu/wordef/fishing-activity-metier)
-
-[http://ices.dk/marine-data/Documents/RDB/RDB%20Metiers%20by%20fishing%20grounds.csv](http://ices.dk/marine-data/Documents/RDB/RDB%20Metiers%20by%20fishing%20grounds.csv)
-
-# Annex 2 Format specificationforLogbook data (LE)
-
-The specification of the format for VMS can be found here: [datsu.ices.dk/web/selRep.aspx?Dataset=145](http://datsu.ices.dk/web/selRep.aspx?Dataset=145)
-
-and in the table below:
-
-| Start | FieldCode | Datatype | Code List | Mandatory | Description |
-| --- | --- | --- | --- | --- | --- |
-| 1 | RecordType | char(2) |
- | M | RecordType field consists of a 2-character code,
- which defines the record type and thus the layout of the data fields included on that record. |
-| 2 | CountryCode | char(3) | ISO\_3166 | M | ISO 3166-1 alpha-3 codes. The flag country
- of the vessel. |
-| 3 | Year | char(4) |
- | M | Year |
-| 4 | Month | int(2) |
- | M | Month |
-| 5 | NoDistinctVessels | int(5) |
- | M | Number of disctinct vessels |
-| 6 | AnonymizedVesselID | nvarchar(500) |
- | M | Anonimyzed vessel ID: Country code + 3 digits and semicolon separated.
- For example: ESP001; ESP003; |
-| 7 | ICESrectangle | char(4) | [StatRec](http://vocab.ices.dk/?ref=107) | M | ICES Statistical Rectangle |
-| 8 | MetierL4 | char(25) | [Metier-4](http://vocab.ices.dk/?ref=1498) | M | Metier level 4 |
-| 9 | MetierL5 | char(50) | [Metier-5](http://vocab.ices.dk/?ref=1499) | M | Gear code |
-| 10 | LowerMeshSize | int(50) |
- |
- | LowerMeshSize |
-| 11 | UpperMeshSize | int(50) |
- |
- | UpperMeshSize |
-| 12 | MetierL6 | char(40) |
- | M | Metier level 6 |
-| 13 | VesselLengthRange | char(20) | [BYC\_VesselLRange](http://vocab.ices.dk/?ref=1502) | M | Vessel Length range |
-| 14 | VMSEnabled |
- | [YesNoFields](http://vocab.ices.dk/?ref=316) |
- | Yes/No |
-| 15 | FishingDays | float(15) |
- | M | Number of fishing days by ICES rectangle. If a
- vessel fished in several ICEs squares one day, the day will be divided by the number of ICES rectangles |
-| 16 | kWFishingDays |
- |
- |
- | kW\*FishingDays |
-| 17 | TotWeight | float(15) |
- | M | Total landings of all species caught in kg |
-| 18 | TotValue | float(15) |
- |
- | Total value of all species caught in Euro |
-
-M = mandatory
-
-\*DCF level = Fishing activity – Metier: [http://datacollection.jrc.ec.europa.eu/wordef/fishing-activity-metier](http://datacollection.jrc.ec.europa.eu/wordef/fishing-activity-metier)
-
-[http://ices.dk/marine-data/Documents/RDB/RDB%20Metiers%20by%20fishing%20grounds.cs](http://ices.dk/marine-data/Documents/RDB/RDB%20Metiers%20by%20fishing%20grounds.cs)
