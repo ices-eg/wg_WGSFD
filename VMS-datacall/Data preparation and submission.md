@@ -98,7 +98,7 @@
 
 
 
-# Part1
+# Part1. Installation of required software 
 
 This document is designed to aid analysts streamline the process of extracting VMS data in accordance with requirements of the ICES VMS data call.
 
