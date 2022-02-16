@@ -202,7 +202,7 @@ To install vmstools click on the Tools tab on the main menu in RStudio. Then sel
 
 That's it; you now have all you need to process your data.
 
-1.
+
 # Part2
 
 Part one of these guidelines have guided you through the installation of all the software needed to process your data into the formats specified in the data call. Now, part two will focus on guiding you through the steps3 blocks that comprise the workflow: eflalo\_tacsat\_preprocessing.R, eflalo\_tacsat\_analysis\_R and data\_submission.R
@@ -215,7 +215,7 @@ Many of the specific functions that this workflow uses to extract and process VM
 
 [https://github.com/nielshintzen/VMStools/wiki](https://github.com/nielshintzen/VMStools/wiki)
 
-Before initiating theworkflow,itisfirstnecessarythatyouhaveallVMSandlandings datainthetacsat2andeflalo2formatsrespectively.Ifyouneedmoreinformationabout either format you can download a document with the detailed specifications for both in the linkbelow.
+Before initiating the workflow, it is first necessary that you have all VMS and landings data in the tacsat2 and eflalo2 format srespectively. If you need more information about either format you can download a document with the detailed specifications for both in the linkbelow.
 
 [https://github.com/nielshintzen/VMStools/releases/download/0.0/Exchange\_EFLALO](https://github.com/nielshintzen/VMStools/releases/download/0.0/Exchange_EFLALO2_v2-1.doc)[2\_v2-1.doc](https://github.com/nielshintzen/VMStools/releases/download/0.0/Exchange_EFLALO2_v2-1.doc)
 
@@ -223,31 +223,30 @@ If you are experiencing difficulties and your data is not yet in the tacsat and/
 
 The proposed workflow is not a one-size-fits-all solution and there are parts of the script that may need to be adapted to allow for the specific nature of the fisheries data from each country. Throughout this document all parts of code that need adjustment will be highlighted and explained so you should have a good understanding of what is happening at alltimes.
 
-The code is divided in 3 main blocks. Eight sections and within these there are many blocks. We will explain briefly what each section and block does and its purpose within the code. The ideaoftheguidelinesisnottoexplainindetailwhateachlineofcodedoesbuttogive an overview of what is happening at each stage. The script itself is well annotated, so ifyouarefamiliarwithRandthevmstoolspackage,youprobablywon&#39;&#39;tneedtofollow these guidelines asclosely.
+The code is divided in 3 main blocks. Eight sections and within these there are many blocks. We will explain briefly what each section and block does and its purpose within the code. The ideaoftheguidelinesisnottoexplainindetailwhateachlineofcodedoesbuttogive an overview of what is happening at each stage. The script itself is well annotated, so if you are familiar with R and the vmstools package, you probably won't need to follow these guidelines as closely.
 
-Let&#39;&#39;s begin:
+Let's begin:
 
 House keeping
 
-Open &quot;&quot;Rstudio&quot;&quot; and load the workflow. Before making any changes save the script with a different name. This will allow you to quickly refer back to the original code in case anything unexpected happens.
+Open 'Rstudio' and load the workflow. Before making any changes save the script with a different name. This will allow you to quickly refer back to the original code in case anything unexpected happens.
 
-Justaquicknote,whichmaybeveryobviousforallofthoseusingR,butnotsomuch for someone just trying to follow the guidelines. Anything in the code after a hashtag (#)signisnotcodeanditwon&#39;&#39;tbereadbytheprogram.The#signisusedtoadd
-
-sections and block headers or general annotations. As such, the first line of code starts on line 23.
+Just a quick note, which may be very obvious for all of those using R, but not so much for someone just trying to follow the guidelines. Anything in the code after a hashtag (#)sign is not code and it won't be read by the program. The # sign is used to add sections and block headers or general annotations. 
+As such, the first line of code starts on line 23.
 
 To make it easier to follow the guidelines we will explain the code, referencing the sections, headers (numbered) and blocks by highlighting them in bold.
 
 # - Clear workspace
 
-This code will just clear your work space to allow you to start afresh. Also, the three packages that will be needed to run the code will be loaded into the session. If you followed the instructions in part one these should already be installed and loading them shouldn&#39;&#39;t be a problem.
+This code will just clear your work space to allow you to start afresh. Also, the three packages that will be needed to run the code will be loaded into the session. If you followed the instructions in part one these should already be installed and loading them shouldn't be a problem.
 
 #- Settings paths
 
-Atthispointyouneedtoreplacethepathsshowninthecodewithyourownones.The approach used in the code is one of best practice, as everything will be in one main folder &quot;&quot;VMSdatacall&quot;&quot;. This will make it very easy to navigate between folders and to backup.So,foryourownconvenienceitisrecommendedthatyouusethedefaultpaths aslistedinthecode.However,itispossibletochangethesebysimplyspecifyingyour personal destination folders and defining the chosenpath.
+At this point you need to replace the paths shown in the code with your own ones.The approach used in the code is one of best practice, as everything will be in one main folder 'VMSdatacall'. This will make it very easy to navigate between folders and to backup.So, for your own convenience it is recommended that you use the default paths as listed in the code. However, it is possible to change these by simply specifying your personal destination folders and defining the chosenpath.
 
 #- Settings and specific thresholds
 
-The thresholds here defined will be used later in different processes throughout the code. These will include, data cleaning or definition of vessel state (i.e. fishing/not fishing). The values set for the thresholds are considered to be reasonable and unless there are particularities in your data there shouldn&#39;&#39;t be a need to change these values.
+The thresholds here defined will be used later in different processes throughout the code. These will include, data cleaning or definition of vessel state (i.e. fishing/not fishing). The values set for the thresholds are considered to be reasonable and unless there are particularities in your data there shouldn't be a need to change these values.
 
 #- Re-run all years as we have new field for no. vessels
 
