@@ -368,7 +368,7 @@ for(year in yearsToSubmit)  {
           tacsatEflalo[,
             c(
               "VE_REF", "VE_COU", "Year", "Month", "Csquare", "LE_GEAR",
-              "VE_LEN","LE_MET", "SI_SP", "INTV", "VE_LEN", "kwHour", "VE_KW", "LE_KG_TOT", "LE_EURO_TOT"
+              "LE_MET", "SI_SP", "INTV", "VE_LEN", "kwHour", "VE_KW", "LE_KG_TOT", "LE_EURO_TOT"
             )
           ])
       )
@@ -438,7 +438,7 @@ for(year in yearsToSubmit)  {
             ,
             c(
               "VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET",
-               "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
+              "VE_LEN", "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
             )
           ]
         )
