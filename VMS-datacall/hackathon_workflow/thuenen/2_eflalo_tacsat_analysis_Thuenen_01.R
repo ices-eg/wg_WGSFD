@@ -344,7 +344,7 @@ for(year in yearsToSubmit)  {
   tacsatEflalo$kwHour    <- tacsatEflalo$VE_KW * tacsatEflalo$INTV / 60
   tacsatEflalo$INTV      <- tacsatEflalo$INTV / 60
 
-  tacsatEflalo_active <-subset(tacsatEflalo, SI_STATE=1) #subset with active fishing
+  tacsatEflalo_active <-subset(tacsatEflalo, SI_STATE==1) #subset with active fishing
 
   RecordType <- "VE"
 
@@ -355,7 +355,7 @@ for(year in yearsToSubmit)  {
         tacsatEflalo_active[,
           c(
             "VE_REF", "VE_COU", "Year", "Month", "Csquare", "LE_GEAR",
-            "LE_MET", "SI_SP", "INTV", "VE_LEN", "kwHour", "VE_KW", "LE_KG_TOT", "LE_EURO_TOT"
+            "VE_LEN", "LE_MET", "SI_SP", "INTV", "VE_LEN", "kwHour", "VE_KW", "LE_KG_TOT", "LE_EURO_TOT"
           )
         ])
   } else {
@@ -438,7 +438,7 @@ for(year in yearsToSubmit)  {
             ,
             c(
               "VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET",
-               "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
+              "VE_LEN", "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
             )
           ]
         )

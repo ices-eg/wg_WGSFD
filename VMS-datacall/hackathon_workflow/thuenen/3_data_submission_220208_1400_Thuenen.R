@@ -5,6 +5,19 @@
 load(file = paste0(outPath, "table1.RData")  )
 load(file = paste0(outPath, "table2.RData")  )
 
+# in German data only
+# change TBC to TBB
+table1$LE_GEAR[table1$LE_GEAR=="TBC"]<-"TBB"  
+table2$LE_GEAR[table2$LE_GEAR=="TBC"]<-"TBB"  
+# change PUL & PUK to TBB
+table1$LE_GEAR[table1$LE_GEAR=="PUL"]<-"TBB"  
+table2$LE_GEAR[table2$LE_GEAR=="PUL"]<-"TBB" 
+table1$LE_GEAR[table1$LE_GEAR=="PUK"]<-"TBB"  
+table2$LE_GEAR[table2$LE_GEAR=="PUK"]<-"TBB" 
+# change DEU to DE  in VE_COUNTRY
+table1$VE_COU<-"DE"
+table2$VE_COU<-"DE"
+
 
 # 3.2 Replace vessel id by an anonymized id column  --------------------------------------------
 
@@ -69,10 +82,10 @@ table1Save <-
     group_by(RT,VE_COU,Year,Month,Csquare,LE_GEAR, met5,  LE_MET,LENGTHCAT) %>%
     summarise(
       mean_si_sp = mean(SI_SP),
-      sum_intv =sum(INTV),
+      sum_intv =sum(INTV, na.rm=TRUE),
       mean_ve_len = mean(VE_LEN),
       mean_ve_kf = mean(VE_KW),
-      sum_kwHour = sum(kwHour),
+      sum_kwHour = sum(kwHour,na.rm=TRUE),
       sum_le_kg_tot = sum(LE_KG_TOT),
       sum_le_euro_tot  = sum(LE_EURO_TOT),
       n_vessels = n_distinct(VE_ID),
@@ -80,7 +93,7 @@ table1Save <-
         ifelse (
           n_distinct(VE_ID) < 3,
           paste(unique(VE_ID), collapse = ";"),
-          ''
+          'not_required'
         )
       ) %>%  relocate( n_vessels,vessel_ids, .before = Csquare)%>%
       mutate (AverageGearWidth = NA%>%as.numeric()  )%>% ## If this information is available modify this line of the script. By default is assumed not existing gear width information
@@ -117,8 +130,8 @@ table2Save <-
         n_distinct(VE_ID) < 3,
         paste(
           unique(VE_ID), collapse = ";"),
-          ''
-        )
+          'not_required'
+      )
   ) %>%  relocate( n_vessels,vessel_ids, .before = LE_RECT)%>%
 as.data.frame()
 
@@ -160,12 +173,12 @@ library(icesVocab)
 
 
   table1Save      <-  table1Save%>%filter(`C-square` %in% valid_csquare)
-
+  
 
 ### 3.5.2 Check Vessel Lengths categories are accepted ==================================
 
 
-  vlen_ices       <-  getCodeList("BYC_VesselLRange")
+  vlen_ices       <-  getCodeList("VesselLengthClass")
   table ( table1Save$VesselLengthRange%in%vlen_ices$Key )  # TRUE records accepted in DATSU, FALSE aren't
 
   # Get summary  of   DATSU valid/not valid records
@@ -198,12 +211,24 @@ library(icesVocab)
   # Correct them if any not valid and filter only valid ones
   table1Save      <-  table1Save%>%filter(MetierL5 %in% m5_ices$Key)
 
+### 3.5.5 Check country codes =====================
+  
+  
+  cntrcode <- getCodeList("ISO_3166")
+  
+  table (table1Save$CountryCode %in%cntrcode$Key )   # TRUE records accepted in DATSU, FALSE aren't
+  
+  # Get summary  of   DATSU valid/not valid records
+  table1Save [ !table1Save$CountryCode %in% cntrcode$Key,]%>% group_by(CountryCode) %>% select(CountryCode) %>% tally()
 
+  # Correct them if any not valid and filter only valid ones
+  table1Save      <-  table1Save%>%filter(CountryCode %in% cntrcode$Key)
+  
 
 # TABLE 2  =============================================================
 
 
-### 3.5.5 Check ICES rect are valid  =====================
+### 3.5.6 Check ICES rect are valid  =====================
 
   statrect_ices <- getCodeList("StatRec")
 
@@ -217,7 +242,7 @@ library(icesVocab)
 
 
 
-### 3.5.6 Check Vessel Lengths categories are accepted ==================================
+### 3.5.7 Check Vessel Lengths categories are accepted ==================================
 
 
   # vlen_ices       <-  getCodeList("BYC_VesselLRange")
@@ -232,7 +257,7 @@ library(icesVocab)
   table2Save      <-  table2Save%>%filter(VesselLengthRange %in% vlen_ices$Key)
 
 
-### 3.5.7 Check Metier L4 (Gear) categories are accepted =================================
+### 3.5.8 Check Metier L4 (Gear) categories are accepted =================================
 
   m4_ices         <-  getCodeList("GearTypeL4")
   table (table2Save$MetierL4 %in%m4_ices$Key )   # TRUE records accepted in DATSU, FALSE aren't
@@ -244,7 +269,7 @@ library(icesVocab)
   table2Save      <-  table2Save%>%filter(MetierL4 %in% m4_ices$Key)
 
 
-### 3.5.8 Check Metier L5 (Target Assemblage) categories are accepted =====================
+### 3.5.9 Check Metier L5 (Target Assemblage) categories are accepted =====================
 
   m5_ices         <-  getCodeList("TargetAssemblage")
 
@@ -257,7 +282,7 @@ library(icesVocab)
   table2Save      <-  table2Save%>%filter(MetierL5 %in% m5_ices$Key)
 
 
-### 3.5.9 Check VMS enables or not (YesNoFields) =====================
+### 3.5.10 Check VMS enables or not (YesNoFields) =====================
 
 
   yn <- getCodeList("YesNoFields")
@@ -265,11 +290,25 @@ library(icesVocab)
   table (table2Save$VMSEnabled %in%yn$Key )   # TRUE records accepted in DATSU, FALSE aren't
 
   # Get summary  of   DATSU valid/not valid records
-  table2Save [ !table2Save$VMSEnabled %in%yn$Key,]%>%group_by(VMSEnabled)%>%select(VMSEnabled)%>%tally()
+  table2Save [ !table2Save$VMSEnabled %in% yn$Key,] %>% group_by(VMSEnabled) %>% select(VMSEnabled)%>%tally()
 
   # Correct them if any not valid and filter only valid ones
   table2Save      <-  table2Save%>%filter(VMSEnabled %in% yn$Key)
 
+  
+  ### 3.5.11 Check country codes =====================
+  
+  
+  cntrcode <- getCodeList("ISO_3166")
+  
+  table (table2Save$CountryCode %in%cntrcode$Key )   # TRUE records accepted in DATSU, FALSE aren't
+  
+  # Get summary  of   DATSU valid/not valid records
+  table2Save [ !table2Save$CountryCode %in% cntrcode$Key,]%>% group_by(CountryCode) %>% select(CountryCode) %>% tally()
+  
+  # Correct them if any not valid and filter only valid ones
+  table2Save      <-  table2Save%>%filter(CountryCode %in% cntrcode$Key)
+  
 
 # DATSU Vocabulary check finish
 
@@ -370,7 +409,7 @@ write.table(table2Save, file.path(outPath, "table2Save.csv"), na = "",row.names=
 ############### DATACALL SUBMISSION USING ICESVMS R PACKAGE (OPTIONAL)  ##################
 
 # R ICES packages required to be installed:
-if(1=0){
+if(1==0){
 # Enable universe(s) by ices-tools-prod (see https://ices-tools-prod.r-universe.dev)
 options(repos = c(
   icestoolsprod = 'https://ices-tools-prod.r-universe.dev',

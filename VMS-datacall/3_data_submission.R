@@ -80,7 +80,7 @@ table1Save <-
         ifelse (
           n_distinct(VE_ID) < 3,
           paste(unique(VE_ID), collapse = ";"),
-          'no_required'
+          'not_required'
         )
       ) %>%  relocate( n_vessels,vessel_ids, .before = Csquare)%>%
       mutate (AverageGearWidth = NA%>%as.numeric()  )%>% ## If this information is available modify this line of the script. By default is assumed not existing gear width information
