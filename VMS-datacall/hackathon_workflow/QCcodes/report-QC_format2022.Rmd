@@ -147,16 +147,14 @@ lclass <-
 
 # Get data ---------------------------------------------------------------------
 ve <- 
-  #read_ve("/media/fssf01bhv/vmsdata/DataGlobal/deu2ices/2020/table1_DE_v20210505_220608_2009-2020.csv") %>% 
-  read_ve("/media/fssf01bhv/vmsdata/DataGlobal/deu2ices/Hackathon_Test_20220215/table1Save.csv") %>% 
+  read_ve("/YOUR_PATH/table1Save.csv") %>% 
   csq2pos() %>% 
   # NEED TO CHECK THIS UPSTREAM
   filter(!is.na(lon)) %>% 
   mutate(isq = d2ir(lat, lon))
   #mutate(isq = geo::d2ir(lat, lon))
 le <- 
-  #read_le("/media/fssf01bhv/vmsdata/DataGlobal/deu2ices/2020/table2_DE_v20210505_181147_2009-2020.csv")
-  read_le("/media/fssf01bhv/vmsdata/DataGlobal/deu2ices/Hackathon_Test_20220215/table2Save.csv")
+  read_le("/YOUR_PATH/table2Save.csv")
 
 
 # some bounds ------------------------------------------------------------------
