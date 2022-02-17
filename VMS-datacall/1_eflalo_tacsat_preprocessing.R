@@ -1,10 +1,7 @@
-#-------------------------------------------------------------------------------
-#- 1) Load the data
-#-------------------------------------------------------------------------------
+# 1.1 Load the data  -----------------------------------------------------------
 
-#-------------------------------------------------------------------------------
 #- 1a) load vmstools underlying data
-#-------------------------------------------------------------------------------
+
 # data(euharbours); if(substr(R.Version()$os,1,3)== "lin")
 data(harbours)
 data(ICESareas)
@@ -17,7 +14,7 @@ for(d in 1:1991){
 
 
 #-------------------------------------------------------------------------------
-#- 1b) Looping through the data years
+#- 1b) Looping through the data years #####
 #-------------------------------------------------------------------------------
 
 for(year in yearsToSubmit){
@@ -49,19 +46,19 @@ for(year in yearsToSubmit){
   eflalo <- formatEflalo(eflalo)
   
   #- Take only VMS pings in the ICES areas
-  ICESareas <- as(ICESareas, "SpatialPolygons")
-  idxI <-
-    over(
-      SpatialPoints(
-        tacsat[, c("SI_LONG", "SI_LATI")],
-        CRS(proj4string(ICESareas))
-      ),
-      ICESareas
-    )
-  tacsat <- tacsat[which(idxI > 0), ]
   
+  ia <- ICESareas%>% 
+    sf::st_as_sf() %>% 
+    sf::st_make_valid() %>% 
+    sf::st_transform(4326)  
+  overs <- 
+    tacsat  %>% 
+    sf::st_as_sf(coords = c("SI_LONG", "SI_LATI")) %>% 
+    sf::st_set_crs(4326) %>% 
+    sf::st_intersects(ia)
   
-   #- Take only eflalo records in ICES areas
+  tacsat <- tacsat[lengths(overs) > 0,]
+  
   
   coordsEflalo <- ICESrectangle2LonLat( na.omit( unique( eflalo$LE_RECT )))
   coordsEflalo$LE_RECT <- na.omit( unique( eflalo$LE_RECT ))
@@ -105,7 +102,7 @@ for(year in yearsToSubmit){
     )
   
   #-------------------------------------------------------------------------------
-  #- 2) Clean the tacsat data
+  #- 2) Clean the tacsat data -----------
   #-------------------------------------------------------------------------------
   
   #-------------------------------------------------------------------------------
@@ -186,6 +183,10 @@ for(year in yearsToSubmit){
           2)
     )
   
+  
+  rm(tacsatp) # remove temporary variable tacsatp  
+  
+  
   #-------------------------------------------------------------------------------
   #- Remove points in harbour
   #-------------------------------------------------------------------------------
@@ -193,7 +194,7 @@ for(year in yearsToSubmit){
     pointInHarbour(
       tacsat$SI_LONG,
       tacsat$SI_LATI,
-      harbours)
+      harbours, saveHarbourList = FALSE)  
   pih <- tacsat[which(idx == 1), ]
   save(pih, file = file.path(outPath, paste0("pointInHarbour", year, ".RData")))
   tacsat <- tacsat[which(idx == 0), ]

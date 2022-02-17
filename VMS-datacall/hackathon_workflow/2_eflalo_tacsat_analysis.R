@@ -264,7 +264,7 @@ for(year in yearsToSubmit)  {
   tacsatp$SI_STATE[which(tacsatp$SI_STATE != "f")] <- 0
   tacsatp$SI_STATE[which(tacsatp$SI_STATE == "f")] <- 1
   
-  tacsatEflalo <- tacsatEflalo[tacsatEflalo$SI_STATE == 1,]
+  tacsatEflalo <- tacsatEflalo[tacsatEflalo$SI_STATE == 1,] 
   
 
   #- There are several options, specify at the top of this script what type of linking you require
@@ -368,7 +368,7 @@ for(year in yearsToSubmit)  {
           tacsatEflalo[,
             c(
               "VE_REF", "VE_COU", "Year", "Month", "Csquare", "LE_GEAR",
-              "VE_LEN","LE_MET", "SI_SP", "INTV", "VE_LEN", "kwHour", "VE_KW", "LE_KG_TOT", "LE_EURO_TOT"
+              "LE_MET", "SI_SP", "INTV", "VE_LEN", "kwHour", "VE_KW", "LE_KG_TOT", "LE_EURO_TOT"
             )
           ])
       )
@@ -438,7 +438,7 @@ for(year in yearsToSubmit)  {
             ,
             c(
               "VE_REF", "VE_COU", "Year", "Month", "LE_RECT", "LE_GEAR", "LE_MET",
-               "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
+              "VE_LEN", "tripInTacsat", "INTV", "kwDays", "LE_KG_TOT", "LE_EURO_TOT"
             )
           ]
         )

@@ -98,7 +98,7 @@
 
 
 
-# Part1
+# Part1. Installation of required software 
 
 This document is designed to aid analysts streamline the process of extracting VMS data in accordance with requirements of the ICES VMS data call.
 
@@ -114,6 +114,7 @@ All the instructions and code below were tested in windows versions newest than 
 (Where R is already installed (any 3.x.x 32 bits version) move to step 2)
 
 Completion of the first two steps of these guidelines is dependent on the users computer security setting. In instances where administrator privilege is required then please ask a member of your IT/computer support team to run the first two steps for you.
+ 
 
 So let's start by instaling R; click on the link below to download R version 4.1.2.
 
@@ -129,11 +130,11 @@ Once it is downloaded, double click on the file (.exe). Depending on your securi
 
 - The menu (picture below) will appear and you will be asked to select the destinationfolder
 
-![](RackMultipart20220215-4-1krebzr_html_54eb63a1f0be9fff.png)
+![image](https://user-images.githubusercontent.com/11030143/154282016-fd4147f7-bc84-4c75-bfb0-7d751dc3d3de.png)
 
 Rather than accepting the default(C:Files-4.1.2) you should click on the browse button and create a directory C:-4.2.1 this will allow you to install packages without having administrator privileges.Once you have changed the folder just click **Next**
 
-- In the menu &quot;Selectcomponents&quot;simplydeselect/untickthe64-bitfiles.Click
+- In the menu "Selectcomponents"simplydeselect/untickthe64-bitfiles.Click
 
 ### Next.
 
@@ -278,7 +279,7 @@ So for the moment we will ignore this block (#-1b) **Looping**** through ****the
 
 ![Shape10](RackMultipart20220215-4-1krebzr_html_7654d64c61b2602a.gif)
 
-```r
+```{r}
 
 yearsToSubmit <- sort(2009:2009)
 
@@ -286,7 +287,7 @@ yearsToSubmit <- sort(2009:2009)
 
 ## #- 1c) load tacsat and eflalo data from file
 
-In your 'Data' folder you should have all your tacsat and eflalo files in the .RDATA format. In the code it is expected that your files have the following naming convention 'tacsat\_ XXXX&quot; i.e. tacsat\_2009; tacsat\_2010, etc. The same naming convention is applied to the eflalo files. This will allow the code to load the files as they are needed during the 'for' loop. Failing to correctly name the files will result in an error.
+In your 'Data' folder you should have all your tacsat and eflalo files in the .RDATA format. In the code it is expected that your files have the following naming convention 'tacsat\_ XXXX" i.e. tacsat\_2009; tacsat\_2010, etc. The same naming convention is applied to the eflalo files. This will allow the code to load the files as they are needed during the 'for' loop. Failing to correctly name the files will result in an error.
 
 Since we have justcopied **year\&lt;-**** 2009** to the console, when we run this block only the 2009 year data will beloaded.
 
@@ -301,7 +302,7 @@ tacsat <- get(paste("Tac",substr(year,3,4),sep=""))
 
 ```
 
-If the objects are already called tacsat and eflalo then, you don&#39;t need to run those two lines and you can add an # at the beginning of each line. However, make sure that whatever you have called your objects the naming structure is consistent across all years otherwise the &quot;For&quot; loop won&#39;t run.
+If the objects are already called tacsat and eflalo then, you don&#39;t need to run those two lines and you can add an # at the beginning of each line. However, make sure that whatever you have called your objects the naming structure is consistent across all years otherwise the "For" loop won&#39;t run.
 
 #- Make sure data is in right format
 
@@ -331,7 +332,7 @@ All of the above are self-explanatory and each of the five blocks will check for
 
 #- Save the remrecsTacsat file
 
-The file is now saved and by typing &quot;remrecsTacsat&quot; into the console you will get an overview of how much data was lost due to errors.
+The file is now saved and by typing "remrecsTacsat" into the console you will get an overview of how much data was lost due to errors.
 
 #- Save the cleaned tacsat file
 
@@ -339,7 +340,7 @@ Now you have your file cleaned and saved so no need to repeat the process in fut
 
 ### Clean the eflalodata
 
-This section, like the previous one also focuses on &quot;cleaning&quot; the data. This time the target is the eflalo file. The types of errors are of a different nature but once again the code tries to account for the most commons errors. As in the previous section, the code will keep track of what data has been removed and how much. All these files can be found in the 'Results' folder. One should spend a bit of time looking at the data removed as it can be very useful to understand why and where problemsoccur.
+This section, like the previous one also focuses on "cleaning" the data. This time the target is the eflalo file. The types of errors are of a different nature but once again the code tries to account for the most commons errors. As in the previous section, the code will keep track of what data has been removed and how much. All these files can be found in the 'Results' folder. One should spend a bit of time looking at the data removed as it can be very useful to understand why and where problemsoccur.
 
 #- Keep track of removed points
 
@@ -415,19 +416,19 @@ This block gets rid of any rows in the tacsatp for which critical information (v
 
 # Investigate speed pattern through visual inspection of histograms #
 
-The code in this block creates a very useful plot of speed frequency by gear. This plot will be saved in the &quot;Results&quot; folder and before you run any further code you should look closely at the output plot.
+The code in this block creates a very useful plot of speed frequency by gear. This plot will be saved in the "Results" folder and before you run any further code you should look closely at the output plot.
 
 # Create speed threshold object
 
 The three last lines of this block will create a threshold object. However, your input and knowledge of the relevant fisheries will be needed at this stage. The threshold object will hold the minimum and maximum speed of fishing for each of the gears(i.e. the minimum and maximum speeds at which the specific fishing activity is thought to occur).To help you with this task you should look at the previous speed frequency plot to help distinguish steaming from fishing events.
 
-By running the third last line in this block you create an object &quot;speedarr&quot; with all the different gears in your data. The second and third lines will fill in column 2 and 3 of the 'speedarr' object with the minimum and maximum fishing speeds. These values are set to 1kt and 6kt by default. At this stage you will need to set up the upper and lower limits for each of the gears. Although there are several ways of accomplishing this, we will demonstrate one of them here. In the example below we use a list of 5 gears(DRB;PTB;OTT;GN;FPO) although you are likely to have many more gears in your dataset so you will need to extend the code to accommodate all gears accordingly.
+By running the third last line in this block you create an object "speedarr" with all the different gears in your data. The second and third lines will fill in column 2 and 3 of the 'speedarr' object with the minimum and maximum fishing speeds. These values are set to 1kt and 6kt by default. At this stage you will need to set up the upper and lower limits for each of the gears. Although there are several ways of accomplishing this, we will demonstrate one of them here. In the example below we use a list of 5 gears(DRB;PTB;OTT;GN;FPO) although you are likely to have many more gears in your dataset so you will need to extend the code to accommodate all gears accordingly.
 
 To create our example, copy the code below into the console:
 
 ![Shape16](RackMultipart20220215-4-1krebzr_html_12f52f25492d183d.gif)
 
-speedarr$min[which(speedarr$LE\_GEAR==&quot;GN&quot;)]\&lt;-0.5 ; speedarr$ max[which(speedarr$LE\_GEAR==&quot;GN&quot;)]\&lt;- 3 speedarr$min[which(speedarr$LE\_GEAR==&quot;FPO&quot;)]\&lt;- 0.5 ; speedarr$ max[which(speedarr$LE\_GEAR==&quot;FPO&quot;)]\&lt;-3
+speedarr$min[which(speedarr$LE\_GEAR=="GN")]\&lt;-0.5 ; speedarr$ max[which(speedarr$LE\_GEAR=="GN")]\&lt;- 3 speedarr$min[which(speedarr$LE\_GEAR=="FPO")]\&lt;- 0.5 ; speedarr$ max[which(speedarr$LE\_GEAR=="FPO")]\&lt;-3
 
 speedarr
 
@@ -475,9 +476,9 @@ This block deals with all the other gears that are not automatically detected. T
 
 #- Combine the two dataset together again
 
-Now that all gears have had their activity defined, the code in this block is just putting it all back together in one object. As usual the object will be saved in the &quot;Results&quot; folder.
+Now that all gears have had their activity defined, the code in this block is just putting it all back together in one object. As usual the object will be saved in the "Results" folder.
 
-# Set fishing sequences with hauling in the middle to &quot;f&quot; ##################
+# Set fishing sequences with hauling in the middle to "f" ##################
 
 ### Dispatch landings of merged eflalo at the pingscale
 
