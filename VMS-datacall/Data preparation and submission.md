@@ -354,7 +354,17 @@ By running the third last line in this block you create an object "speedarr" wit
 To create our example, copy the code below into the console:
 
 ```r
-speedarr$min[which(speedarr$LE\_GEAR=="GN")]\&lt;-0.5 ; speedarr$ max[which(speedarr$LE\_GEAR=="GN")]\&lt;- 3 speedarr$min[which(speedarr$LE\_GEAR=="FPO")]\&lt;- 0.5 ; speedarr$ max[which(speedarr$LE\_GEAR=="FPO")]\&lt;-3
+  
+  speedarr <-
+    as.data.frame(
+      cbind(
+        LE_GEAR = sort(unique(tacsatp$LE_GEAR)),
+        min = NA,
+        max = NA),
+      stringsAsFactors = FALSE)
+  speedarr$min <- rep(1, nrow(speedarr)) # It is important to fill out the personally inspected thresholds here!
+  speedarr$max <- rep(6, nrow(speedarr))
+  
 
 ```
 
