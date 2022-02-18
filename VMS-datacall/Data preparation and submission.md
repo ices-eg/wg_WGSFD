@@ -1,8 +1,10 @@
-# 1. Part 1 Installation of the required software
+## 1 [Part 1 Installation of the required software](#part1-installation-of-required-software)
 
-## 1.1 Step 1: Installation of R
+### 1.1 [Step 1 Installation of r](#step-1-installation-of-r)
+### 1.2 [Step 1 Installation of RStudio](#step-2-installation-of-rstudio)
+### 1.3 [Step 1 Installing VMSTOOLS R package](#step-3-installing-vmstools)
 
-## 1.2 Step 2: Installation of Rstudio
+ 
 
 ## 1.3 Step 3: Installing vmstools
 
