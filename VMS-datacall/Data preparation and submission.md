@@ -123,7 +123,11 @@ That's it; you now have all you need to process your data.
 
 # Part 2. Proposed workflow R code 
 
-Part one of these guidelines have guided you through the installation of all the software needed to process your data into the formats specified in the data call. Now, part two will focus on guiding you through the  3 blocks that comprise the workflow: eflalo\_tacsat\_preprocessing.R, eflalo\_tacsat\_analysis\_R and data\_submission.R
+Part one of these guidelines have guided you through the installation of all the software needed to process your data into the formats specified in the data call. Now, part two will focus on guiding you through the  3 blocks that comprise the workflow: 
+- [0_global.R](https://github.com/ices-eg/wg_WGSFD/blob/test-workflow/VMS-datacall/0_global.R)
+- [1_eflalo_tacsat_preprocessing.R](https://github.com/ices-eg/wg_WGSFD/blob/test-workflow/VMS-datacall/1_eflalo_tacsat_preprocessing.R)
+- [2_eflalo_tacsat_analysis_R](https://github.com/ices-eg/wg_WGSFD/blob/test-workflow/VMS-datacall/2_eflalo_tacsat_analysis_R)
+- [3_data_submission.R](https://github.com/ices-eg/wg_WGSFD/blob/test-workflow/VMS-datacall/3_data_submission.R)
 
 The aim is to get your data converted into the format specified in ICES DATSU: [http://datsu.ices.dk/web/selRep.aspx?Dataset=145](http://datsu.ices.dk/web/selRep.aspx?Dataset=145)
 
@@ -180,15 +184,17 @@ The thresholds here defined will be used later in different processes throughout
 
 
 
-## 2.1 Data preprocessing
+## 1 Data preprocessing (1_eflalo_tacsat_preprocessing.r)
 
 ### Load the data
 
-## #- 1a) Load VMStools underlying data
+##  1.1 Load VMStools underlying data
 
 This will load in to the session support data such as a map of Europe, list of harbours and ICES areas that will be used throughout the code.
 
-## #-1b) Looping through the data years
+
+##  1.2 Clean the tacsat and eflalo data
+##  Looping through the data years
 
 The next line of code has a 'for' loop which means that all the code within the loop will run at the same time. This particular loop stretches from line 51 to line 496 leaving only a couple of lines at the end of the code. However, before running the 'for' loop there are a few things that need to be changed/adapted to your case.
 
@@ -203,7 +209,7 @@ yearsToSubmit <- sort(2009:2009)
 
 ```
 
-## #- 1c) Load tacsat and eflalo data from file
+##  1.2.1 Load tacsat and eflalo data from file
 
 In your 'Data' folder you should have all your tacsat and eflalo files in the .RDATA format. In the code it is expected that your files have the following naming convention 'tacsat\_ XXXX" i.e. tacsat\_2009; tacsat\_2010, etc. The same naming convention is applied to the eflalo files. This will allow the code to load the files as they are needed during the 'for' loop. Failing to correctly name the files will result in an error.
 
@@ -229,23 +235,23 @@ It just ensures that your files are formatted properly.
 
 This block of code will identify all VMS pings (tacsat) within the ICES areas.
 
-### Clean the tacsatdata
+## 1.2.2 Clean the tacsatdata
 
 This section will focus on 'cleaning' the data in the tacsatfile. The information in the tacsat(vms) comes from an electronic system that uses GPS information to collect the data on board the vessel and uses a satellite link to send the data to the database. Despite the reliability of this system conditions at sea are not always the best. There are two main opportunities for errors to occur, when receiving or sending data from the GPS and to the database. The code in this section will look to the most common errors and try to identify all of them. The code will not only delete the errors but also keep a record of what was deleted allowing you to keep track of how much data you have lost due to errors.
 
-#- Keep track of removed points
+#- 1.2.2.1 Keep track of removed points
 
 This section will check for five common types of errors. A teach of these checks errors will be removed from the tacsat object. However, the data removed will be kept and saved in the 'Results'folder so you can verify the errors. Also, the volume for each of errors for each of the five checks is recorded the 'remrecsTacsat'object. This object will tell you percentage wise how much you have lost in relation to the original tacsat object.
 
-#- Remove duplicate records
+#- 1.2.2.2 Remove duplicate records
 
-#- Remove points that cannot be possible
+#- 1.2.2.3 Remove points that cannot be possible
 
-#- Remove points which are pseudo duplicates as they have an interval rate < x minutes 
+#- 1.2.2.4 Remove points which are pseudo duplicates as they have an interval rate < x minutes 
 
-#- Remove points inharbour
+#- 1.2.2.5 Remove points inharbour
 
-#- Remove points on land
+#- 1.2.2.6 Remove points on land
 
 All of the above are self-explanatory and each of the five blocks will check for a particular type of error, remove them where they occur and store the removed entries in the 'Results' folder and will quantify the number of values removed.
 
@@ -257,15 +263,15 @@ The file is now saved and by typing "remrecsTacsat" into the console you will ge
 
 Now you have your file cleaned and saved so no need to repeat the process in future analysis.
 
-### Clean the eflalodata
+## 1.2.3 Clean the eflalo data
 
 This section, like the previous one also focuses on "cleaning" the data. This time the target is the eflalo file. The types of errors are of a different nature but once again the code tries to account for the most commons errors. As in the previous section, the code will keep track of what data has been removed and how much. All these files can be found in the 'Results' folder. One should spend a bit of time looking at the data removed as it can be very useful to understand why and where problems occur.
 
-#- Keep track of removed points
+#- 1.2.3.1 Keep track of removed points
 
 The 'remrecsEflalo' object will keep you informed of how much data has been removed.
 
-#- Warn for outlying catch records
+#- 1.2.3.2 Warn for outlying catch records
 
 Basically this block looks for outliers. For each species, it generates a data-driven outlier threshold. If any outliers are found, these will be converted into 'NA' values. You can check in the 'Results' folder for the files containing all the outliers and you can double check if they are correct or not. If they were correct then you can run the code again but the code will need some adjustments.
 
@@ -285,13 +291,15 @@ Basically this block looks for outliers. For each species, it generates a data-d
 
 #- Turn all other NAs in the eflalo dataset in KG and EURO columns to zero
 
-#- Remove non-unique trip numbers
+#- 1.2.3.3 Remove non-unique trip numbers
 
-#- Remove impossible time stamp records #- Remove trip starting before 1st Jan
+#- 1.2.3.4 Remove impossible time stamp records 
 
-#- Remove trip with overlap with another trip
+#- 1.2.3.5 Remove trip starting before 1st Jan
 
-#- Remove records with arrival date before departure date
+#- 1.2.3.6 Remove trip with overlap with another trip
+
+#- 1.2.3.7 Remove records with arrival date before departure date
 
 The above block headers are self-explanatory and the code in each of the blocks is just identifying those common errors and removing them from the eflalo object.
 
@@ -300,10 +308,10 @@ The above block headers are self-explanatory and the code in each of the blocks 
 The 'remrecsEflalo' file is saved for future reference. So is the cleaned eflalo file which, like the tacsat, will be ready to use in the future.
 
 
-## 2.2 Data analysis
+## 2 Data analysis (2_eflalo_tacsat_analysis.R)
 
 
-### Merge the tacsat and eflalo data together
+### 2.1 Merge the tacsat and eflalo data together
 
 In section four we bring the tacsat and eflalo together by merging to create a new object. This will enable us to relate the landings component (eflalo) to the vessel activity
 
@@ -321,7 +329,7 @@ The files tacsat and eflalo will be combined using some very clever algorithms t
 
 Not all vessel activity is associated with fishing events; quite often vessels may be testing equipment or chartered to do jobs other than fishing. So, the merge executed in the previous block only includes VMS data that can be linked to corresponding landings records. As such, it will not be possible to merge all tacsat data for allocation to the tacsatp object. This block will save both the merged and non-merged data into the 'Results' folder.
 
-### Define activity
+### 2.2 Define activity
 
 This is a crucial section, as vessel activity will be defined here. Also, this is the section that needs the most customization for which some knowledge of fisheries activities will be needed. In this section we will try to explain the steps in more detail and incorporate some reproducible examples as well. The first couple of lines in this section will calculate time interval between points. The time values and the interval threshold will be paramount in identifying vessel activity lateron.
 
