@@ -1,17 +1,17 @@
 # Data call preparation and submission guidelines
 
-## 1 [Part 1 Installation of the required software](#part1-installation-of-required-software)
+##  [Part 1 Installation of the required software](#part1-installation-of-required-software)
 
-### 1.1 [Step 1 Installation of r](#step-1-installation-of-r)
-### 1.2 [Step 1 Installation of RStudio](#step-2-installation-of-rstudio)
-### 1.3 [Step 1 Installing VMSTOOLS R package](#step-3-installing-vmstools)
+### [1.1 Step 1 Installation of r](#step-1-installation-of-r)
+### [1.2 Step 2 Installation of RStudio](#step-2-installation-of-rstudio)
+### [1.3 Step 3 Installing VMSTOOLS R package](#step-3-installing-vmstools)
 
-## 2 [Part 2. Proposed workflow R code](#part-2-proposed-workflow-r-code) 
+##  [Part 2. Proposed workflow R code](#part-2-proposed-workflow-r-code) 
 
-### 2.1 [Step 2 Data preprocessing](#step-2-data-preprocessing)
-### 2.2 [Step 2 Data analysis](#step-2-data-analysis)
-### 2.3 [Step 2 Data submission](#step-2-data-submission)
-
+###   [2.1 Data preprocessing](#21-data-preprocessing)
+###   [2.2 Data analysis](#22-data-analysis)
+###   [2.3 Data submission](#23-data-submission)
+ 
 ## 3 [Contacts](#contacts) 
 ## 4 [Changelog](#changelog) 
 
