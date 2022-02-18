@@ -6,11 +6,11 @@
 ### [1.2 Step 2 Installation of RStudio](#step-2-installation-of-rstudio)
 ### [1.3 Step 3 Installing VMSTOOLS R package](#step-3-installing-vmstools)
 
-##  [2 Proposed workflow R code](#part-2-proposed-workflow-r-code) 
+##  [2 Proposed workflow R code](#part-2-proposed-workflow-r-code)
 
-###   [2.1 Data preprocessing](#21-data-preprocessing)
-###   [2.2 Data analysis](#22-data-analysis)
-###   [2.3 Data submission](#23-data-submission)
+### [2.1  Data preprocessing](#21-data-preprocessing)
+### [2.2  Data analysis](#22-data-analysis)
+### [2.3  Data submission](#23-data-submission)
  
 ## [3 Contacts](#3-contacts) 
 ## [4 Changelog](#4-changelog) 
