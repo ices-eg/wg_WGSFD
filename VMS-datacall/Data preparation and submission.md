@@ -1,14 +1,12 @@
+# Data call preparation and submission guidelines
+
 ## 1 [Part 1 Installation of the required software](#part1-installation-of-required-software)
 
 ### 1.1 [Step 1 Installation of r](#step-1-installation-of-r)
 ### 1.2 [Step 1 Installation of RStudio](#step-2-installation-of-rstudio)
 ### 1.3 [Step 1 Installing VMSTOOLS R package](#step-3-installing-vmstools)
 
- 
-
-## 1.3 Step 3: Installing vmstools
-
-# 2. Part 2
+## 2 [Part 2. Proposed workflow R code](#part-2-proposed-workflow-r-code) 
 
 ## 2.1 Data preprocessing
 
@@ -134,9 +132,9 @@ To install vmstools click on the Tools tab on the main menu in RStudio. Then sel
 That's it; you now have all you need to process your data.
 
 
-# Part 2
+# Part 2. Proposed workflow R code 
 
-Part one of these guidelines have guided you through the installation of all the software needed to process your data into the formats specified in the data call. Now, part two will focus on guiding you through the steps3 blocks that comprise the workflow: eflalo\_tacsat\_preprocessing.R, eflalo\_tacsat\_analysis\_R and data\_submission.R
+Part one of these guidelines have guided you through the installation of all the software needed to process your data into the formats specified in the data call. Now, part two will focus on guiding you through the  3 blocks that comprise the workflow: eflalo\_tacsat\_preprocessing.R, eflalo\_tacsat\_analysis\_R and data\_submission.R
 
 The aim is to get your data converted into the format specified in ICES DATSU: [http://datsu.ices.dk/web/selRep.aspx?Dataset=145](http://datsu.ices.dk/web/selRep.aspx?Dataset=145)
 
