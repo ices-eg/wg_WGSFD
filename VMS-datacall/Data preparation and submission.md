@@ -166,8 +166,7 @@ Next, download a compiled version of vmstools 0.76 by clicking the link below. M
 
 Now start Rstudio to install all the necessary R packages that vmstools depends on. Copy the following text 
 ( referenced in the workflow file [0_global.R] (https://github.com/ices-eg/wg_WGSFD/blob/test-workflow/VMS-datacall/0_global.R ) )
-```
-r 
+```r 
 
   install.packages(c("cluster","data.table","doBy","maps","mapdata","ma ptools","PBSmapping","sp","Matrix","ggplot2"))
   
@@ -324,7 +323,7 @@ This section will check for five common types of errors. A teach of these checks
 
 #- Remove points that cannot be possible
 
-#-Remove points which are pseudo duplicates as they have an interval rate < x minutes 
+#- Remove points which are pseudo duplicates as they have an interval rate < x minutes 
 
 #- Remove points inharbour
 
@@ -396,19 +395,19 @@ i.e. VMS (tacsat)
 
 The files tacsat and eflalo will be combined using some very clever algorithms that use the vessel identifier and date and time in both data sets to relate the landings to the corresponding VMS data for the same trip.
 
-###-Assigngearandlengthtotacsat The new object tacsatp is now a merged version of the cleaned tacsat and eflalo objects. However, the new object hasn't inherited all the fields from eflalo due to reasons of processing speed and work ability. At this point we will extract some data from the eflalo dataset to populate the corresponding tacsatp fields. The data we are interested in are data that will be used later on in the code to populate the final data tables.Things like gear; kw; metiers, etc.
+###-Assigngearandlengthtotacsat The new object tacsatp is now a merged version of the cleaned tacsat and eflalo objects. However, the new object hasn't inherited all the fields from eflalo due to reasons of processing speed and work ability. At this point we will extract some data from the eflalo dataset to populate the corresponding tacsatp fields. The data we are interested in are data that will be used later on in the code to populate the final data tables. Things like gear; kw; metiers, etc.
 
-# Assign gear and length to tacsat
+#- Assign gear and length to tacsat
 
 #- Save not merged tacsat data
 
-Not all vessel activity is associated with fishing events; quite often vessels may be testing equipment or chartered to do jobs other than fishing. So, the merge executedin the previous block only includesVMS data that can be linked to corresponding landings records. As such, it will not be possible to merge all tacsat data for allocation to the tacsatp object. This block will save both the merged and non-merged data into the 'Results' folder.
+Not all vessel activity is associated with fishing events; quite often vessels may be testing equipment or chartered to do jobs other than fishing. So, the merge executed in the previous block only includes VMS data that can be linked to corresponding landings records. As such, it will not be possible to merge all tacsat data for allocation to the tacsatp object. This block will save both the merged and non-merged data into the 'Results' folder.
 
 ### Define activity
 
 This is a crucial section, as vessel activity will be defined here. Also, this is the section that needs the most customization for which some knowledge of fisheries activities will be needed. In this section we will try to explain the steps in more detail and incorporate some reproducible examples as well. The first couple of lines in this section will calculate time interval between points. The time values and the interval threshold will be paramount in identifying vessel activity lateron.
 
-# Calculate time interval between points
+#- Calculate time interval between points
 
 #- Remove points with NA's in them in critical places
 
@@ -416,11 +415,11 @@ This block gets rid of any rows in the tacsatp for which critical information (v
 
 #- Define speed thresholds associated with fishing for gears
 
-# Investigate speed pattern through visual inspection of histograms #
+#- Investigate speed pattern through visual inspection of histograms #
 
 The code in this block creates a very useful plot of speed frequency by gear. This plot will be saved in the "Results" folder and before you run any further code you should look closely at the output plot.
 
-# Create speed threshold object
+#- Create speed threshold object
 
 The three last lines of this block will create a threshold object. However, your input and knowledge of the relevant fisheries will be needed at this stage. The threshold object will hold the minimum and maximum speed of fishing for each of the gears (i.e. the minimum and maximum speeds at which the specific fishing activity is thought to occur). To help you with this task you should look at the previous speed frequency plot to help distinguish steaming from fishing events.
 
@@ -428,13 +427,13 @@ By running the third last line in this block you create an object "speedarr" wit
 
 To create our example, copy the code below into the console:
 
-![Shape16](RackMultipart20220215-4-1krebzr_html_12f52f25492d183d.gif)
-
+```r
 speedarr$min[which(speedarr$LE\_GEAR=="GN")]\&lt;-0.5 ; speedarr$ max[which(speedarr$LE\_GEAR=="GN")]\&lt;- 3 speedarr$min[which(speedarr$LE\_GEAR=="FPO")]\&lt;- 0.5 ; speedarr$ max[which(speedarr$LE\_GEAR=="FPO")]\&lt;-3
+
+```
 
 speedarr
 
-![Shape17](RackMultipart20220215-4-1krebzr_html_bbccfc5b04932d63.gif)
 
 So, in the example above you can easily see how each line applies to one gear and on the left you have the minimum values on the right the maximum. Make sure when you copy and paste the lines you change the gears and values on both sides.
 
@@ -448,25 +447,23 @@ The remainder of the code in the block will split the tacsatp object in two depe
 
 #- Fill the storeScheme values based on analyses of the pictures
 
-# Define mean values of the peaks and the number of peaks when they are different from 5 #
+#- Define mean values of the peaks and the number of peaks when they are different from 5 #
 
 In this block the speed histogram plot created previously will be used once more. You will have to identify the peaks in the plot for the gears for which you want the activity to be automatically detected (bear in mind that the algorithm was developed with trawling in mind).
 
 So, first of all make sure you have a line for each of the gears (see line below) changing the gears and mean speedsaccordingly.
 
-![Shape18](RackMultipart20220215-4-1krebzr_html_624a874ecde17481.gif)
+```r
 
 storeScheme$means[which(storeScheme$analyse.by == 'SSC')] <- c('-9 0 9')
 
 Now using the plot, identify where the peaks are and use this to change the code. Make sure you follow the same nomenclature as the example provided. Also, for the algorithm to perform better, we need to create a mirror image of the peaks and with 0 (zero) in the middle .If the number of peaks for a particular gear is greater or less than 5 you will need to add a line (like the one below) with the true number of peaks observed. In the example above there were three peaks -9, 0, 9 so we would need to add the line below to thecode.
 
-![Shape19](RackMultipart20220215-4-1krebzr_html_f9e04cd3e8c1bcf.gif)
+```r
 
-toreScheme$means[which(storeScheme$analyse.by == 'SSC')] <- 3
+storeScheme$means[which(storeScheme$analyse.by == 'SSC')] <- 3
 
-
-
-![Shape20](RackMultipart20220215-4-1krebzr_html_f9e04cd3e8c1bcf.gif)
+```
 
 The second half of the block, checks the results of the auto detection; if they are not satisfactory the analysis is run once more; this time using fixed peaks.However, in this workflow we will not be using fixed peaks so no need to worry about this.
 
@@ -480,7 +477,7 @@ This block deals with all the other gears that are not automatically detected. T
 
 Now that all gears have had their activity defined, the code in this block is just putting it all back together in one object. As usual the object will be saved in the "Results" folder.
 
-# Set fishing sequences with hauling in the middle to "f" ##################
+#- Set fishing sequences with hauling in the middle to "f" ##################
 
 ### Dispatch landings of merged eflalo at the pingscale
 
