@@ -8,9 +8,9 @@
 
 ##  [2 Proposed workflow R code](#part-2-proposed-workflow-r-code)
 
-### [2.1  Data preprocessing](#21-data-preprocessing)
-### [2.2  Data analysis](#22-data-analysis)
-### [2.3  Data submission](#23-data-submission)
+### [1  Data preprocessing](#1-data-preprocessing)
+### [2  Data analysis](#2-data-analysis)
+### [3  Data submission](#3-data-submission)
  
 ## [3  Contacts](#3-contacts) 
 ## [4  Changelog](#4-changelog) 
@@ -184,7 +184,8 @@ The thresholds here defined will be used later in different processes throughout
 
 
 
-## 1 Data preprocessing (1_eflalo_tacsat_preprocessing.r)
+## 1 Data preprocessing 
+(1_eflalo_tacsat_preprocessing.r)
 
 ### Load the data
 
@@ -308,7 +309,8 @@ The above block headers are self-explanatory and the code in each of the blocks 
 The 'remrecsEflalo' file is saved for future reference. So is the cleaned eflalo file which, like the tacsat, will be ready to use in the future.
 
 
-## 2 Data analysis (2_eflalo_tacsat_analysis.R)
+## 2 Data analysis 
+(2_eflalo_tacsat_analysis.R)
 
 
 ### 2.1 Merge the tacsat and eflalo data together
@@ -368,8 +370,6 @@ To create our example, copy the code below into the console:
 
 ```
 
-speedarr
-
 
 So, in the example above you can easily see how each line applies to one gear and on the left you have the minimum values on the right the maximum. Make sure when you copy and paste the lines you change the gears and values on both sides.
 
@@ -393,6 +393,8 @@ So, first of all make sure you have a line for each of the gears (see line below
 
 storeScheme$means[which(storeScheme$analyse.by == 'SSC')] <- c('-9 0 9')
 
+```
+
 Now using the plot, identify where the peaks are and use this to change the code. Make sure you follow the same nomenclature as the example provided. Also, for the algorithm to perform better, we need to create a mirror image of the peaks and with 0 (zero) in the middle .If the number of peaks for a particular gear is greater or less than 5 you will need to add a line (like the one below) with the true number of peaks observed. In the example above there were three peaks -9, 0, 9 so we would need to add the line below to thecode.
 
 ```r
@@ -415,17 +417,17 @@ Now that all gears have had their activity defined, the code in this block is ju
 
 #- Set fishing sequences with hauling in the middle to "f" ##################
 
-### Dispatch landings of merged eflalo at the pingscale
+### 2.3 Dispatch landings of merged eflalo at the pingscale
 
 This section calculates the total daily landings (weight and value) and splits the values equally among the daily fishing pings.
 
 #- There are several options, specify at the top of this script what type of linking you require
 
-### Assign c-square, year, month, quarter, area and create table1
+### 2.4 Assign c-square, year, month, quarter, area and create table1
 
 We are at final stage and the code in this block will generate one of the tables requested by the data call. The first part of the code pulls together all the fields needed to create the table. The second part deals with the aggregation by CSquare.
 
-### Assign year, month, quarter, area and create table2
+### 2.5 Assign year, month, quarter, area and create table2
 
 We have reached the last section. As in the previous one, the first part of the code will create all the fields needed for table 2 as requested in the data call. The second part of the code deals with the aggregation into CSquares.
 
@@ -433,7 +435,8 @@ Running the last two lines saves the data into the 'Results' folder. Don't forge
 
 If you are happy with all the results then you can proceed running the entire code. Make sure you double check the names of the input files, ensuring they follow the convention (as in the example) and run the entire code.
 
-## 2.3 Data submission 
+## 3 Data submission 
+(3_data_submission.r)
 
 This code was developed by WGSFD experts and ICES Secretariat to prepare the data for submission and follows the format specified in ICESDATSU:([http://datsu.ices.dk/web/selRep.aspx?Dataset=145](http://datsu.ices.dk/web/selRep.aspx?Dataset=145)).
 
