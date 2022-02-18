@@ -264,7 +264,7 @@ The thresholds here defined will be used later in different processes throughout
 
 ## 2.1 Data preprocessing
 
-### Load thedata
+### Load the data
 
 ## #- 1a) Load VMStools underlying data
 
@@ -381,9 +381,9 @@ The above block headers are self-explanatory and the code in each of the blocks 
 
 The 'remrecsEflalo' file is saved for future reference. So is the cleaned eflalo file which, like the tacsat, will be ready to use in the future.
 
+
 ## 2.2 Data analysis
 
-##
 
 ### Merge the tacsat and eflalo data together
 
