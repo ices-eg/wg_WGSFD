@@ -539,10 +539,17 @@ and icesConnect ([https://cran.r-project.org/web/packages/icesConnect/index.html
 
 
 # Contacts
+Lara Salvany:[lara.salvany@ices.dk](mailto:lara.salvany@ices.dk)
 
-Josefine Egekvist:[jsv@aqua.dtu.dk](mailto:jsv@aqua.dtu.dk)Niels Hintzen: [niels.hintzen@wur.nl](mailto:niels.hintzen@wur.nl) Rui Catarino: [rui.catarino@ices.dk](mailto:rui.catarino@ices.dk)
+Roi Martinez:[roi.martinez@cefas.co.uk](mailto:roi.martinez@cefas.co.uk)
 
-Lara Salvany: [lara.salvany@ices.dk](mailto:lara.salvany@ices.dk)
+Colin Millar:[colin.millar@ices.dk](mailto:colin.millar@ices.dk)
+
+Josefine Egekvist:[jsv@aqua.dtu.dk](mailto:jsv@aqua.dtu.dk)
+
+Niels Hintzen:[niels.hintzen@wur.nl](mailto:niels.hintzen@wur.nl)
+
+Rui Catarino:[rui.catarino@ices.dk](mailto:rui.catarino@ices.dk)
 
 
 # Changelog
