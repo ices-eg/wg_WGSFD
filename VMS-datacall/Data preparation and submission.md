@@ -1,98 +1,29 @@
-**Contents**
+# 1. Part 1 Installation of the required software
 
-**[1](#_Toc94885602)****Part 1 **
+## 1.1 Step 1: Installation of R
 
-[1.1 Step 1: Installation of R](#_Toc94885603)
+## 1.2 Step 2: Installation of Rstudio
 
-[1.2 Step 2: Installation of RStudio ](#_Toc94885604)
+## 1.3 Step 3: Installing vmstools
 
-[1.3 Step 3: Installing vmstools ](#_Toc94885605)
+# 2. Part 2
 
-**[2](#_Toc94885606)****Part 2 **
+## 2.1 Data preprocessing
 
-[2.1 Data preprocessing](#_Toc94885607)
+### 2.1.1a) Load VMStools underlying data
 
-[#- 1a) Load VMStools underlying data ](#_Toc94885608)
+### 2.1.1b) Looping through the data years
 
-[#-1b) Looping through the data years ](#_Toc94885609)
+### 2.1.1c) load tacsat and eflalo data from file
 
-[#- 1c) load tacsat and eflalo data from file ](#_Toc94885610)
+## 2.2 Data analysis
 
-[2.2 Data analysis](#_Toc94885611)
+## 2.3 Data submission
 
-[2.3 Data submission](#_Toc94885612)
+# 3 Contacts
 
-**[4](#_Toc94885614)****Contacts 22**
+# 4 Changelog
 
-**[5](#_Toc94885615)****Changelog 23**
-
-
-**1**** Part 1 **
-
-1.1Step 1: Installation of R 
-
-1.2Step 2: Installation of RStudio 
-
-1.3Step 3: Installing vmstools 
-
-**2**** Part 2 **
-
-**2.1**** Load the data **
-
-#- 1a) Load VMStools underlying data 
-
-#-1b) Looping through the data 
-
-#- 1c) load tacsat and eflalo data from file 
-
-**2.2**** Clean the tacsat data **
-
-**2.3**** Clean the eflalo data **
-
-**2.4**** Merge the tacsat and eflalo data together **
-
-**2.5**** Define activity **
-
-**2.6**** Dispatch landings of merged eflalo at the ping scale **
-
-**2.7**** Assign c-square, year, month, quarter, area and create table 1 **
-
-**2.8**** Assign year, month, quarter, area and create table 2 **
-
-**3**** Contacts **
-
-**4**** Change log **
-
-
-**2** **Part 2 **
-
-
-
-**2.1** **Load the data**
-
-#- 1a) Load VMStools underlying data 
-
-#-1b) Looping through the data 
-
-#- 1c) load tacsat and eflalo data from file 
-
-**2.2**** Clean the tacsat data **
-
-**2.3**** Clean the eflalo data **
-
-**2.4**** Merge the tacsat and eflalo data together **
-
-**2.5**** Define activity **
-
-**2.6**** Dispatch landings of merged eflalo at the ping scale **
-
-**2.7**** Assign c-square, year, month, quarter, area and create table 1 **
-
-**2.8**** Assign year, month, quarter, area and create table 2 **
-
-**3**** Contacts **
-
-**4**** Change log **
 
 
 
@@ -538,7 +469,8 @@ and icesConnect ([https://cran.r-project.org/web/packages/icesConnect/index.html
 
 
 
-# Contacts
+# 3 Contacts
+
 Lara Salvany:[lara.salvany@ices.dk](mailto:lara.salvany@ices.dk)
 
 Roi Martinez:[roi.martinez@cefas.co.uk](mailto:roi.martinez@cefas.co.uk)
@@ -552,7 +484,7 @@ Niels Hintzen:[niels.hintzen@wur.nl](mailto:niels.hintzen@wur.nl)
 Rui Catarino:[rui.catarino@ices.dk](mailto:rui.catarino@ices.dk)
 
 
-# Changelog
+# 4 Changelog
 
 | **Date**          | **Change**             | **Prepared by**         |
 | ---               |    ---                 | ---                     |
