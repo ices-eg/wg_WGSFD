@@ -504,29 +504,40 @@ This code was developed by WGSFD experts and ICES Secretariat to prepare the dat
 Once prepared, the data can be submitted  to  ICES using icesDATSU ([https://cran.r-project.org/package=icesDatsu](https://cran.r-project.org/package=icesDatsu)) 
 and icesConnect ([https://cran.r-project.org/web/packages/icesConnect/index.html](https://cran.r-project.org/web/packages/icesConnect/index.html)). 
 
-Prior to submission, data should be screened: [https://datsu.ices.dk/web/screen.aspx](https://datsu.ices.dk/web/screen.aspx)
-
-And once ready data can be uploaded using this link:: [https://data.ices.dk/vms/manage/fileUpload](https://data.ices.dk/vms/manage/fileUpload)
-
-
-
-## Add description
-
-##
 
 # 3.1 Load TABLE 1 (VMS) and TABLE 2 (LOGBOOK)
 
 # 3.2 Replace vessel id by an anonymized id column
 
+#- New field added for the 2020 datacall including unique vessels id's  #
+#- This vessel id is used to calculate unique vessels in a c-square and  #
+
 # 3.3 Assign the vessel length category based in DATSU vocabulary
+
+#- Use of the "icesVocab" ICES developed R package that fetch the DATSU vocabulary values for a given vocabulary theme #
+#- install.packages("icesVocab", repos = "https://ices-tools-prod.r-universe.dev")
+
 
 # 3.4 Aggregate and summarise TABLE 1 and TABLE2
 
 # 3.5 ICES DATSU VOCABULARY CHECKS BEFORE DATA SUBMISSION
 
+The submission will not progress if the format used does not confirm to the required format and the submitter will be asked to fix the errors in order to proceed (DATSU check). 
+This piece of code performs a DATSU check (C-squares are within ICES ecoregions, vessel length categories are accepted, metier L4 and L5 are valid, country codes are correct,...)
+Running this code will allow you to fix all the format issues ahead of data submission via an API web service: ([https://datsu.ices.dk/web/screen.aspx] (https://datsu.ices.dk/web/screen.aspx)) and/or data upload in ICES Data portal ([https://data.ices.dk/vms/manage/fileUpload](https://data.ices.dk/vms/manage/fileUpload))
+
+
+
 # 3.6 DATA QC REPORT (OPTIONAL)
 
+Data submitters are welcome to run a QC report to compare data submitted through the years. 
+
 # WEB API SUBMISSION (OPTIONAL)
+
+Data submitters can choose to submit data to ICES using icesDATSU ([https://cran.r-project.org/package=icesDatsu] (https://cran.r-project.org/package=icesDatsu))
+and icesConnect ([https://cran.r-project.org/web/packages/icesConnect/index.html] (https://cran.r-project.org/web/packages/icesConnect/index.html)). 
+
+
 
 1.
 # Contacts
