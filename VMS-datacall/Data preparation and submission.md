@@ -261,6 +261,8 @@ The thresholds here defined will be used later in different processes throughout
 
 #- Specify how landings should be distributed over the VMS pings: By day, ICES rectangle, trip basis or otherwise
 
+
+
 ## 2.1 Data preprocessing
 
 ### Load thedata
@@ -277,7 +279,6 @@ In order to ensure that everything is working properly and to have a better unde
 
 So for the moment we will ignore this block (#-1b) **Looping**** through ****the**** data** and copy the line below into the console:
 
-![Shape10](RackMultipart20220215-4-1krebzr_html_7654d64c61b2602a.gif)
 
 ```{r}
 
@@ -293,7 +294,6 @@ Since we have justcopied **year <-**** 2009** to the console, when we run this b
 
 Now that you have just loaded both tacsat and eflalo for 2009 the next two lines will just change the name of your objects to 'tacsat' and 'eflalo'. Depending on what your objects are called you may need to change the code. (tip: If at any stage you don't remember what the names are just type 'ls()' and a list of all objects already loaded will appear). If your object names are not 'tacsat' and 'eflalo' you will need to adapt the code. However, this is a simple process. Below are two examples for changing objects names in this case the names are '2009Tacsat' and another called 'Tac09'
 
-![Shape11](RackMultipart20220215-4-1krebzr_html_7a43faac36ba21ba.gif)
 
 ```r
 
@@ -314,7 +314,7 @@ This block of code will identify all VMS pings (tacsat) within the ICES areas.
 
 ### Clean the tacsatdata
 
-This section will focus on 'cleaning' the data in the tacsatfile. The information in the tacsat(vms) comes from an electronic system that uses GPS information to collect the data on board the vessel and uses a satellite link to send the data to the database. Despite the reliability of this system conditions at sea are not always the best.There are two main opportunities for errors to occur, when receiving or sending data from the GPS and to the database. The code in this section will look to the most common errors and try to identify all of them. The code will not only delete the errors but also keep a record of what was deleted allowing you to keep track of how much data you have lost due to errors.
+This section will focus on 'cleaning' the data in the tacsatfile. The information in the tacsat(vms) comes from an electronic system that uses GPS information to collect the data on board the vessel and uses a satellite link to send the data to the database. Despite the reliability of this system conditions at sea are not always the best. There are two main opportunities for errors to occur, when receiving or sending data from the GPS and to the database. The code in this section will look to the most common errors and try to identify all of them. The code will not only delete the errors but also keep a record of what was deleted allowing you to keep track of how much data you have lost due to errors.
 
 #- Keep track of removed points
 
@@ -352,21 +352,21 @@ The 'remrecsEflalo' object will keep you informed of how much data has been remo
 
 Basically this block looks for outliers. For each species, it generates a data-driven outlier threshold. If any outliers are found, these will be converted into 'NA' values. You can check in the 'Results' folder for the files containing all the outliers and you can double check if they are correct or not. If they were correct then you can run the code again but the code will need some adjustments.
 
-#First get the species names in your eflalo dataset
+#- First get the species names in your eflalo dataset
 
-# Define per species what the maximum allowed catch is
+#- Define per species what the maximum allowed catch is
 
-# (larger than that value you expect it to be an error / outlier
+#- (larger than that value you expect it to be an error / outlier
 
-#Make a list of the species names and the cut-off points / error / outlier point
+#- Make a list of the species names and the cut-off points / error / outlier point
 
-#Put these values to zero
+#- Put these values to zero
 
-#Get the index (column number) of each of the species
+#- Get the index (column number) of each of the species
 
-#If landing > cut-off turn it into an 'NA';
+#- If landing > cut-off turn it into an 'NA';
 
-#Turn all other NAs in the eflalo dataset in KG and EURO columns to zero
+#- Turn all other NAs in the eflalo dataset in KG and EURO columns to zero
 
 #- Remove non-unique trip numbers
 
