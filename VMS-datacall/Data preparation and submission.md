@@ -554,17 +554,13 @@ Rui Catarino:[rui.catarino@ices.dk](mailto:rui.catarino@ices.dk)
 
 # Changelog
 
-| **Date** | **Change** | **Prepared by** |
-| --- | --- | --- |
-|
-March 2016 |
-Initial version created |
-Rui Catarino, ICES |
-| 1 February 2019 | Update | Lara Salvany, ICES |
-
-1 February 2021 Update Lara Salvany, ICES
-15 February 2022 Update Roi Martinez, UK
-                        Lara Salvany, ICES
+| **Date**          | **Change**             | **Prepared by**         |
+| ---               |    ---                 | ---                     |
+|      March 2016   |Initial version created | Rui Catarino, ICES      |
+| 1 February 2019   | Update                 | Lara Salvany, ICES      |
+| 1 February 2021   | Update                 | Lara Salvany, ICES      |
+| 15 February 2022  | Update                 | Roi Martinez, UK        |
+                                             | Lara Salvany, ICES      |
 
 
 
