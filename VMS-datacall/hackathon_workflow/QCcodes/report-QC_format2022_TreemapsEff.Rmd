@@ -1,0 +1,1049 @@
+---
+title: "QC ICES-upload TreeMaps Effort"
+output: 
+  html_document
+---
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, comment = NA)
+```
+
+
+## Hackathon 2021
+### QC of data delivery for ICES VMS data call 2021
+#### Tree maps of vms derived fishing effort (hours) per gear
+
+
+
+```{r settings}
+# ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+##############  GLOBAL SETTINGS  ############################
+# ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+cat("\014")  #clears console
+settings<-1
+if(settings==1){
+  # ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+  rm(list=ls()); gc()             # clean up the workspace
+  
+  
+  Sys.setlocale("LC_ALL","C")     # defines formats (date, time) ..??
+  
+  # ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+  ## set Year(s) ####
+  years <- c(2009:2020)                                 # if different from default, set years for analyses
+
+  ## Libraries
+  # ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+  library(vmstools)
+  library(mixtools)
+  library(maps)
+  library(mapdata)
+  library(ggplot2)
+  library(gdata)
+  library(Matrix)
+  library(PBSmapping)
+  library(rgdal)
+  library(maptools)
+  library(rgdal)
+  library(WriteXLS)
+  library(sp)
+  library(raster)
+  library(RColorBrewer)
+  library(plyr)
+  library(XLConnect)
+  library(doBy)
+  library(data.table)
+  library(dplyr)
+  library(tidyverse)
+  library(mapplots)
+  library(sf)
+  library(tidyr)
+  # ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+  # Functions
+  
+  grade <-function (x, dx) {
+    if (dx > 1) 
+      warning("Not tested for grids larger than one")
+    brks <- seq(floor(min(x)), ceiling(max(x)), dx)
+    ints <- findInterval(x, brks, all.inside = TRUE)
+    x <- (brks[ints] + brks[ints + 1])/2
+    return(x)
+  }
+  csq2pos <- function(d, dx = 0.05) {
+    bind_cols(d,
+              vmstools::CSquare2LonLat(d$csq, degrees = dx) %>% 
+                select(lon = SI_LONG,
+                       lat = SI_LATI)) %>% 
+      as_tibble()
+  }
+  # borrowed from the geo-package
+  d2ir <- function (lon, lat = NULL, useI = FALSE) {
+    
+    # if lon is a dataframe
+    if (is.null(lat)) {
+      lon <- lat$lon
+      lat <- lat$lat
+    }
+    lat <- lat + 1e-06
+    lon <- lon + 1e-06
+    outside <- lat < 36 | lat >= 85.5 | lon <= -44 | lon > 68.5
+    if (any(outside)) 
+      warning("Positions outside of ICES statistical area")
+    lat <- floor(lat * 2) - 71
+    lat <- ifelse(lat < 10, paste("0", lat, sep = ""), lat)
+    if (useI) 
+      lettersUsed <- LETTERS[1:12]
+    else lettersUsed <- LETTERS[c(1:8, 10:13)]
+    lon1 <- lettersUsed[(lon + 60)%/%10]
+    lon2 <- ifelse(lon1 == "A", floor(lon%%4), floor(lon%%10))
+    ir <- paste(lat, lon1, lon2, sep = "")
+    ir[outside] <- NA
+    ir
+  }
+  ir2d <- function (ir, useI = FALSE) {
+    lat <- substring(ir, 1, 2)
+    lat <- as.numeric(lat)
+    lat <- (lat + 71)/2 + 0.25
+    lon1 <- substring(ir, 3, 3)
+    lon1 <- toupper(lon1)
+    lon1 <- match(lon1, LETTERS)
+    if (!useI) 
+      lon1 <- ifelse(lon1 > 8, lon1 - 1, lon1)
+    lon1 <- lon1 - 2
+    lon2 <- substring(ir, 4)
+    lon2 <- as.numeric(lon2)
+    lon <- ifelse(lon1 < 0, -44 + lon2 + 0.5, -40 + 10 * lon1 + 
+                    lon2 + 0.5)
+    data.frame(lat = lat, lon = lon)
+  }
+
+read_ve <- function(file) {
+  
+  read.csv(file,
+           header = FALSE,
+           na.strings = "NULL") %>% 
+    tidyr::as_tibble() %>% 
+    dplyr::rename(type = 1,
+                  country = 2,
+                  year = 3,
+                  month = 4,
+                  n_vessel = 5,
+                  vids = 6,
+                  csq = 7,
+                  dcf4 = 8,
+                  dcf5 = 9,
+                  dcf6 = 10,
+                  lclass = 11,
+                  speed = 12,
+                  effort = 13,             # units in hours
+                  length = 14,             # average vessel length
+                  kw = 15,                 # average kw
+                  kwh = 16,                # kw x effort
+                  catch = 17,
+                  value = 18,
+                  spread = 19) %>% 
+    dplyr::mutate(value = as.numeric(value),
+                  csq = as.character(csq)
+                  )
+}
+  # fuctions end
+  # ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+  
+  
+  # ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+  # support tables ---------------------------------------------------------------
+  lclass <- 
+    tribble(~lclass, ~length_class,
+            "A", "<8",
+            "B", "08-10",
+            "C", "10-12",
+            "D", "12-15",
+            "E", ">= 15")
+  # ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+  
+  
+  
+  # ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+  ## set Paths, make folders ####        
+  
+  
+  # Global data:  shapes, harbour data, EU-Fleet Register
+  shppath          <-  "/YOUR_PATH/shapes/"   # PROVIDE SHAPES!  of borders, c-squares, 12 nm borders etc. etc.
+
+  # project output pathes 
+  #getwd()
+  ## results path(s) ####
+
+  # ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+  # load vmstools data
+  
+  # data(euharbours)
+  # data(harbours)
+  # data(ICESareas)
+  # data(europa)
+  
+  # # graphic outpus on linus server
+  # reso       <- 3                     #dpi setting (1=100dpi)
+  # height_png <- 2480 #A4
+  # width_png  <- 3508 #A4
+  
+  # ## set mobile bottom contact gears
+  # mbcg<- c('TBB_1631','TBC','TBB','OTB', 'OTT','SSC','SDN','PTB', 'DRB', 'DRH', 'TBN','SPR','SX','HMD', 'SB', 'TB', 'TBS', 'SV','PUL','PUK','SUM')
+  # entg = c('GND','GNS','GN','GTN','GTR','GNC')               # passive gears, entangling birds and mammals
+  
+  
+} # Settings end #####
+# ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+```
+
+```{r get-data}
+# ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+ve <- 
+  read_ve("/YOUR_PATH/table1Save.csv") %>% 
+  
+  csq2pos() %>% 
+  # NEED TO CHECK THIS UPSTREAM
+  filter(!is.na(lon)) %>% 
+  mutate(isq = d2ir(lat, lon))
+
+country <- unique(ve$country)
+
+```
+
+Countries in table 1 (vms, ve):  `r as.character(country)`
+
+```{r indicate-shrimper}
+## indicate shrimpers on gear level by TBC (trawl beam/bottom crangon) to gain better activity speed thresholds
+ve2<-ve
+ve2$dcf4<-as.character((ve2$dcf4))
+ve2$dcf6<-as.character((ve2$dcf6))
+ve2$dcf4[ve2$dcf6=="TBB_CRU_16-31_0_0"]<-"TBC"
+ve2$dcf4<-as.factor(ve2$dcf4)
+ve2$dcf6<-NULL
+ve<-ve2  
+rm(ve2)
+```
+
+```{r transform input data}
+# lon lat already in data, but other name needed. Maybe remove and rename columns or copy/paste or rename variable in tree map code
+ve$SI_LONG <- CSquare2LonLat(ve$csq,0.05)$SI_LONG
+ve$SI_LATI <- CSquare2LonLat(ve$csq,0.05)$SI_LATI
+
+# keep wanted columns only (remove kg and euro)
+  deg<-ve[,c("year", "month","SI_LATI","SI_LONG", "dcf4", "effort")]
+  deg$YrMnth<-paste(ac(deg$year),"-",ac(deg$month),"-1 00:00:00", sep="")
+  deg$YrMnth <- as.POSIXct(deg$YrMnth, tz="GMT", format="%Y-%m-%d %H:%M:%S")
+
+  #sum up duplicates 
+  deg2<-deg%>% group_by(YrMnth, SI_LONG, SI_LATI, dcf4) %>% 
+    summarise(sum = round(sum(effort), 2))
+  
+  deg2$eff_hrs<-deg2$sum
+  deg2$GEAR<-paste("effort_", deg2$dcf4, sep="")
+  deg3<-spread(deg2, GEAR, eff_hrs)
+  
+  ## replace empties in effort, kg, revenues by zero
+  eff <- function(x){return(c(grep("effhrs",x)))}
+  ## convert NAs in kg and eur to zero
+  for(i in eff(colnames(deg3))) 
+    deg3[which(is.na(deg3[,i])),i] <- 0 
+  
+  veX<-deg3
+
+```
+
+
+
+```{r get-map-data, echo=FALSE}
+# ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+# ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+####   get shapes  ####
+  borders            <-readOGR(dsn=shppath, layer="EEZ_Land_v3_202030", verbose = FALSE)  # eez borders world
+  borders_GER_EEZ    <-readOGR(dsn=shppath, layer="Boundaries", verbose = FALSE)          # coastal borders southern North Sea
+  europaShp          <-readOGR(dsn=shppath, layer="Europa", verbose = FALSE)              # land masses
+  
+  #set cell size 
+  gridcell = c(0.05, 0.05) # suitable for wadden sea/ coastal waters
+
+  # # plotting/png parameters
+  # reso        <- 3                     #dpi setting (1=100dpi)
+  # # width_png   <- 2480 #A4, i.e. 210 mm × 297 mm  1:2^-2
+  # # height_png  <- 3508 #A4
+  # width_png   <- 2480 # quadratisch
+  # height_png  <- 2480 #
+  
+  ## define treemap functions ####
+  chop        <- function(x) rev(rev(x)[-1])
+  simple.hook <- function(z, xl, yl, xu, yu) {
+    rect(xl, yl, xu, yu, col = as.character(z$one), border = NA)
+  }
+  squarified.treemap <- function(z, x = 0, y = 0, w = 1, h = 1, 
+                                 hook) {
+    cz <- cumsum(z$size)/sum(z$size)
+    n <- which.min(abs(log(max(w/h, h/w) * sum(z$size) * 
+                             cz^2/z$size)))
+    more <- n < length(z$size)
+    a <- c(0, cz[1:n])/cz[n]
+    if (h > w) {
+      hook(z[1:n, ], x + w * chop(a), rep(y, n), x + w * 
+             a[-1], rep(y + h * cz[n], n))
+      if (more) 
+        Recall(z[-(1:n), ], x, y + h * cz[n], w, h * 
+                 (1 - cz[n]), hook)
+    }
+    else {
+      hook(z[1:n, ], rep(x, n), y + h * chop(a), rep(x + 
+                                                       w * cz[n], n), y + h * a[-1])
+      if (more) 
+        Recall(z[-(1:n), ], x + w * cz[n], y, w * (1 - 
+                                                     cz[n]), h, hook)
+    }
+  }
+  
+  # define functions end 
+  ##ooooooooooooooooooo
+```
+  
+  
+  
+## Tree maps: proportional effort per gear and c-square 0.05° {.tabset}
+
+
+```{r settings-treemap}
+
+ dtp<-"effort_"  # plot effort hours per gear
+
+ subjCol_1<-list( 
+              red            = "TBC",
+              orange         = "TBB",
+              green          = "DRB",
+              darkgreen      = "PUL",
+              purple         = "OTB",
+              hotpink1       = "OTT",
+              darkturquoise  = "PTB",
+              skyblue2       = "SSC",
+              blue           = "SDN",
+              yellow4        = "OTM",
+              brown          = "PTM",
+              yellow         = "GNS",
+              yellow3        = "FPO",
+              grey           = "OTH"
+            )
+            #txt<-"effort hours of gears" # text for subheading
+            #filelab<-"FiEff"  # lable for map file
+
+require(RColorBrewer) 
+
+ #convert list to data frame to stearing data
+          subCol<-NULL
+          subCol <- data.frame(matrix(unlist(subjCol_1), nrow=length(subjCol_1), byrow=T))
+          names(subCol)<-"subj"
+          subCol$colour <- names(subjCol_1)
+          subCol<-subCol[,c("subj", "colour")]
+          #View(subCol)
+          subCol$subj2<-paste(dtp,subCol$subj, sep="")
+          subjects.to.keep<-ac(subCol$subj2[-grep("OTH", subCol$subj)])
+          # end defining subjects.to.keep
+          ##ooooooooooooooooooo
+
+```
+
+```{r define-areas-to-plot}
+
+atp <- matrix(NA,nrow=6,ncol=4,dimnames=list(c("ices","ices_NW", "ices_NE","ices_SW", "NorthSea", "BalticSea"),
+                                             c("xlimMin", "xlimMax", "ylimMin", "ylimMax")))
+    atp["ices",]        <- c(-50,35, 35,68)   # total ices area
+    atp["ices_NW",]     <- c(-50, 0, 47,68)   # N to S: Channel to Iceland; W to E: Greenland to UK
+    atp["ices_NE",]     <- c( -5,35, 47,68)   # N to S:Germany to Norwegean Sea; W to E:UK to Russia
+    atp["ices_SW",]     <- c(-50, 0, 35,52)   # N to S: Gibraltar to Channel; W to E: Azores to Iberia
+    atp["NorthSea",]    <- c( -6,10, 52,62)   # North Sea
+    atp["BalticSea",]   <- c(  9,30, 53,62)   # Baltic Sea
+
+    
+    
+```
+
+### ices total 
+
+```{r map-ices-area, fig.show="hold", out.width="50%"}
+#, eval=FALSE   switches off chunk; total ices area needs a lot time to plot for all years
+par(mar = c( .1,  .1, 2, .1))  
+#areasToPlot<-c("ices", "ices_NW", "ices_NE", "ices_SW" )
+rng<-"ices" 
+
+#    for(rng in areasToPlot){
+      cat("TBC: Trawl Beam Crangon (TBB_CRU_16-31)", "\n")
+      xlim<-c(atp[rng, "xlimMin"], atp[rng, "xlimMax"])
+      ylim<-c(atp[rng, "ylimMin"], atp[rng, "ylimMax"])
+      
+      
+      #use subset to fit range of data to range of map
+      veX_rng <- subset(veX, SI_LONG >xlim[1]& SI_LONG<xlim[2] & SI_LATI>ylim[1] & SI_LATI<ylim[2])
+      #veX_rng <- subset(veX, SI_LONG > atp[rng, "xlimMin"] & SI_LONG < atp[rng, "xlimMax"] & SI_LATI > atp[rng, "ylimMin"] & SI_LATI< atp[rng, "ylimMax"])
+
+  for(yr in years){
+    veX_rng_yr<-subset(veX_rng, year(YrMnth)==yr)## make subset of year
+    if(nrow(veX_rng_yr)>=0){ # plot maps with data only
+    x<-veX_rng_yr
+          
+#  keeps all wanted subject in legend and use same colour in all data sets
+#  generarte table/data frame with subjects to keep (species, gears, nations) and which colours to be used
+         
+        x$SI_LONG <- anf(x$SI_LONG)
+        x$SI_LATI <- anf(x$SI_LATI)
+        x <- x[!is.na(x$SI_LATI), ]
+        idxx <- which(x$SI_LONG >= xlim[1] & x$SI_LONG <= xlim[2])
+        idxy <- which(x$SI_LATI >= ylim[1] & x$SI_LATI <= ylim[2])
+        x <- x[idxx[which(idxx %in% idxy)], ]
+        xx<-x
+        grids <- createGrid(xrange = xlim, yrange = ylim, gridcell[1],gridcell[2], type = "SpatialPixelsDataFrame")
+        coords <- SpatialPointsDataFrame(cbind(x = an(ac(xx$SI_LONG)), y = an(ac(xx$SI_LATI))), data = xx)
+        coords@data$dens <- over(as(coords, "SpatialPoints"), as(grids, "SpatialPixels"))
+        DT <- data.table(data.frame(coords))
+        DT$x <- af(ac(grids@coords[DT$dens, 1]))
+        DT$y <- af(ac(grids@coords[DT$dens, 2]))
+        idx.col <- grep(dtp, names(coords))
+        eq1 <- c.listquote(paste("sum(", names(coords[, idx.col]), ",na.rm=TRUE)", sep = ""))
+        eq2 <- c.listquote(c("x", "y"))
+        byRect <- data.frame(DT[, eval(eq1), by = eval(eq2)])
+        colnames(byRect) <- c("SI_LONG", "SI_LATI", names(coords)[idx.col])
+        byRect$SI_LONG <- signif(anf(byRect$SI_LONG))
+        byRect$SI_LATI <- signif(anf(byRect$SI_LATI))
+        idx.col <- grep(dtp, colnames(byRect))
+        rangeRect <- range(apply(byRect[idx.col], 1, sum, na.rm = TRUE))
+        rangeRect <- c(0, rangeRect[2])
+        A.sum <- apply(byRect[, idx.col], 1, sum, na.rm = TRUE)
+        A.sum2 <- apply(byRect[, idx.col], 2, sum, na.rm = TRUE)
+        subjects.to.merge <- names(A.sum2)[!names(A.sum2) %in% subjects.to.keep]
+        if(length(subjects.to.merge)>1) byRect$subj_OTH <- apply(byRect[, subjects.to.merge], 1, sum, na.rm = TRUE)
+        if(length(subjects.to.merge)==1) byRect$subj_OTH <- byRect[, subjects.to.merge]
+        names(byRect)<-gsub("subj_OTH", paste(dtp,"OTH",sep=""), names(byRect))
+        byRect <- byRect[, !names(byRect) %in% subjects.to.merge]
+        idx.col <- grep(dtp, names(byRect))
+        byRect[, idx.col] <- sweep(byRect[, idx.col], 1, A.sum, FUN = "/")
+  
+        ##START PLOT ####
+
+          maps::map("worldHires", resolution = 1, xlim = xlim, ylim = ylim, 
+                    fill = TRUE, col = NULL, border="white")   # just opens frame, all colors white (frisian national flag)
+        
+        mtext(paste(country,'_', yr,sep=''), side=3, outer=F, adj=0, line=2, font=2 )
+        
+        map.axes()
+        
+        for (iRect in 1:nrow(byRect)) { # plotting proportional effort of gears per cell
+          x1 <- an(ac(byRect[iRect, "SI_LONG"]))
+          y1 <- an(ac(byRect[iRect, "SI_LATI"]))
+          size <- an(ac(byRect[iRect, idx.col]))
+          size <- replace(size, is.na(size) | size <= 0, 1e-04)
+          if(dtp=="effort_") z <- data.frame(size = size, subj = substr(names(byRect[,c(3:ncol(byRect))]),8,10)  )
+          z$one <- ac(z$subj)
+          for (k in names(subjCol_1))
+            z$one <- replace(z$one,z$one %in% subjCol_1[[k]],k)
+          z$one<-as.factor(z$one)
+          z <- z[order(-z$size), ]
+          squarified.treemap(z, x = x1, y = y1, w = gridcell[1], 
+                             h = gridcell[2], hook = simple.hook)
+        }
+        
+        #plot land masses on top of data to see islands and coastal lines nicely
+        if(rng=="ices" | rng== "ices_NW"| rng== "ices_NE" | rng== "ices_SW") 
+          maps::map("worldHires", add=TRUE, resolution = 1, xlim = xlim, ylim = ylim, fill = TRUE, col = "darkgray", border="black") 
+        
+         # plot border  
+        if(rng %in% c("ices", "ices_NW", "ices_NE","ices_SW" )) plot(borders, add=TRUE, border = "darkred", lwd=1)
+        if(rng %in% c("NorthSea", "BalticSea"))                 plot(borders, add=TRUE, border = "darkred", lwd=2)
+        if(rng %in% c("NorthSea", "BalticSea"))                 plot(borders_GER_EEZ, add=TRUE, border = "darkred", lwd=1)
+        
+        # plot ICES Rects
+        if(!rng %in% c("ices", "ices_NW", "ices_NE","ices_SW")) draw.rect(col = "black")       # ICES Rectangles
+        if( rng %in% c("ices", "ices_NW", "ices_NE","ices_SW")) draw.rect(col = "transparent") # ICES Rectangles; show ticks only
+         
+#plot legend
+  if(rng %in% c("ices")) legend("bottomright", legend = subCol$subj, fill = names(subjCol_1), bg = "white", cex=0.7)
+     } # end of plotting maps with effort only
+  } # end of loop per year
+  rm(x,xx,z,byRect,coords,deg,deg2,deg3, DT)
+
+``` 
+
+### ices Northwest 
+
+```{r map-ices-NW, fig.show="hold", out.width="50%"}
+par(mar = c( .1,  .1, 2, .1))  
+#areasToPlot<-c("ices", "ices_NW", "ices_NE", "ices_SW" )
+rng<-"ices_NW" 
+
+#    for(rng in areasToPlot){
+      cat("TBC: Trawl Beam Crangon (TBB_CRU_16-31)", "\n")
+      xlim<-c(atp[rng, "xlimMin"], atp[rng, "xlimMax"])
+      ylim<-c(atp[rng, "ylimMin"], atp[rng, "ylimMax"])
+      
+      
+      #use subset to fit range of data to range of map
+      veX_rng <- subset(veX, SI_LONG >xlim[1]& SI_LONG<xlim[2] & SI_LATI>ylim[1] & SI_LATI<ylim[2])
+      #veX_rng <- subset(veX, SI_LONG > atp[rng, "xlimMin"] & SI_LONG < atp[rng, "xlimMax"] & SI_LATI > atp[rng, "ylimMin"] & SI_LATI< atp[rng, "ylimMax"])
+
+  for(yr in years){
+    veX_rng_yr<-subset(veX_rng, year(YrMnth)==yr)## make subset of year
+    if(nrow(veX_rng_yr)>=0){ # plot maps with data only
+    x<-veX_rng_yr
+          
+#  keeps all wanted subject in legend and use same colour in all data sets
+#  generarte table/data frame with subjects to keep (species, gears, nations) and which colours to be used
+         
+        # names(x)<-gsub("LE_KG_OTH", "LE_KG_OTHx", names(x)) # rename OTH to sum this up with all other species in column LE_KG_OTH later; in Anland spec OTH until 2016
+        # names(x)<-gsub("LE_EURO_OTH", "LE_EURO_OTHx", names(x)) # rename OTH to sum this up with all other species in column LE_KG_OTH later; in Anland spec OTH until 2016
+        x$SI_LONG <- anf(x$SI_LONG)
+        x$SI_LATI <- anf(x$SI_LATI)
+        x <- x[!is.na(x$SI_LATI), ]
+        idxx <- which(x$SI_LONG >= xlim[1] & x$SI_LONG <= xlim[2])
+        idxy <- which(x$SI_LATI >= ylim[1] & x$SI_LATI <= ylim[2])
+        x <- x[idxx[which(idxx %in% idxy)], ]
+        xx<-x
+        grids <- createGrid(xrange = xlim, yrange = ylim, gridcell[1],gridcell[2], type = "SpatialPixelsDataFrame")
+        coords <- SpatialPointsDataFrame(cbind(x = an(ac(xx$SI_LONG)), y = an(ac(xx$SI_LATI))), data = xx)
+        coords@data$dens <- over(as(coords, "SpatialPoints"), as(grids, "SpatialPixels"))
+        DT <- data.table(data.frame(coords))
+        DT$x <- af(ac(grids@coords[DT$dens, 1]))
+        DT$y <- af(ac(grids@coords[DT$dens, 2]))
+        idx.col <- grep(dtp, names(coords))
+        eq1 <- c.listquote(paste("sum(", names(coords[, idx.col]), ",na.rm=TRUE)", sep = ""))
+        eq2 <- c.listquote(c("x", "y"))
+        byRect <- data.frame(DT[, eval(eq1), by = eval(eq2)])
+        colnames(byRect) <- c("SI_LONG", "SI_LATI", names(coords)[idx.col])
+        byRect$SI_LONG <- signif(anf(byRect$SI_LONG))
+        byRect$SI_LATI <- signif(anf(byRect$SI_LATI))
+        idx.col <- grep(dtp, colnames(byRect))
+        rangeRect <- range(apply(byRect[idx.col], 1, sum, na.rm = TRUE))
+        rangeRect <- c(0, rangeRect[2])
+        A.sum <- apply(byRect[, idx.col], 1, sum, na.rm = TRUE)
+        A.sum2 <- apply(byRect[, idx.col], 2, sum, na.rm = TRUE)
+        subjects.to.merge <- names(A.sum2)[!names(A.sum2) %in% subjects.to.keep]
+        if(length(subjects.to.merge)>1) byRect$subj_OTH <- apply(byRect[, subjects.to.merge], 1, sum, na.rm = TRUE)
+        if(length(subjects.to.merge)==1) byRect$subj_OTH <- byRect[, subjects.to.merge]
+        names(byRect)<-gsub("subj_OTH", paste(dtp,"OTH",sep=""), names(byRect))
+        byRect <- byRect[, !names(byRect) %in% subjects.to.merge]
+        idx.col <- grep(dtp, names(byRect))
+        byRect[, idx.col] <- sweep(byRect[, idx.col], 1, A.sum, FUN = "/")
+  
+        ##START PLOT ####
+        #if(rng != "ices" & rng != "fullRange" & rng != "ices_NW"& rng != "ices_NE"& rng != "ices_SW"){ # world map quite rough in German Bight
+          maps::map("worldHires", resolution = 1, xlim = xlim, ylim = ylim, 
+                    fill = TRUE, col = NULL, border="white")   # just opens frame, all colors white (frisian national flag);
+        #}
+        # if(rng == "ices" | rng == "fullRange" | rng == "ices_NW" | rng == "ices_NE" | rng == "ices_SW"){ # world map needed for land masses of Greenland, Africa etc.
+        #   maps::map("worldHires", resolution = 1, xlim = xlim, ylim = ylim, 
+        #             fill = TRUE, col = "darkgrey", border="black") 
+        # }
+        
+        mtext(paste(country,'_', yr,sep=''), side=3, outer=F, adj=0, line=2, font=2 )
+        
+        map.axes()
+        
+        for (iRect in 1:nrow(byRect)) { # plotting proportional effort of gears per cell
+          x1 <- an(ac(byRect[iRect, "SI_LONG"]))
+          y1 <- an(ac(byRect[iRect, "SI_LATI"]))
+          size <- an(ac(byRect[iRect, idx.col]))
+          size <- replace(size, is.na(size) | size <= 0, 1e-04)
+          if(dtp=="effort_") z <- data.frame(size = size, subj = substr(names(byRect[,c(3:ncol(byRect))]),8,10)  )
+          z$one <- ac(z$subj)
+          for (k in names(subjCol_1))
+            z$one <- replace(z$one,z$one %in% subjCol_1[[k]],k)
+          z$one<-as.factor(z$one)
+          z <- z[order(-z$size), ]
+          squarified.treemap(z, x = x1, y = y1, w = gridcell[1], 
+                             h = gridcell[2], hook = simple.hook)
+        }
+        
+         #plot land masses on top of data to see islands and coastal lines nicely
+        if(rng=="ices" | rng== "ices_NW"| rng== "ices_NE" | rng== "ices_SW") 
+          maps::map("worldHires", add=TRUE, resolution = 1, xlim = xlim, ylim = ylim, fill = TRUE, col = "darkgray", border="black") 
+         
+        # plot border  
+        if(rng %in% c("ices", "ices_NW", "ices_NE","ices_SW" )) plot(borders, add=TRUE, border = "darkred", lwd=1)
+        if(rng %in% c("NorthSea", "BalticSea"))                 plot(borders, add=TRUE, border = "darkred", lwd=2)
+        if(rng %in% c("NorthSea", "BalticSea"))                 plot(borders_GER_EEZ, add=TRUE, border = "darkred", lwd=1)
+        
+        # plot ICES Rects
+        if(!rng %in% c("ices", "ices_NW", "ices_NE","ices_SW")) draw.rect(col = "black")       # ICES Rectangles
+        if( rng %in% c("ices", "ices_NW", "ices_NE","ices_SW")) draw.rect(col = "transparent") # ICES Rectangles; show ticks only
+         
+        #plot legend
+        #areasToPlot<-c("ices", "NsChnNrw", "NSeezGer", "NScoastGer", "BSeezGer", "BSwider" )
+        if(rng %in% c("ices"))                                                     legend("topright",    legend = subCol$subj, fill = names(subjCol_1), bg = "white", cex=0.7)  
+        if(rng %in% c("NSeezGer"))                                                 legend("topright",    legend = subCol$subj, fill = names(subjCol_1), bg = "white")     
+        if(rng %in% c("ices_NE"))                                                  legend("bottomright", legend = subCol$subj, fill = names(subjCol_1), bg = "white", cex=0.7)
+        if(rng %in% c("ices_NW", "ices_SW"))                                       legend("bottomleft",  legend = subCol$subj, fill = names(subjCol_1), bg = "white", cex=0.7)
+     } # end of plotting maps with effort only
+#    } # end of area ranges to plot
+  } # end of loop per year
+  #dev.off()
+  rm(x,xx,z,byRect,coords, DT)
+
+``` 
+
+### ices Northeast 
+
+```{r map-ices-NE, fig.show="hold", out.width="50%"}
+par(mar = c( .1,  .1, 2, .1))  
+#areasToPlot<-c("ices", "ices_NW", "ices_NE", "ices_SW" )
+rng<-"ices_NE" 
+
+#    for(rng in areasToPlot){
+      cat("TBC: Trawl Beam Crangon (TBB_CRU_16-31)", "\n")
+      xlim<-c(atp[rng, "xlimMin"], atp[rng, "xlimMax"])
+      ylim<-c(atp[rng, "ylimMin"], atp[rng, "ylimMax"])
+      
+      
+      #use subset to fit range of data to range of map
+      veX_rng <- subset(veX, SI_LONG >xlim[1]& SI_LONG<xlim[2] & SI_LATI>ylim[1] & SI_LATI<ylim[2])
+      #veX_rng <- subset(veX, SI_LONG > atp[rng, "xlimMin"] & SI_LONG < atp[rng, "xlimMax"] & SI_LATI > atp[rng, "ylimMin"] & SI_LATI< atp[rng, "ylimMax"])
+
+  for(yr in years){
+    veX_rng_yr<-subset(veX_rng, year(YrMnth)==yr)## make subset of year
+    if(nrow(veX_rng_yr)>=0){ # plot maps with data only
+    x<-veX_rng_yr
+          
+#  keeps all wanted subject in legend and use same colour in all data sets
+#  generarte table/data frame with subjects to keep (species, gears, nations) and which colours to be used
+         
+        # names(x)<-gsub("LE_KG_OTH", "LE_KG_OTHx", names(x)) # rename OTH to sum this up with all other species in column LE_KG_OTH later; in Anland spec OTH until 2016
+        # names(x)<-gsub("LE_EURO_OTH", "LE_EURO_OTHx", names(x)) # rename OTH to sum this up with all other species in column LE_KG_OTH later; in Anland spec OTH until 2016
+        x$SI_LONG <- anf(x$SI_LONG)
+        x$SI_LATI <- anf(x$SI_LATI)
+        x <- x[!is.na(x$SI_LATI), ]
+        idxx <- which(x$SI_LONG >= xlim[1] & x$SI_LONG <= xlim[2])
+        idxy <- which(x$SI_LATI >= ylim[1] & x$SI_LATI <= ylim[2])
+        x <- x[idxx[which(idxx %in% idxy)], ]
+        xx<-x
+        grids <- createGrid(xrange = xlim, yrange = ylim, gridcell[1],gridcell[2], type = "SpatialPixelsDataFrame")
+        coords <- SpatialPointsDataFrame(cbind(x = an(ac(xx$SI_LONG)), y = an(ac(xx$SI_LATI))), data = xx)
+        coords@data$dens <- over(as(coords, "SpatialPoints"), as(grids, "SpatialPixels"))
+        DT <- data.table(data.frame(coords))
+        DT$x <- af(ac(grids@coords[DT$dens, 1]))
+        DT$y <- af(ac(grids@coords[DT$dens, 2]))
+        idx.col <- grep(dtp, names(coords))
+        eq1 <- c.listquote(paste("sum(", names(coords[, idx.col]), ",na.rm=TRUE)", sep = ""))
+        eq2 <- c.listquote(c("x", "y"))
+        byRect <- data.frame(DT[, eval(eq1), by = eval(eq2)])
+        colnames(byRect) <- c("SI_LONG", "SI_LATI", names(coords)[idx.col])
+        byRect$SI_LONG <- signif(anf(byRect$SI_LONG))
+        byRect$SI_LATI <- signif(anf(byRect$SI_LATI))
+        idx.col <- grep(dtp, colnames(byRect))
+        rangeRect <- range(apply(byRect[idx.col], 1, sum, na.rm = TRUE))
+        rangeRect <- c(0, rangeRect[2])
+        A.sum <- apply(byRect[, idx.col], 1, sum, na.rm = TRUE)
+        A.sum2 <- apply(byRect[, idx.col], 2, sum, na.rm = TRUE)
+        subjects.to.merge <- names(A.sum2)[!names(A.sum2) %in% subjects.to.keep]
+        if(length(subjects.to.merge)>1) byRect$subj_OTH <- apply(byRect[, subjects.to.merge], 1, sum, na.rm = TRUE)
+        if(length(subjects.to.merge)==1) byRect$subj_OTH <- byRect[, subjects.to.merge]
+        names(byRect)<-gsub("subj_OTH", paste(dtp,"OTH",sep=""), names(byRect))
+        byRect <- byRect[, !names(byRect) %in% subjects.to.merge]
+        idx.col <- grep(dtp, names(byRect))
+        byRect[, idx.col] <- sweep(byRect[, idx.col], 1, A.sum, FUN = "/")
+  
+        ##START PLOT ####
+        #if(rng != "ices" & rng != "fullRange" & rng != "ices_NW"& rng != "ices_NE"& rng != "ices_SW"){ # world map quite rough in German Bight
+          maps::map("worldHires", resolution = 1, xlim = xlim, ylim = ylim, 
+                    fill = TRUE, col = NULL, border="white")   # just opens frame, all colors white (frisian national flag);
+        #}
+        # if(rng == "ices" | rng == "fullRange" | rng == "ices_NW" | rng == "ices_NE" | rng == "ices_SW"){ # world map needed for land masses of Greenland, Africa etc.
+        #   maps::map("worldHires", resolution = 1, xlim = xlim, ylim = ylim, 
+        #             fill = TRUE, col = "darkgrey", border="black") 
+        # }
+        
+        mtext(paste(country,'_', yr,sep=''), side=3, outer=F, adj=0, line=2, font=2 )
+        
+        map.axes()
+        
+        for (iRect in 1:nrow(byRect)) { # plotting proportional effort of gears per cell
+          x1 <- an(ac(byRect[iRect, "SI_LONG"]))
+          y1 <- an(ac(byRect[iRect, "SI_LATI"]))
+          size <- an(ac(byRect[iRect, idx.col]))
+          size <- replace(size, is.na(size) | size <= 0, 1e-04)
+          if(dtp=="effort_") z <- data.frame(size = size, subj = substr(names(byRect[,c(3:ncol(byRect))]),8,10)  )
+          z$one <- ac(z$subj)
+          for (k in names(subjCol_1))
+            z$one <- replace(z$one,z$one %in% subjCol_1[[k]],k)
+          z$one<-as.factor(z$one)
+          z <- z[order(-z$size), ]
+          squarified.treemap(z, x = x1, y = y1, w = gridcell[1], 
+                             h = gridcell[2], hook = simple.hook)
+        }
+        
+         #plot land masses on top of data to see islands and coastal lines nicely
+        if(rng=="ices" | rng== "ices_NW"| rng== "ices_NE" | rng== "ices_SW") 
+          maps::map("worldHires", add=TRUE, resolution = 1, xlim = xlim, ylim = ylim, fill = TRUE, col = "darkgray", border="black") 
+        
+         # plot border  
+        if(rng %in% c("ices", "ices_NW", "ices_NE","ices_SW" )) plot(borders, add=TRUE, border = "darkred", lwd=1)
+        if(rng %in% c("NorthSea", "BalticSea"))                 plot(borders, add=TRUE, border = "darkred", lwd=2)
+        if(rng %in% c("NorthSea", "BalticSea"))                 plot(borders_GER_EEZ, add=TRUE, border = "darkred", lwd=1)
+        
+        # plot ICES Rects
+        if(!rng %in% c("ices", "ices_NW", "ices_NE","ices_SW")) draw.rect(col = "black")       # ICES Rectangles
+        if( rng %in% c("ices", "ices_NW", "ices_NE","ices_SW")) draw.rect(col = "transparent") # ICES Rectangles; show ticks only
+         
+        #plot legend
+        #areasToPlot<-c("ices", "NsChnNrw", "NSeezGer", "NScoastGer", "BSeezGer", "BSwider" )
+        if(rng %in% c("ices"))                                                     legend("topright",    legend = subCol$subj, fill = names(subjCol_1), bg = "white", cex=0.7)  
+        if(rng %in% c("NSeezGer"))                                                 legend("topright",    legend = subCol$subj, fill = names(subjCol_1), bg = "white")     
+        if(rng %in% c("ices_NE"))                                                  legend("bottomright", legend = subCol$subj, fill = names(subjCol_1), bg = "white", cex=0.7)
+        if(rng %in% c("ices_NW", "ices_SW"))                                       legend("bottomleft",  legend = subCol$subj, fill = names(subjCol_1), bg = "white", cex=0.7)
+     } # end of plotting maps with effort only
+#    } # end of area ranges to plot
+  } # end of loop per year
+  #dev.off()
+  rm(x,xx,z,byRect,coords, DT)
+
+``` 
+
+
+### ices Southwest 
+
+```{r map-ices-SW, fig.show="hold", out.width="50%"}
+par(mar = c( .1,  .1, 2, .1))  
+#areasToPlot<-c("ices", "ices_NW", "ices_NE", "ices_SW" )
+rng<-"ices_SW" 
+
+#    for(rng in areasToPlot){
+      cat("TBC: Trawl Beam Crangon (TBB_CRU_16-31)", "\n")
+      xlim<-c(atp[rng, "xlimMin"], atp[rng, "xlimMax"])
+      ylim<-c(atp[rng, "ylimMin"], atp[rng, "ylimMax"])
+      
+      
+      #use subset to fit range of data to range of map
+      veX_rng <- subset(veX, SI_LONG >xlim[1]& SI_LONG<xlim[2] & SI_LATI>ylim[1] & SI_LATI<ylim[2])
+      #veX_rng <- subset(veX, SI_LONG > atp[rng, "xlimMin"] & SI_LONG < atp[rng, "xlimMax"] & SI_LATI > atp[rng, "ylimMin"] & SI_LATI< atp[rng, "ylimMax"])
+
+  for(yr in years){
+    veX_rng_yr<-subset(veX_rng, year(YrMnth)==yr)## make subset of year
+    if(nrow(veX_rng_yr)>=0){ # plot maps with data only
+    x<-veX_rng_yr
+          
+#  keeps all wanted subject in legend and use same colour in all data sets
+#  generarte table/data frame with subjects to keep (species, gears, nations) and which colours to be used
+         
+        # names(x)<-gsub("LE_KG_OTH", "LE_KG_OTHx", names(x)) # rename OTH to sum this up with all other species in column LE_KG_OTH later; in Anland spec OTH until 2016
+        # names(x)<-gsub("LE_EURO_OTH", "LE_EURO_OTHx", names(x)) # rename OTH to sum this up with all other species in column LE_KG_OTH later; in Anland spec OTH until 2016
+        x$SI_LONG <- anf(x$SI_LONG)
+        x$SI_LATI <- anf(x$SI_LATI)
+        x <- x[!is.na(x$SI_LATI), ]
+        idxx <- which(x$SI_LONG >= xlim[1] & x$SI_LONG <= xlim[2])
+        idxy <- which(x$SI_LATI >= ylim[1] & x$SI_LATI <= ylim[2])
+        x <- x[idxx[which(idxx %in% idxy)], ]
+        xx<-x
+        grids <- createGrid(xrange = xlim, yrange = ylim, gridcell[1],gridcell[2], type = "SpatialPixelsDataFrame")
+        coords <- SpatialPointsDataFrame(cbind(x = an(ac(xx$SI_LONG)), y = an(ac(xx$SI_LATI))), data = xx)
+        coords@data$dens <- over(as(coords, "SpatialPoints"), as(grids, "SpatialPixels"))
+        DT <- data.table(data.frame(coords))
+        DT$x <- af(ac(grids@coords[DT$dens, 1]))
+        DT$y <- af(ac(grids@coords[DT$dens, 2]))
+        idx.col <- grep(dtp, names(coords))
+        eq1 <- c.listquote(paste("sum(", names(coords[, idx.col]), ",na.rm=TRUE)", sep = ""))
+        eq2 <- c.listquote(c("x", "y"))
+        byRect <- data.frame(DT[, eval(eq1), by = eval(eq2)])
+        colnames(byRect) <- c("SI_LONG", "SI_LATI", names(coords)[idx.col])
+        byRect$SI_LONG <- signif(anf(byRect$SI_LONG))
+        byRect$SI_LATI <- signif(anf(byRect$SI_LATI))
+        idx.col <- grep(dtp, colnames(byRect))
+        rangeRect <- range(apply(byRect[idx.col], 1, sum, na.rm = TRUE))
+        rangeRect <- c(0, rangeRect[2])
+        A.sum <- apply(byRect[, idx.col], 1, sum, na.rm = TRUE)
+        A.sum2 <- apply(byRect[, idx.col], 2, sum, na.rm = TRUE)
+        subjects.to.merge <- names(A.sum2)[!names(A.sum2) %in% subjects.to.keep]
+        if(length(subjects.to.merge)>1) byRect$subj_OTH <- apply(byRect[, subjects.to.merge], 1, sum, na.rm = TRUE)
+        if(length(subjects.to.merge)==1) byRect$subj_OTH <- byRect[, subjects.to.merge]
+        names(byRect)<-gsub("subj_OTH", paste(dtp,"OTH",sep=""), names(byRect))
+        byRect <- byRect[, !names(byRect) %in% subjects.to.merge]
+        idx.col <- grep(dtp, names(byRect))
+        byRect[, idx.col] <- sweep(byRect[, idx.col], 1, A.sum, FUN = "/")
+  
+        ##START PLOT ####
+        #if(rng != "ices" & rng != "fullRange" & rng != "ices_NW"& rng != "ices_NE"& rng != "ices_SW"){ # world map quite rough in German Bight
+          maps::map("worldHires", resolution = 1, xlim = xlim, ylim = ylim, 
+                    fill = TRUE, col = NULL, border="white")   # just opens frame, all colors white (frisian national flag);
+        #}
+        # if(rng == "ices" | rng == "fullRange" | rng == "ices_NW" | rng == "ices_NE" | rng == "ices_SW"){ # world map needed for land masses of Greenland, Africa etc.
+        #   maps::map("worldHires", resolution = 1, xlim = xlim, ylim = ylim, 
+        #             fill = TRUE, col = "darkgrey", border="black") 
+        # }
+        
+        mtext(paste(country,'_', yr,sep=''), side=3, outer=F, adj=0, line=2, font=2 )
+        
+        map.axes()
+        
+        for (iRect in 1:nrow(byRect)) { # plotting proportional effort of gears per cell
+          x1 <- an(ac(byRect[iRect, "SI_LONG"]))
+          y1 <- an(ac(byRect[iRect, "SI_LATI"]))
+          size <- an(ac(byRect[iRect, idx.col]))
+          size <- replace(size, is.na(size) | size <= 0, 1e-04)
+          if(dtp=="effort_") z <- data.frame(size = size, subj = substr(names(byRect[,c(3:ncol(byRect))]),8,10)  )
+          z$one <- ac(z$subj)
+          for (k in names(subjCol_1))
+            z$one <- replace(z$one,z$one %in% subjCol_1[[k]],k)
+          z$one<-as.factor(z$one)
+          z <- z[order(-z$size), ]
+          squarified.treemap(z, x = x1, y = y1, w = gridcell[1], 
+                             h = gridcell[2], hook = simple.hook)
+        }
+        
+         #plot land masses on top of data to see islands and coastal lines nicely
+        if(rng=="ices" | rng== "ices_NW"| rng== "ices_NE" | rng== "ices_SW") 
+          maps::map("worldHires", add=TRUE, resolution = 1, xlim = xlim, ylim = ylim, fill = TRUE, col = "darkgray", border="black") 
+        
+        # plot border  
+        if(rng %in% c("ices", "ices_NW", "ices_NE","ices_SW" )) plot(borders, add=TRUE, border = "darkred", lwd=1)
+        if(rng %in% c("NorthSea", "BalticSea"))                 plot(borders, add=TRUE, border = "darkred", lwd=2)
+        if(rng %in% c("NorthSea", "BalticSea"))                 plot(borders_GER_EEZ, add=TRUE, border = "darkred", lwd=1)
+        
+        # plot ICES Rects
+        if(!rng %in% c("ices", "ices_NW", "ices_NE","ices_SW")) draw.rect(col = "black")       # ICES Rectangles
+        if( rng %in% c("ices", "ices_NW", "ices_NE","ices_SW")) draw.rect(col = "transparent") # ICES Rectangles; show ticks only
+        
+        #plot legend
+        #areasToPlot<-c("ices", "NsChnNrw", "NSeezGer", "NScoastGer", "BSeezGer", "BSwider" )
+        if(rng %in% c("ices"))                                                     legend("topright",    legend = subCol$subj, fill = names(subjCol_1), bg = "white", cex=0.7)  
+        if(rng %in% c("NSeezGer"))                                                 legend("topright",    legend = subCol$subj, fill = names(subjCol_1), bg = "white")     
+        if(rng %in% c("ices_NE"))                                                  legend("bottomright", legend = subCol$subj, fill = names(subjCol_1), bg = "white", cex=0.7)
+        if(rng %in% c("ices_NW", "ices_SW"))                                       legend("bottomleft",  legend = subCol$subj, fill = names(subjCol_1), bg = "white", cex=0.7)
+     } # end of plotting maps with effort only
+#    } # end of area ranges to plot
+  } # end of loop per year
+  #dev.off()
+  rm(x,xx,z,byRect,coords, DT)
+
+``` 
+
+### North Sea 
+
+```{r map-ices-NS, fig.show="hold", out.width="50%"}
+par(mar = c( .1,  .1, 2, .1))  
+#areasToPlot<-c("ices", "ices_NW", "ices_NE", "ices_SW", "NorthSea" )
+rng<-"NorthSea" 
+
+#    for(rng in areasToPlot){
+      cat("TBC: Trawl Beam Crangon (TBB_CRU_16-31)", "\n")
+      xlim<-c(atp[rng, "xlimMin"], atp[rng, "xlimMax"])
+      ylim<-c(atp[rng, "ylimMin"], atp[rng, "ylimMax"])
+      
+      
+      #use subset to fit range of data to range of map
+      veX_rng <- subset(veX, SI_LONG >xlim[1]& SI_LONG<xlim[2] & SI_LATI>ylim[1] & SI_LATI<ylim[2])
+      #veX_rng <- subset(veX, SI_LONG > atp[rng, "xlimMin"] & SI_LONG < atp[rng, "xlimMax"] & SI_LATI > atp[rng, "ylimMin"] & SI_LATI< atp[rng, "ylimMax"])
+
+  for(yr in years){
+    veX_rng_yr<-subset(veX_rng, year(YrMnth)==yr)## make subset of year
+    if(nrow(veX_rng_yr)>=0){ # plot maps with data only
+    x<-veX_rng_yr
+          
+#  keeps all wanted subject in legend and use same colour in all data sets
+#  generarte table/data frame with subjects to keep (species, gears, nations) and which colours to be used
+         
+        # names(x)<-gsub("LE_KG_OTH", "LE_KG_OTHx", names(x)) # rename OTH to sum this up with all other species in column LE_KG_OTH later; in Anland spec OTH until 2016
+        # names(x)<-gsub("LE_EURO_OTH", "LE_EURO_OTHx", names(x)) # rename OTH to sum this up with all other species in column LE_KG_OTH later; in Anland spec OTH until 2016
+        x$SI_LONG <- anf(x$SI_LONG)
+        x$SI_LATI <- anf(x$SI_LATI)
+        x <- x[!is.na(x$SI_LATI), ]
+        idxx <- which(x$SI_LONG >= xlim[1] & x$SI_LONG <= xlim[2])
+        idxy <- which(x$SI_LATI >= ylim[1] & x$SI_LATI <= ylim[2])
+        x <- x[idxx[which(idxx %in% idxy)], ]
+        xx<-x
+        grids <- createGrid(xrange = xlim, yrange = ylim, gridcell[1],gridcell[2], type = "SpatialPixelsDataFrame")
+        coords <- SpatialPointsDataFrame(cbind(x = an(ac(xx$SI_LONG)), y = an(ac(xx$SI_LATI))), data = xx)
+        coords@data$dens <- over(as(coords, "SpatialPoints"), as(grids, "SpatialPixels"))
+        DT <- data.table(data.frame(coords))
+        DT$x <- af(ac(grids@coords[DT$dens, 1]))
+        DT$y <- af(ac(grids@coords[DT$dens, 2]))
+        idx.col <- grep(dtp, names(coords))
+        eq1 <- c.listquote(paste("sum(", names(coords[, idx.col]), ",na.rm=TRUE)", sep = ""))
+        eq2 <- c.listquote(c("x", "y"))
+        byRect <- data.frame(DT[, eval(eq1), by = eval(eq2)])
+        colnames(byRect) <- c("SI_LONG", "SI_LATI", names(coords)[idx.col])
+        byRect$SI_LONG <- signif(anf(byRect$SI_LONG))
+        byRect$SI_LATI <- signif(anf(byRect$SI_LATI))
+        idx.col <- grep(dtp, colnames(byRect))
+        rangeRect <- range(apply(byRect[idx.col], 1, sum, na.rm = TRUE))
+        rangeRect <- c(0, rangeRect[2])
+        A.sum <- apply(byRect[, idx.col], 1, sum, na.rm = TRUE)
+        A.sum2 <- apply(byRect[, idx.col], 2, sum, na.rm = TRUE)
+        subjects.to.merge <- names(A.sum2)[!names(A.sum2) %in% subjects.to.keep]
+        if(length(subjects.to.merge)>1) byRect$subj_OTH <- apply(byRect[, subjects.to.merge], 1, sum, na.rm = TRUE)
+        if(length(subjects.to.merge)==1) byRect$subj_OTH <- byRect[, subjects.to.merge]
+        names(byRect)<-gsub("subj_OTH", paste(dtp,"OTH",sep=""), names(byRect))
+        byRect <- byRect[, !names(byRect) %in% subjects.to.merge]
+        idx.col <- grep(dtp, names(byRect))
+        byRect[, idx.col] <- sweep(byRect[, idx.col], 1, A.sum, FUN = "/")
+  
+        ##START PLOT ####
+        #if(rng != "ices" & rng != "fullRange" & rng != "ices_NW"& rng != "ices_NE"& rng != "ices_SW"){ # world map quite rough in German Bight
+          maps::map("worldHires", resolution = 1, xlim = xlim, ylim = ylim, 
+                    fill = TRUE, col = NULL, border="white")   # just opens frame, all colors white (frisian national flag);
+        #}
+        # if(rng == "ices" | rng == "fullRange" | rng == "ices_NW" | rng == "ices_NE" | rng == "ices_SW"){ # world map needed for land masses of Greenland, Africa etc.
+        #   maps::map("worldHires", resolution = 1, xlim = xlim, ylim = ylim, 
+        #             fill = TRUE, col = "darkgrey", border="black") 
+        # }
+        
+        mtext(paste(country,'_', yr,sep=''), side=3, outer=F, adj=0, line=2, font=2 )
+        
+        map.axes()
+        
+        for (iRect in 1:nrow(byRect)) { # plotting proportional effort of gears per cell
+          x1 <- an(ac(byRect[iRect, "SI_LONG"]))
+          y1 <- an(ac(byRect[iRect, "SI_LATI"]))
+          size <- an(ac(byRect[iRect, idx.col]))
+          size <- replace(size, is.na(size) | size <= 0, 1e-04)
+          if(dtp=="effort_") z <- data.frame(size = size, subj = substr(names(byRect[,c(3:ncol(byRect))]),8,10)  )
+          z$one <- ac(z$subj)
+          for (k in names(subjCol_1))
+            z$one <- replace(z$one,z$one %in% subjCol_1[[k]],k)
+          z$one<-as.factor(z$one)
+          z <- z[order(-z$size), ]
+          squarified.treemap(z, x = x1, y = y1, w = gridcell[1], 
+                             h = gridcell[2], hook = simple.hook)
+        }
+         #plot land masses on top of data to see islands and coastal lines nicely
+        if(rng=="ices" | rng== "ices_NW"| rng== "ices_NE" | rng== "ices_SW") 
+          maps::map("worldHires", add=TRUE, resolution = 1, xlim = xlim, ylim = ylim, fill = TRUE, col = "darkgray", border="black") 
+        if(rng!="ices" | rng!= "ices_NW"| rng!= "ices_NE" | rng!= "ices_SW") plot(europaShp, add=TRUE, border = "black",lwd=1, col="darkgray") # europaShp with more details in North Sea (frisian islands)
+        
+         # plot border  
+        if(rng %in% c("ices", "ices_NW", "ices_NE","ices_SW" )) plot(borders, add=TRUE, border = "darkred", lwd=1)
+        if(rng %in% c("NorthSea", "BalticSea"))                 plot(borders, add=TRUE, border = "darkred", lwd=2)
+        if(rng %in% c("NorthSea", "BalticSea"))                 plot(borders_GER_EEZ, add=TRUE, border = "darkred", lwd=1)
+        
+        # plot ICES Rects
+        if(!rng %in% c("ices", "ices_NW", "ices_NE","ices_SW")) draw.rect(col = "black")       # ICES Rectangles
+        if( rng %in% c("ices", "ices_NW", "ices_NE","ices_SW")) draw.rect(col = "transparent") # ICES Rectangles; show ticks only
+          
+        #plot legend
+if(rng %in% c("NorthSea"))legend("bottomleft",  legend = subCol$subj, fill = names(subjCol_1), bg = "white", cex=0.6)
+     } # end of plotting maps with effort only
+  } # end of loop per year
+  #dev.off()
+  #rm(x,xx,z,byRect,coords, DT)
+
+``` 
+
+
+
+### Baltic Sea 
+
+```{r map-ices-BS, fig.show="hold", out.width="50%"}
+par(mar = c( .1,  .1, 2, .1))  
+#areasToPlot<-c("ices", "ices_NW", "ices_NE", "ices_SW", "NorthSea" )
+rng<-"BalticSea" 
+
+#    for(rng in areasToPlot){
+      cat("TBC: Trawl Beam Crangon (TBB_CRU_16-31)", "\n")
+      xlim<-c(atp[rng, "xlimMin"], atp[rng, "xlimMax"])
+      ylim<-c(atp[rng, "ylimMin"], atp[rng, "ylimMax"])
+      
+      
+      #use subset to fit range of data to range of map
+      veX_rng <- subset(veX, SI_LONG >xlim[1]& SI_LONG<xlim[2] & SI_LATI>ylim[1] & SI_LATI<ylim[2])
+      #veX_rng <- subset(veX, SI_LONG > atp[rng, "xlimMin"] & SI_LONG < atp[rng, "xlimMax"] & SI_LATI > atp[rng, "ylimMin"] & SI_LATI< atp[rng, "ylimMax"])
+
+  for(yr in years){
+    veX_rng_yr<-subset(veX_rng, year(YrMnth)==yr)## make subset of year
+    if(nrow(veX_rng_yr)>=0){ # plot maps with data only
+    x<-veX_rng_yr
+          
+#  keeps all wanted subject in legend and use same colour in all data sets
+#  generarte table/data frame with subjects to keep (species, gears, nations) and which colours to be used
+         
+        # names(x)<-gsub("LE_KG_OTH", "LE_KG_OTHx", names(x)) # rename OTH to sum this up with all other species in column LE_KG_OTH later; in Anland spec OTH until 2016
+        # names(x)<-gsub("LE_EURO_OTH", "LE_EURO_OTHx", names(x)) # rename OTH to sum this up with all other species in column LE_KG_OTH later; in Anland spec OTH until 2016
+        x$SI_LONG <- anf(x$SI_LONG)
+        x$SI_LATI <- anf(x$SI_LATI)
+        x <- x[!is.na(x$SI_LATI), ]
+        idxx <- which(x$SI_LONG >= xlim[1] & x$SI_LONG <= xlim[2])
+        idxy <- which(x$SI_LATI >= ylim[1] & x$SI_LATI <= ylim[2])
+        x <- x[idxx[which(idxx %in% idxy)], ]
+        xx<-x
+        grids <- createGrid(xrange = xlim, yrange = ylim, gridcell[1],gridcell[2], type = "SpatialPixelsDataFrame")
+        coords <- SpatialPointsDataFrame(cbind(x = an(ac(xx$SI_LONG)), y = an(ac(xx$SI_LATI))), data = xx)
+        coords@data$dens <- over(as(coords, "SpatialPoints"), as(grids, "SpatialPixels"))
+        DT <- data.table(data.frame(coords))
+        DT$x <- af(ac(grids@coords[DT$dens, 1]))
+        DT$y <- af(ac(grids@coords[DT$dens, 2]))
+        idx.col <- grep(dtp, names(coords))
+        eq1 <- c.listquote(paste("sum(", names(coords[, idx.col]), ",na.rm=TRUE)", sep = ""))
+        eq2 <- c.listquote(c("x", "y"))
+        byRect <- data.frame(DT[, eval(eq1), by = eval(eq2)])
+        colnames(byRect) <- c("SI_LONG", "SI_LATI", names(coords)[idx.col])
+        byRect$SI_LONG <- signif(anf(byRect$SI_LONG))
+        byRect$SI_LATI <- signif(anf(byRect$SI_LATI))
+        idx.col <- grep(dtp, colnames(byRect))
+        rangeRect <- range(apply(byRect[idx.col], 1, sum, na.rm = TRUE))
+        rangeRect <- c(0, rangeRect[2])
+        A.sum <- apply(byRect[, idx.col], 1, sum, na.rm = TRUE)
+        A.sum2 <- apply(byRect[, idx.col], 2, sum, na.rm = TRUE)
+        subjects.to.merge <- names(A.sum2)[!names(A.sum2) %in% subjects.to.keep]
+        if(length(subjects.to.merge)>1) byRect$subj_OTH <- apply(byRect[, subjects.to.merge], 1, sum, na.rm = TRUE)
+        if(length(subjects.to.merge)==1) byRect$subj_OTH <- byRect[, subjects.to.merge]
+        names(byRect)<-gsub("subj_OTH", paste(dtp,"OTH",sep=""), names(byRect))
+        byRect <- byRect[, !names(byRect) %in% subjects.to.merge]
+        idx.col <- grep(dtp, names(byRect))
+        byRect[, idx.col] <- sweep(byRect[, idx.col], 1, A.sum, FUN = "/")
+  
+        ##START PLOT ####
+        #if(rng != "ices" & rng != "fullRange" & rng != "ices_NW"& rng != "ices_NE"& rng != "ices_SW"){ # world map quite rough in German Bight
+          maps::map("worldHires", resolution = 1, xlim = xlim, ylim = ylim, 
+                    fill = TRUE, col = NULL, border="white")   # just opens frame, all colors white (frisian national flag);
+        #}
+        # if(rng == "ices" | rng == "fullRange" | rng == "ices_NW" | rng == "ices_NE" | rng == "ices_SW"){ # world map needed for land masses of Greenland, Africa etc.
+        #   maps::map("worldHires", resolution = 1, xlim = xlim, ylim = ylim, 
+        #             fill = TRUE, col = "darkgrey", border="black") 
+        # }
+        
+        mtext(paste(country,'_', yr,sep=''), side=3, outer=F, adj=0, line=2, font=2 )
+        
+        map.axes()
+        
+        for (iRect in 1:nrow(byRect)) { # plotting proportional effort of gears per cell
+          x1 <- an(ac(byRect[iRect, "SI_LONG"]))
+          y1 <- an(ac(byRect[iRect, "SI_LATI"]))
+          size <- an(ac(byRect[iRect, idx.col]))
+          size <- replace(size, is.na(size) | size <= 0, 1e-04)
+          if(dtp=="effort_") z <- data.frame(size = size, subj = substr(names(byRect[,c(3:ncol(byRect))]),8,10)  )
+          z$one <- ac(z$subj)
+          for (k in names(subjCol_1))
+            z$one <- replace(z$one,z$one %in% subjCol_1[[k]],k)
+          z$one<-as.factor(z$one)
+          z <- z[order(-z$size), ]
+          squarified.treemap(z, x = x1, y = y1, w = gridcell[1], 
+                             h = gridcell[2], hook = simple.hook)
+        }
+        
+        #plot land masses on top of data to see islands and coastal lines nicely
+        if(rng=="ices" | rng== "ices_NW"| rng== "ices_NE" | rng== "ices_SW") 
+          maps::map("worldHires", add=TRUE, resolution = 1, xlim = xlim, ylim = ylim, fill = TRUE, col = "darkgray", border="black") 
+        if(rng!="ices" | rng!= "ices_NW"| rng!= "ices_NE" | rng!= "ices_SW") plot(europaShp, add=TRUE, border = "black",lwd=1, col="darkgray") 
+                                            # europaShp with more details in North Sea (frisian islands)
+        
+         # plot border  
+        if(rng %in% c("ices", "ices_NW", "ices_NE","ices_SW" )) plot(borders, add=TRUE, border = "darkred", lwd=1)
+        if(rng %in% c("NorthSea", "BalticSea"))                 plot(borders, add=TRUE, border = "darkred", lwd=2)
+        if(rng %in% c("NorthSea", "BalticSea"))                 plot(borders_GER_EEZ, add=TRUE, border = "darkred", lwd=1)
+        
+        # plot ICES Rects
+        if(!rng %in% c("ices", "ices_NW", "ices_NE","ices_SW")) draw.rect(col = "black")       # lines 'n ticks
+        if( rng %in% c("ices", "ices_NW", "ices_NE","ices_SW")) draw.rect(col = "transparent") # show ticks only
+         
+        #plot legend
+        if(rng %in% c("BalticSea"))legend("bottomright", legend = subCol$subj, fill = names(subjCol_1), bg = "white", cex=0.6)
+
+     } # end of plotting maps with effort only
+  } # end of loop per year
+  #dev.off()
+  rm(x,xx,z,byRect,coords, DT)
+
+``` 
+
+
+
+
