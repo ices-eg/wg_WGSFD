@@ -428,10 +428,10 @@ If you are happy with all the results then you can proceed running the entire co
 
 ## 2.3 Data submission 
 
-This code was developed by WGSFD experts and ICES Secretariat to prepare the data for submission and follows the format specified in ICES DATSU ([http://datsu.ices.dk/web/selRep.aspx?Dataset=145](http://datsu.ices.dk/web/selRep.aspx?Dataset=145)).
+This code was developed by WGSFD experts and ICES Secretariat to prepare the data for submission and follows the format specified in ICESDATSU:([http://datsu.ices.dk/web/selRep.aspx?Dataset=145](http://datsu.ices.dk/web/selRep.aspx?Dataset=145)).
 
-Once prepared, the data can be submitted  to  ICES using icesDATSU ([https://cran.r-project.org/package=icesDatsu](https://cran.r-project.org/package=icesDatsu)) 
-and icesConnect ([https://cran.r-project.org/web/packages/icesConnect/index.html](https://cran.r-project.org/web/packages/icesConnect/index.html)). 
+Once prepared, the data can be submitted  to  ICES using icesDATSU:([https://cran.r-project.org/package=icesDatsu](https://cran.r-project.org/package=icesDatsu)) 
+and icesConnect:([https://cran.r-project.org/web/packages/icesConnect/index.html](https://cran.r-project.org/web/packages/icesConnect/index.html)). 
 
 
 #- 3.1 Load TABLE 1 (VMS) and TABLE 2 (LOGBOOK)
