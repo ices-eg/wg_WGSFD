@@ -10,7 +10,7 @@
 
 **[2](#_Toc94885606)****Part 2 **
 
-[2,1 Data preprocessing](#_Toc94885607)
+[2.1 Data preprocessing](#_Toc94885607)
 
 [#- 1a) Load VMStools underlying data ](#_Toc94885608)
 
@@ -18,15 +18,13 @@
 
 [#- 1c) load tacsat and eflalo data from file ](#_Toc94885610)
 
-[2.2Data analysis](#_Toc94885611)
+[2.2 Data analysis](#_Toc94885611)
 
 [2.3 Data submission](#_Toc94885612)
 
-[Add description ](#_Toc94885613)
+**[4](#_Toc94885614)****Contacts 22**
 
-**[3](#_Toc94885614)****Contacts 22**
-
-**[4](#_Toc94885615)****Changelog 23**
+**[5](#_Toc94885615)****Changelog 23**
 
 
 **1**** Part 1 **
@@ -236,7 +234,7 @@ As such, the first line of code starts on line 23.
 
 To make it easier to follow the guidelines we will explain the code, referencing the sections, headers (numbered) and blocks by highlighting them in bold.
 
-# Clear workspace
+#- Clear workspace
 
 This code will just clear your work space to allow you to start afresh. Also, the three packages that will be needed to run the code will be loaded into the session. If you followed the instructions in part one these should already be installed and loading them shouldn't be a problem.
 
@@ -497,7 +495,7 @@ Running the last two lines saves the data into the 'Results' folder. Don't forge
 
 If you are happy with all the results then you can proceed running the entire code. Make sure you double check the names of the input files, ensuring they follow the convention (as in the example) and run the entire code.
 
-## 2.3 Data submission
+## 2.3 Data submission 
 
 This code was developed by WGSFD experts and ICES Secretariat to prepare the data for submission and follows the format specified in ICES DATSU ([http://datsu.ices.dk/web/selRep.aspx?Dataset=145](http://datsu.ices.dk/web/selRep.aspx?Dataset=145)).
 
@@ -505,22 +503,22 @@ Once prepared, the data can be submitted  to  ICES using icesDATSU ([https://cra
 and icesConnect ([https://cran.r-project.org/web/packages/icesConnect/index.html](https://cran.r-project.org/web/packages/icesConnect/index.html)). 
 
 
-# 3.1 Load TABLE 1 (VMS) and TABLE 2 (LOGBOOK)
+#- 3.1 Load TABLE 1 (VMS) and TABLE 2 (LOGBOOK)
 
-# 3.2 Replace vessel id by an anonymized id column
+#- 3.2 Replace vessel id by an anonymized id column
 
 #- New field added for the 2020 datacall including unique vessels id's  #
 #- This vessel id is used to calculate unique vessels in a c-square and  #
 
-# 3.3 Assign the vessel length category based in DATSU vocabulary
+#- 3.3 Assign the vessel length category based in DATSU vocabulary
 
 #- Use of the "icesVocab" ICES developed R package that fetch the DATSU vocabulary values for a given vocabulary theme #
 #- install.packages("icesVocab", repos = "https://ices-tools-prod.r-universe.dev")
 
 
-# 3.4 Aggregate and summarise TABLE 1 and TABLE2
+#- 3.4 Aggregate and summarise TABLE 1 and TABLE2
 
-# 3.5 ICES DATSU VOCABULARY CHECKS BEFORE DATA SUBMISSION
+#- 3.5 ICES DATSU VOCABULARY CHECKS BEFORE DATA SUBMISSION
 
 The submission will not progress if the format used does not confirm to the required format and the submitter will be asked to fix the errors in order to proceed (DATSU check). 
 This piece of code performs a DATSU check (C-squares are within ICES ecoregions, vessel length categories are accepted, metier L4 and L5 are valid, country codes are correct,...)
@@ -528,25 +526,25 @@ Running this code will allow you to fix all the format issues ahead of data subm
 
 
 
-# 3.6 DATA QC REPORT (OPTIONAL)
+#- 3.6 DATA QC REPORT (OPTIONAL)
 
 Data submitters are welcome to run a QC report to compare data submitted through the years. 
 
-# WEB API SUBMISSION (OPTIONAL)
+#- WEB API SUBMISSION (OPTIONAL)
 
 Data submitters can choose to submit data to ICES using icesDATSU ([https://cran.r-project.org/package=icesDatsu] (https://cran.r-project.org/package=icesDatsu))
 and icesConnect ([https://cran.r-project.org/web/packages/icesConnect/index.html] (https://cran.r-project.org/web/packages/icesConnect/index.html)). 
 
 
 
-1.
+
 # Contacts
 
 Josefine Egekvist:[jsv@aqua.dtu.dk](mailto:jsv@aqua.dtu.dk)Niels Hintzen: [niels.hintzen@wur.nl](mailto:niels.hintzen@wur.nl) Rui Catarino: [rui.catarino@ices.dk](mailto:rui.catarino@ices.dk)
 
 Lara Salvany: [lara.salvany@ices.dk](mailto:lara.salvany@ices.dk)
 
-1.
+
 # Changelog
 
 | **Date** | **Change** | **Prepared by** |
