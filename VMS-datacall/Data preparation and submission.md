@@ -453,7 +453,7 @@ and icesConnect:([https://cran.r-project.org/web/packages/icesConnect/index.html
 
 The submission will not progress if the format used does not confirm to the required format and the submitter will be asked to fix the errors in order to proceed (DATSU check). 
 This piece of code performs a DATSU check (C-squares are within ICES ecoregions, vessel length categories are accepted, metier L4 and L5 are valid, country codes are correct,...)
-Running this code will allow you to fix all the format issues ahead of data submission via an API web service:([https://datsu.ices.dk/web/screen.aspx] (https://datsu.ices.dk/web/screen.aspx)) and/or data upload in ICES Data portal:([https://data.ices.dk/vms/manage/fileUpload](https://data.ices.dk/vms/manage/fileUpload))
+Running this code will allow you to fix all the format issues ahead of data submission via an API web service:([https://datsu.ices.dk/web/screen.aspx](https://datsu.ices.dk/web/screen.aspx)) and/or data upload in ICES Data portal:([https://data.ices.dk/vms/manage/fileUpload](https://data.ices.dk/vms/manage/fileUpload))
 
 
 
