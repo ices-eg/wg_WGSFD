@@ -14,7 +14,7 @@
 
 ### 2.1.1b) Looping through the data years
 
-### 2.1.1c) load tacsat and eflalo data from file
+### 2.1.1c) Load tacsat and eflalo data from file
 
 ## 2.2 Data analysis
 
@@ -214,7 +214,7 @@ yearsToSubmit <- sort(2009:2009)
 
 ```
 
-## #- 1c) load tacsat and eflalo data from file
+## #- 1c) Load tacsat and eflalo data from file
 
 In your 'Data' folder you should have all your tacsat and eflalo files in the .RDATA format. In the code it is expected that your files have the following naming convention 'tacsat\_ XXXX" i.e. tacsat\_2009; tacsat\_2010, etc. The same naming convention is applied to the eflalo files. This will allow the code to load the files as they are needed during the 'for' loop. Failing to correctly name the files will result in an error.
 
