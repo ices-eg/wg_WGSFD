@@ -102,7 +102,7 @@
 
 This document is designed to aid analysts streamline the process of extracting VMS data in accordance with requirements of the ICES VMS data call.
 
-Part 1 of the document is provides guidelines for installing all the software necessary for data manipulation and aggregation into the requested format. The software used, R and RStudio, are available asfreeware.
+Part 1 of the document is provides guidelines for installing all the software necessary for data manipulation and aggregation into the requested format. The software used, R and RStudio, are available as freeware.
 
 The document is designed to aid all users, regardless of their experience using R. The steps listed cover the installation of R and RStudio and detailed information will be provided to cover all stages of the installation process to ensure success. Depending on your skills you might want to jump some of the steps. To ensure consistency across all users we advise installing VMStoolsversion 0.76. Following these steps should enable quick and simple processing of all data.
 
@@ -132,7 +132,7 @@ Once it is downloaded, double click on the file (.exe). Depending on your securi
 
 ![image](https://user-images.githubusercontent.com/11030143/154282016-fd4147f7-bc84-4c75-bfb0-7d751dc3d3de.png)
 
-Rather than accepting the default(C:Files-4.1.2) you should click on the browse button and create a directory C:-4.2.1 this will allow you to install packages without having administrator privileges.Once you have changed the folder just click **Next**
+Rather than accepting the default(C:Files-4.1.2) you should click on the browse button and create a directory C:-4.2.1 this will allow you to install packages without having administrator privileges. Once you have changed the folder just click **Next**
 
 - In the menu "Selectcomponents"simplydeselect/untickthe64-bitfiles.Click
 
@@ -224,7 +224,7 @@ If you are experiencing difficulties and your data is not yet in the tacsat and/
 
 The proposed workflow is not a one-size-fits-all solution and there are parts of the script that may need to be adapted to allow for the specific nature of the fisheries data from each country. Throughout this document all parts of code that need adjustment will be highlighted and explained so you should have a good understanding of what is happening at alltimes.
 
-The code is divided in 3 main blocks. Eight sections and within these there are many blocks. We will explain briefly what each section and block does and its purpose within the code. The ideaoftheguidelinesisnottoexplainindetailwhateachlineofcodedoesbuttogive an overview of what is happening at each stage. The script itself is well annotated, so if you are familiar with R and the vmstools package, you probably won't need to follow these guidelines as closely.
+The code is divided in 3 main blocks. Eight sections and within these there are many blocks. We will explain briefly what each section and block does and its purpose within the code. The idea of the guidelines is not to explain in detail what each line of code does but to give an overview of what is happening at each stage. The script itself is well annotated, so if you are familiar with R and the vmstools package, you probably won't need to follow these guidelines as closely.
 
 Let's begin:
 
@@ -243,7 +243,7 @@ This code will just clear your work space to allow you to start afresh. Also, th
 
 #- Settings paths
 
-At this point you need to replace the paths shown in the code with your own ones.The approach used in the code is one of best practice, as everything will be in one main folder 'VMSdatacall'. This will make it very easy to navigate between folders and to backup.So, for your own convenience it is recommended that you use the default paths as listed in the code. However, it is possible to change these by simply specifying your personal destination folders and defining the chosenpath.
+At this point you need to replace the paths shown in the code with your own ones.The approach used in the code is one of best practice, as everything will be in one main folder 'VMSdatacall'. This will make it very easy to navigate between folders and to backup. So, for your own convenience it is recommended that you use the default paths as listed in the code. However, it is possible to change these by simply specifying your personal destination folders and defining the chosenpath.
 
 #- Settings and specific thresholds
 
@@ -324,7 +324,9 @@ This section will check for five common types of errors. A teach of these checks
 
 #- Remove points that cannot be possible
 
-#-Removepointswhicharepseudoduplicatesastheyhaveanintervalrate\&lt;xminutes #- Remove points inharbour
+#-Remove points which are pseudo duplicates as they have an interval rate < x minutes 
+
+#- Remove points inharbour
 
 #- Remove points on land
 
