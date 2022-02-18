@@ -57,7 +57,7 @@ Once it is downloaded, double click on the file (.exe). Depending on your securi
 
 - Here you are presented with the GNU general public license which you are most welcome to read. Click **Next**
 
-- The menu (picture below) will appear and you will be asked to select the destinationfolder
+- The menu (picture below) will appear and you will be asked to select the destination folder
 
 ![image](https://user-images.githubusercontent.com/11030143/154282016-fd4147f7-bc84-4c75-bfb0-7d751dc3d3de.png)
 
@@ -201,7 +201,7 @@ This will load in to the session support data such as a map of Europe, list of h
 
 ## #-1b) Looping through the data years
 
-The next line of code has a 'for' loop which means that all the code within the loop will run at the same time. This particular loop stretches from line 51 to line 496 leaving only a couple of lines at the end of the code.However, before running the 'for' loop there are a few things that need to be changed/adapted to your case.
+The next line of code has a 'for' loop which means that all the code within the loop will run at the same time. This particular loop stretches from line 51 to line 496 leaving only a couple of lines at the end of the code. However, before running the 'for' loop there are a few things that need to be changed/adapted to your case.
 
 In order to ensure that everything is working properly and to have a better understanding of what the code is doing inside the loop we will run one single year as a test. If we are able to run one year of data without coming across errors then we can run the code for all the years at once.
 
@@ -453,7 +453,7 @@ and icesConnect ([https://cran.r-project.org/web/packages/icesConnect/index.html
 
 The submission will not progress if the format used does not confirm to the required format and the submitter will be asked to fix the errors in order to proceed (DATSU check). 
 This piece of code performs a DATSU check (C-squares are within ICES ecoregions, vessel length categories are accepted, metier L4 and L5 are valid, country codes are correct,...)
-Running this code will allow you to fix all the format issues ahead of data submission via an API web service: ([https://datsu.ices.dk/web/screen.aspx] (https://datsu.ices.dk/web/screen.aspx)) and/or data upload in ICES Data portal ([https://data.ices.dk/vms/manage/fileUpload](https://data.ices.dk/vms/manage/fileUpload))
+Running this code will allow you to fix all the format issues ahead of data submission via an API web service:([https://datsu.ices.dk/web/screen.aspx] (https://datsu.ices.dk/web/screen.aspx)) and/or data upload in ICES Data portal:([https://data.ices.dk/vms/manage/fileUpload](https://data.ices.dk/vms/manage/fileUpload))
 
 
 
@@ -463,8 +463,8 @@ Data submitters are welcome to run a QC report to compare data submitted through
 
 #- WEB API SUBMISSION (OPTIONAL)
 
-Data submitters can choose to submit data to ICES using icesDATSU ([https://cran.r-project.org/package=icesDatsu] (https://cran.r-project.org/package=icesDatsu))
-and icesConnect ([https://cran.r-project.org/web/packages/icesConnect/index.html] (https://cran.r-project.org/web/packages/icesConnect/index.html)). 
+Data submitters can choose to submit data to ICES using icesDATSU:([https://cran.r-project.org/package=icesDatsu](https://cran.r-project.org/package=icesDatsu))
+and icesConnect:([https://cran.r-project.org/web/packages/icesConnect/index.html](https://cran.r-project.org/web/packages/icesConnect/index.html)). 
 
 
 
