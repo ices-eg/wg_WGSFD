@@ -222,9 +222,9 @@ Before initiating the workflow, it is first necessary that you have all VMS and 
 
 If you are experiencing difficulties and your data is not yet in the tacsat and/or eflalo format please get in touch with one of the contacts at the bottom of these guidelines. Someone will get back to you and help you to rearrange your data into the specified formats allowing you to move on with the analysis.
 
-The proposed workflow is not a one-size-fits-all solution and there are parts of the script that may need to be adapted to allow for the specific nature of the fisheries data from each country. Throughout this document all parts of code that need adjustment will be highlighted and explained so you should have a good understanding of what is happening at alltimes.
+The proposed workflow is not a one-size-fits-all solution and there are parts of the script that may need to be adapted to allow for the specific nature of the fisheries data from each country. Throughout this document all parts of code that need adjustment will be highlighted and explained so you should have a good understanding of what is happening at all times.
 
-The code is divided in 3 main blocks. Eight sections and within these there are many blocks. We will explain briefly what each section and block does and its purpose within the code. The idea of the guidelines is not to explain in detail what each line of code does but to give an overview of what is happening at each stage. The script itself is well annotated, so if you are familiar with R and the vmstools package, you probably won't need to follow these guidelines as closely.
+The code is divided in 3 main blocks and a number of sections. We will explain briefly what each section and block does and its purpose within the code. The idea of the guidelines is not to explain in detail what each line of code does but to give an overview of what is happening at each stage. The script itself is well annotated, so if you are familiar with R and the vmstools package, you probably won't need to follow these guidelines as closely.
 
 Let's begin:
 
