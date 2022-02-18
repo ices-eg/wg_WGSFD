@@ -499,17 +499,16 @@ If you are happy with all the results then you can proceed running the entire co
 
 ## 2.3 Data submission
 
-##
+This code was developed by WGSFD experts and ICES Secretariat to prepare the data for submission and follows the format specified in ICES DATSU ([http://datsu.ices.dk/web/selRep.aspx?Dataset=145](http://datsu.ices.dk/web/selRep.aspx?Dataset=145)).
 
-This code was developed by WGSFD experts and ICES Secretariat to prepare the data for submission. The last block of the script is to submit data directly to the ICES portal ([https://data.ices.dk/vms/webapi/token](https://data.ices.dk/vms/webapi/token)). This script follows the format specified in ICES DATSU ([http://datsu.ices.dk/web/selRep.aspx?Dataset=145](http://datsu.ices.dk/web/selRep.aspx?Dataset=145)).
+Once prepared, the data can be submitted  to  ICES using icesDATSU ([https://cran.r-project.org/package=icesDatsu](https://cran.r-project.org/package=icesDatsu)) 
+and icesConnect ([https://cran.r-project.org/web/packages/icesConnect/index.html](https://cran.r-project.org/web/packages/icesConnect/index.html)). 
 
 Prior to submission, data should be screened: [https://datsu.ices.dk/web/screen.aspx](https://datsu.ices.dk/web/screen.aspx)
 
 And once ready data can be uploaded using this link:: [https://data.ices.dk/vms/manage/fileUpload](https://data.ices.dk/vms/manage/fileUpload)
 
-##
 
-##
 
 ## Add description
 
