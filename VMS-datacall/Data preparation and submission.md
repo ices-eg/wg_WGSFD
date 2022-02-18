@@ -12,8 +12,8 @@
 ### [2.2  Data analysis](#22-data-analysis)
 ### [2.3  Data submission](#23-data-submission)
  
-## [3 Contacts](#3-contacts) 
-## [4 Changelog](#4-changelog) 
+## [3  Contacts](#3-contacts) 
+## [4  Changelog](#4-changelog) 
 
 
 # Part1. Installation of required software 
