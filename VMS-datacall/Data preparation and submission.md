@@ -179,7 +179,7 @@ into the console and press enter. It should start installing all the packages ne
 List of current workflow libraries required: 
 
 ```r 
-#- Clear workspace
+# Clear workspace
 rm(list=ls())
 
 library(vmstools) #- download from www.vmstools.org
@@ -204,7 +204,7 @@ To install vmstools click on the Tools tab on the main menu in RStudio. Then sel
 That's it; you now have all you need to process your data.
 
 
-# Part2
+# Part 2
 
 Part one of these guidelines have guided you through the installation of all the software needed to process your data into the formats specified in the data call. Now, part two will focus on guiding you through the steps3 blocks that comprise the workflow: eflalo\_tacsat\_preprocessing.R, eflalo\_tacsat\_analysis\_R and data\_submission.R
 
@@ -237,7 +237,7 @@ As such, the first line of code starts on line 23.
 
 To make it easier to follow the guidelines we will explain the code, referencing the sections, headers (numbered) and blocks by highlighting them in bold.
 
-# - Clear workspace
+# Clear workspace
 
 This code will just clear your work space to allow you to start afresh. Also, the three packages that will be needed to run the code will be loaded into the session. If you followed the instructions in part one these should already be installed and loading them shouldn't be a problem.
 
@@ -252,13 +252,9 @@ The thresholds here defined will be used later in different processes throughout
 #- Re-run all years as we have new field for no. vessels
 
 #- Set the gear names for which automatic fishing activity is wanted
-
-# It is important to fill out the gears you want to apply auto detection for
-
+#- It is important to fill out the gears you want to apply auto detection for
 #- Decide if you want to visually analyse speed-histograms to identify fishing activity
-
-# peaks or have prior knowledge and use the template provided around lines 380 below
-
+#- peaks or have prior knowledge and use the template provided around lines 380 below
 #- Specify how landings should be distributed over the VMS pings: By day, ICES rectangle, trip basis or otherwise
 
 ## 2.1 Data preprocessing
