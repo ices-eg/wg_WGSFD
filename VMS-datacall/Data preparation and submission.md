@@ -467,7 +467,7 @@ storeScheme$means[which(storeScheme$analyse.by == 'SSC')] <- 3
 
 The second half of the block, checks the results of the auto detection; if they are not satisfactory the analysis is run once more; this time using fixed peaks.However, in this workflow we will not be using fixed peaks so no need to worry about this.
 
-# Check results, and if results are not satisfactory, run analyses again but now with fixed peaks #
+#- Check results, and if results are not satisfactory, run analyses again but now with fixed peaks #
 
 #- Assign for visually inspected gears a simple speed rule classification
 
