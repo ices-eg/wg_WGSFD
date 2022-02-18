@@ -252,9 +252,13 @@ The thresholds here defined will be used later in different processes throughout
 #- Re-run all years as we have new field for no. vessels
 
 #- Set the gear names for which automatic fishing activity is wanted
+
 #- It is important to fill out the gears you want to apply auto detection for
+
 #- Decide if you want to visually analyse speed-histograms to identify fishing activity
+
 #- peaks or have prior knowledge and use the template provided around lines 380 below
+
 #- Specify how landings should be distributed over the VMS pings: By day, ICES rectangle, trip basis or otherwise
 
 ## 2.1 Data preprocessing
