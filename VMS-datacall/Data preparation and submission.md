@@ -8,23 +8,12 @@
 
 ## 2 [Part 2. Proposed workflow R code](#part-2-proposed-workflow-r-code) 
 
-## 2.1 Data preprocessing
+### 2.1 [Step 2 Data preprocessing](#step-2-data-preprocessing)
+### 2.2 [Step 2 Data analysis](#step-2-data-analysis)
+### 2.3 [Step 2 Data submission](#step-2-data-submission)
 
-### 2.1.1a) Load VMStools underlying data
-
-### 2.1.1b) Looping through the data years
-
-### 2.1.1c) Load tacsat and eflalo data from file
-
-## 2.2 Data analysis
-
-## 2.3 Data submission
-
-# 3 Contacts
-
-# 4 Changelog
-
-
+## 3 [Contacts](#contacts) 
+## 4 [Changelog](#changelog) 
 
 
 # Part1. Installation of required software 
