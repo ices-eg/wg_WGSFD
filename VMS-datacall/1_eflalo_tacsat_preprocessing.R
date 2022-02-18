@@ -1,6 +1,6 @@
-# 1.1 Load the data  -----------------------------------------------------------
+# 1  Load the data  -----------------------------------------------------------
 
-#- 1a) load vmstools underlying data
+# 1.1 Load vmstools underlying data ===========================================
 
 # data(euharbours); if(substr(R.Version()$os,1,3)== "lin")
 data(harbours)
@@ -13,18 +13,15 @@ for(d in 1:1991){
 }
 
 
-#-------------------------------------------------------------------------------
-#- 1b) Looping through the data years #####
-#-------------------------------------------------------------------------------
-
+# 2 Clean the TACSAT and EFLALO data  ----------------------------------------------------------------------------------
+ 
+#  Looping through the data years
 for(year in yearsToSubmit){
   print(year)
-  #-------------------------------------------------------------------------------
-  #- 1c) load tacsat and eflalo data from file (they need to be in tacsat2 and
-  #       eflalo2 format already
-  #       (see https://github.com/nielshintzen/vmstools/releases/ -> downloads ->
-  #                     Exchange_EFLALO2_v2-1.doc for an example
-  #-------------------------------------------------------------------------------
+
+# 2.1 load tacsat and eflalo data from file (they need to be in tacsat2 and eflalo2 format already ==================
+# see https://github.com/nielshintzen/vmstools/releases/ -> downloads ->Exchange_EFLALO2_v2-1.doc for an example
+   
   tacsat_name <-
     load(
       file.path(
@@ -45,7 +42,7 @@ for(year in yearsToSubmit){
   tacsat <- formatTacsat(tacsat)
   eflalo <- formatEflalo(eflalo)
   
-  #- Take only VMS pings in the ICES areas
+# 2.2 Take only VMS pings in the ICES areas ==============================================
   
   ia <- ICESareas%>% 
     sf::st_as_sf() %>% 
@@ -101,13 +98,11 @@ for(year in yearsToSubmit){
       LE_RECT %in% unique(coordsEflalo[which(idxI > 0), "LE_RECT"])
     )
   
-  #-------------------------------------------------------------------------------
-  #- 2) Clean the tacsat data -----------
-  #-------------------------------------------------------------------------------
+#   2.2 Clean the tacsat data  ============================================================================
   
-  #-------------------------------------------------------------------------------
-  #- Keep track of removed points
-  #-------------------------------------------------------------------------------
+  
+# 2.2.1 Keep track of removed points ----------------------------------------------------------------- 
+  
   remrecsTacsat <-
     matrix(
       NA,
@@ -119,9 +114,8 @@ for(year in yearsToSubmit){
     )
   remrecsTacsat["total", ] <- c(nrow(tacsat), "100%")
   
-  #-------------------------------------------------------------------------------
-  #- Remove duplicate records
-  #-------------------------------------------------------------------------------
+# 2.2.2 Remove duplicate records ---------------------------------------------------------------------- 
+  
   tacsat$SI_DATIM <-
     as.POSIXct(
       paste(tacsat$SI_DATE, tacsat$SI_TIME),
@@ -142,9 +136,9 @@ for(year in yearsToSubmit){
           2)
     )
   
-  #-------------------------------------------------------------------------------
-  #- Remove points that cannot be possible
-  #-------------------------------------------------------------------------------
+ 
+# 2.2.3 Remove points that cannot be possible -----------------------------------------------------------
+  
   idx <- which(abs(tacsat$SI_LATI) > 90 | abs(tacsat$SI_LONG) > 180)
   idx <- unique(c(idx, which(tacsat$SI_HE < 0 | tacsat$SI_HE > 360)))
   idx <- unique(c(idx, which(tacsat$SI_SP > spThres)))
@@ -160,9 +154,8 @@ for(year in yearsToSubmit){
           2)
     )
   
-  #-------------------------------------------------------------------------------
-  #- Remove points which are pseudo duplicates as they have an interval rate < x minutes
-  #-------------------------------------------------------------------------------
+# 2.2.4 Remove points which are pseudo duplicates as they have an interval rate < x minutes ------------------
+  
   tacsat <- sortTacsat(tacsat)
   tacsatp <- intervalTacsat(tacsat, level = "vessel", fill.na = TRUE)
   tacsat <-
@@ -187,9 +180,8 @@ for(year in yearsToSubmit){
   rm(tacsatp) # remove temporary variable tacsatp  
   
   
-  #-------------------------------------------------------------------------------
-  #- Remove points in harbour
-  #-------------------------------------------------------------------------------
+# 2.2.5 Remove points in harbour -----------------------------------------------------------------------------
+  
   idx <-
     pointInHarbour(
       tacsat$SI_LONG,
@@ -209,9 +201,9 @@ for(year in yearsToSubmit){
           2)
     )
   
-  #-------------------------------------------------------------------------------
-  #- Remove points on land
-  #-------------------------------------------------------------------------------
+ 
+# 2.2.6 Remove points on land -----------------------------------------------------------------------------
+  
   idx <- point.in.polygon(
     point.x = tacsat$SI_LONG, point.y = tacsat$SI_LATI,
     pol.x = eorpa[, 1], pol.y = eorpa[, 2]
@@ -232,30 +224,29 @@ for(year in yearsToSubmit){
           2)
     )
   
-  #-------------------------------------------------------------------------------
-  #- Save the remrecsTacsat file
-  #-------------------------------------------------------------------------------
+ 
+#  Save the remrecsTacsat file
+ 
   save(
     remrecsTacsat,
     file = file.path(outPath, paste0("remrecsTacsat", year, ".RData"))
   )
   
-  #-------------------------------------------------------------------------------
-  #- Save the cleaned tacsat file
-  #-------------------------------------------------------------------------------
+#  Save the cleaned tacsat file
+ 
   save(
     tacsat,
     file = file.path(outPath, paste("cleanTacsat", year, ".RData", sep = ""))
   )
   
   message("Cleaning tacsat completed")
-  #-------------------------------------------------------------------------------
-  #- 3) Clean the eflalo data
-  #-------------------------------------------------------------------------------
+
   
-  #-------------------------------------------------------------------------------
-  #- Keep track of removed points
-  #-------------------------------------------------------------------------------
+# 2.3 Clean the eflalo data  ============================================================================
+  
+ 
+# 2.3.1 Keep track of removed points -------------------------------------------------------------------- 
+  
   remrecsEflalo <-
     matrix(
       NA,
@@ -267,9 +258,8 @@ for(year in yearsToSubmit){
     )
   remrecsEflalo["total", ] <- c(nrow(eflalo), "100%")
   
-  #-------------------------------------------------------------------------------
-  #- Warn for outlying catch records
-  #-------------------------------------------------------------------------------
+ 
+# 2.3.2 Warn for outlying catch records ----------------------------------------------------------
   
   # Put eflalo in order of 'non kg/eur' columns, then kg columns, then eur columns
   idxkg <- grep("LE_KG_", colnames(eflalo))
@@ -278,14 +268,15 @@ for(year in yearsToSubmit){
   eflalo <- eflalo[, c(idxoth, idxkg, idxeur)]
   
   #First get the species names in your eflalo dataset
+  
   specs  <-
     substr(
       grep("KG", colnames(eflalo), value = TRUE),
       7, 9
     )
   
-  # Define per species what the maximum allowed catch is
-  # (larger than that value you expect it to be an error / outlier
+  # Define per species what the maximum allowed catch is (larger than that value you expect it to be an error / outlier
+  
   specBounds <-
     lapply(
       as.list(specs),
@@ -313,13 +304,14 @@ for(year in yearsToSubmit){
         )
       })
   
-  #Make a list of the species names and the cut-off points / error / outlier point
+  # Make a list of the species names and the cut-off points / error / outlier point
   specBounds <- cbind(specs, unlist(specBounds))
   
-  #Put these values to zero
+  # Put these values to zero
   specBounds[which( is.na(specBounds[, 2]) == TRUE), 2] <- "0"
   
-  #Get the index (column number) of each of the species
+  # Get the index (column number) of each of the species
+  
   idx <-
     unlist(
       lapply(
@@ -336,6 +328,7 @@ for(year in yearsToSubmit){
       ))
   
   #If landing > cut-off turn it into an 'NA'
+  
   warns <- list()
   fixWarns <- TRUE
   for (iSpec in idx) {
@@ -362,6 +355,7 @@ for(year in yearsToSubmit){
       }
     }
   }
+  
   save(
     warns,
     file = file.path(outPath, paste0("warningsSpecBound", year, ".RData"))
@@ -374,10 +368,11 @@ for(year in yearsToSubmit){
       i] <- 0
   }
   
-  #-------------------------------------------------------------------------------
-  #- Remove non-unique trip numbers
-  #-------------------------------------------------------------------------------
-  eflalo <-
+
+  
+# 2.3.3  Remove non-unique trip numbers -----------------------------------------------------------------------------
+ 
+   eflalo <-
     eflalo[
       !duplicated(paste(eflalo$LE_ID, eflalo$LE_CDAT, sep="-")),
     ]
@@ -391,9 +386,9 @@ for(year in yearsToSubmit){
           2)
     )
   
-  #-------------------------------------------------------------------------------
-  #- Remove impossible time stamp records
-  #-------------------------------------------------------------------------------
+
+# 2.3.4 Remove impossible time stamp records ----------------------------------------------------------------------------
+  
   eflalo$FT_DDATIM <-
     as.POSIXct(
       paste(eflalo$FT_DDAT, eflalo$FT_DTIME, sep = " "),
@@ -419,9 +414,9 @@ for(year in yearsToSubmit){
           2)
     )
   
-  #-------------------------------------------------------------------------------
-  #- Remove trip starting befor 1st Jan
-  #-------------------------------------------------------------------------------
+ 
+# 2.3.5 Remove trip starting befor 1st Jan ------------------------------------------------------------------------------
+  
   eflalo <-
     eflalo[
       eflalo$FT_DDATIM >=
@@ -438,9 +433,9 @@ for(year in yearsToSubmit){
           2)
     )
   
-  #-------------------------------------------------------------------------------
-  #- Remove records with arrival date before departure date
-  #-------------------------------------------------------------------------------
+
+# 2.3.6 Remove records with arrival date before departure date  ------------------------------------------------------------
+  
   eflalop <- eflalo
   idx <- which(eflalop$FT_LDATIM >= eflalop$FT_DDATIM)
   eflalo <- eflalo[idx,]
@@ -455,9 +450,9 @@ for(year in yearsToSubmit){
           2)
     )
   
-  #-------------------------------------------------------------------------------
-  #- Remove trip with overlap with another trip
-  #-------------------------------------------------------------------------------
+ 
+# 2.3.7 Remove trip with overlap with another trip --------------------------------------------------------------------------- 
+  
   eflalo <- orderBy(~ VE_COU + VE_REF + FT_DDATIM + FT_LDATIM, data = eflalo)
   
   overlaps <-
@@ -518,17 +513,16 @@ for(year in yearsToSubmit){
   }
   
   
-  #-------------------------------------------------------------------------------
-  #- Save the remrecsEflalo file
-  #-------------------------------------------------------------------------------
+ 
+#   Save the remrecsEflalo file 
+  
   save(
     remrecsEflalo,
     file = file.path(outPath, paste0("remrecsEflalo", year, ".RData"))
   )
   
-  #-------------------------------------------------------------------------------
-  #- Save the cleaned eflalo file
-  #-------------------------------------------------------------------------------
+#   Save the cleaned eflalo file 
+  
   save(
     eflalo,
     file = file.path(outPath,paste0("cleanEflalo",year,".RData"))
