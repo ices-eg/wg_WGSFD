@@ -560,7 +560,7 @@ Rui Catarino:[rui.catarino@ices.dk](mailto:rui.catarino@ices.dk)
 | 1 February 2019   | Update                 | Lara Salvany, ICES      |
 | 1 February 2021   | Update                 | Lara Salvany, ICES      |
 | 15 February 2022  | Update                 | Roi Martinez, UK        |
-                                             | Lara Salvany, ICES      |
+|                   |                        | Lara Salvany, ICES      |
 
 
 
