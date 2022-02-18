@@ -134,7 +134,7 @@ Once it is downloaded, double click on the file (.exe). Depending on your securi
 
 Rather than accepting the default(C:Files-4.1.2) you should click on the browse button and create a directory C:-4.2.1 this will allow you to install packages without having administrator privileges. Once you have changed the folder just click **Next**
 
-- In the menu "Selectcomponents"simplydeselect/untickthe64-bitfiles.Click
+- In the menu "Selectcomponents" simply deselect/untick the 64-bit files. Click
 
 ### Next.
 
@@ -289,7 +289,7 @@ yearsToSubmit <- sort(2009:2009)
 
 In your 'Data' folder you should have all your tacsat and eflalo files in the .RDATA format. In the code it is expected that your files have the following naming convention 'tacsat\_ XXXX" i.e. tacsat\_2009; tacsat\_2010, etc. The same naming convention is applied to the eflalo files. This will allow the code to load the files as they are needed during the 'for' loop. Failing to correctly name the files will result in an error.
 
-Since we have justcopied **year\&lt;-**** 2009** to the console, when we run this block only the 2009 year data will beloaded.
+Since we have justcopied **year <-**** 2009** to the console, when we run this block only the 2009 year data will beloaded.
 
 Now that you have just loaded both tacsat and eflalo for 2009 the next two lines will just change the name of your objects to 'tacsat' and 'eflalo'. Depending on what your objects are called you may need to change the code. (tip: If at any stage you don't remember what the names are just type 'ls()' and a list of all objects already loaded will appear). If your object names are not 'tacsat' and 'eflalo' you will need to adapt the code. However, this is a simple process. Below are two examples for changing objects names in this case the names are '2009Tacsat' and another called 'Tac09'
 
@@ -302,7 +302,7 @@ tacsat <- get(paste("Tac",substr(year,3,4),sep=""))
 
 ```
 
-If the objects are already called tacsat and eflalo then, you don&#39;t need to run those two lines and you can add an # at the beginning of each line. However, make sure that whatever you have called your objects the naming structure is consistent across all years otherwise the "For" loop won&#39;t run.
+If the objects are already called tacsat and eflalo then, you don't need to run those two lines and you can add an # at the beginning of each line. However, make sure that whatever you have called your objects the naming structure is consistent across all years otherwise the "For" loop won't run.
 
 #- Make sure data is in right format
 
@@ -314,7 +314,7 @@ This block of code will identify all VMS pings (tacsat) within the ICES areas.
 
 ### Clean the tacsatdata
 
-This section will focus on 'cleaning' the data in the tacsatfile. The information in the tacsat(vms)comes from an electronic system that uses GPS information to collect the data on board the vessel and uses a satellite link to send the data to the database. Despite the reliability of this system conditions at sea are not always the best.There are two main opportunities for errors to occur, when receiving or sending data from the GPS and to the database. The code in this section will look to the most common errors and try to identify all of them. The code will not only delete the errors but also keep a record of what was deleted allowing you to keep track of how much data you have lost due to errors.
+This section will focus on 'cleaning' the data in the tacsatfile. The information in the tacsat(vms) comes from an electronic system that uses GPS information to collect the data on board the vessel and uses a satellite link to send the data to the database. Despite the reliability of this system conditions at sea are not always the best.There are two main opportunities for errors to occur, when receiving or sending data from the GPS and to the database. The code in this section will look to the most common errors and try to identify all of them. The code will not only delete the errors but also keep a record of what was deleted allowing you to keep track of how much data you have lost due to errors.
 
 #- Keep track of removed points
 
@@ -342,7 +342,7 @@ Now you have your file cleaned and saved so no need to repeat the process in fut
 
 ### Clean the eflalodata
 
-This section, like the previous one also focuses on "cleaning" the data. This time the target is the eflalo file. The types of errors are of a different nature but once again the code tries to account for the most commons errors. As in the previous section, the code will keep track of what data has been removed and how much. All these files can be found in the 'Results' folder. One should spend a bit of time looking at the data removed as it can be very useful to understand why and where problemsoccur.
+This section, like the previous one also focuses on "cleaning" the data. This time the target is the eflalo file. The types of errors are of a different nature but once again the code tries to account for the most commons errors. As in the previous section, the code will keep track of what data has been removed and how much. All these files can be found in the 'Results' folder. One should spend a bit of time looking at the data removed as it can be very useful to understand why and where problems occur.
 
 #- Keep track of removed points
 
@@ -350,7 +350,7 @@ The 'remrecsEflalo' object will keep you informed of how much data has been remo
 
 #- Warn for outlying catch records
 
-Basically this block looks for outliers. For each species, it generates a data-driven outlier threshold.If any outliers are found, these will be converted into 'NA' values.You can check in the 'Results' folder for the files containing all the outliers and you can double check if they are correct or not. If they were correct then you can run the code again but the code will need some adjustments.
+Basically this block looks for outliers. For each species, it generates a data-driven outlier threshold. If any outliers are found, these will be converted into 'NA' values. You can check in the 'Results' folder for the files containing all the outliers and you can double check if they are correct or not. If they were correct then you can run the code again but the code will need some adjustments.
 
 #First get the species names in your eflalo dataset
 
@@ -364,9 +364,9 @@ Basically this block looks for outliers. For each species, it generates a data-d
 
 #Get the index (column number) of each of the species
 
-#If landing \&gt; cut-off turn it into an &#39;NA&#39;
+#If landing > cut-off turn it into an 'NA';
 
-#Turn all other NA&#39;s in the eflalo dataset in KG and EURO columns to zero
+#Turn all other NAs in the eflalo dataset in KG and EURO columns to zero
 
 #- Remove non-unique trip numbers
 
@@ -396,7 +396,7 @@ i.e. VMS (tacsat)
 
 The files tacsat and eflalo will be combined using some very clever algorithms that use the vessel identifier and date and time in both data sets to relate the landings to the corresponding VMS data for the same trip.
 
-###-Assigngearandlengthtotacsat The new object tacsatp is now a merged version of the cleaned tacsat and eflalo objects.However, the new object hasn't inherited all the fields from eflalo due to reasons of processing speed and work ability. At this point we will extract some data from the eflalo dataset to populate the corresponding tacsatp fields. The data we are interested in are data that will be used later on in the code to populate the final data tables.Things like gear;kw;metiers,etc.
+###-Assigngearandlengthtotacsat The new object tacsatp is now a merged version of the cleaned tacsat and eflalo objects. However, the new object hasn't inherited all the fields from eflalo due to reasons of processing speed and work ability. At this point we will extract some data from the eflalo dataset to populate the corresponding tacsatp fields. The data we are interested in are data that will be used later on in the code to populate the final data tables.Things like gear; kw; metiers, etc.
 
 # Assign gear and length to tacsat
 
@@ -412,7 +412,7 @@ This is a crucial section, as vessel activity will be defined here. Also, this i
 
 #- Remove points with NA's in them in critical places
 
-This block gets rid of any rows in the tacsatp for which critical information (vessel reference, latitude, longitude, speed, date and time) is missing. If this data wasn&#39;t removed it would most likely lead to errors.
+This block gets rid of any rows in the tacsatp for which critical information (vessel reference, latitude, longitude, speed, date and time) is missing. If this data wasn't removed it would most likely lead to errors.
 
 #- Define speed thresholds associated with fishing for gears
 
@@ -422,7 +422,7 @@ The code in this block creates a very useful plot of speed frequency by gear. Th
 
 # Create speed threshold object
 
-The three last lines of this block will create a threshold object. However, your input and knowledge of the relevant fisheries will be needed at this stage. The threshold object will hold the minimum and maximum speed of fishing for each of the gears(i.e. the minimum and maximum speeds at which the specific fishing activity is thought to occur).To help you with this task you should look at the previous speed frequency plot to help distinguish steaming from fishing events.
+The three last lines of this block will create a threshold object. However, your input and knowledge of the relevant fisheries will be needed at this stage. The threshold object will hold the minimum and maximum speed of fishing for each of the gears (i.e. the minimum and maximum speeds at which the specific fishing activity is thought to occur). To help you with this task you should look at the previous speed frequency plot to help distinguish steaming from fishing events.
 
 By running the third last line in this block you create an object "speedarr" with all the different gears in your data. The second and third lines will fill in column 2 and 3 of the 'speedarr' object with the minimum and maximum fishing speeds. These values are set to 1kt and 6kt by default. At this stage you will need to set up the upper and lower limits for each of the gears. Although there are several ways of accomplishing this, we will demonstrate one of them here. In the example below we use a list of 5 gears(DRB;PTB;OTT;GN;FPO) although you are likely to have many more gears in your dataset so you will need to extend the code to accommodate all gears accordingly.
 
