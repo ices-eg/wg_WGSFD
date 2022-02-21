@@ -48,7 +48,9 @@ Once it is downloaded, double click on the file (.exe). Depending on your securi
 
 - The menu (picture below) will appear and you will be asked to select the destination folder
 
-![image](https://user-images.githubusercontent.com/11030143/154282016-fd4147f7-bc84-4c75-bfb0-7d751dc3d3de.png)
+
+<img src="https://user-images.githubusercontent.com/11030143/154282016-fd4147f7-bc84-4c75-bfb0-7d751dc3d3de.png" alt="drawing" width="400"/>
+ 
 
 Rather than accepting the default(C:Files-4.1.2) you should click on the browse button and create a directory C:-4.2.1 this will allow you to install packages without having administrator privileges. Once you have changed the folder just click **Next**
 
