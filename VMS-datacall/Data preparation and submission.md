@@ -189,13 +189,13 @@ The thresholds here defined will be used later in different processes throughout
 
 ### Load the data
 
-##  1.1 Load VMStools underlying data
+####  1.1 Load VMStools underlying data
 
 This will load in to the session support data such as a map of Europe, list of harbours and ICES areas that will be used throughout the code.
 
 
-##  1.2 Clean the tacsat and eflalo data
-##  Looping through the data years
+####  1.2 Clean the tacsat and eflalo data
+#####  Looping through the data years
 
 The next line of code has a 'for' loop which means that all the code within the loop will run at the same time. This particular loop stretches from line 51 to line 496 leaving only a couple of lines at the end of the code. However, before running the 'for' loop there are a few things that need to be changed/adapted to your case.
 
@@ -210,7 +210,7 @@ yearsToSubmit <- sort(2009:2009)
 
 ```
 
-##  1.2.1 Load tacsat and eflalo data from file
+#####  1.2.1 Load tacsat and eflalo data from file
 
 In your 'Data' folder you should have all your tacsat and eflalo files in the .RDATA format. In the code it is expected that your files have the following naming convention 'tacsat\_ XXXX" i.e. tacsat\_2009; tacsat\_2010, etc. The same naming convention is applied to the eflalo files. This will allow the code to load the files as they are needed during the 'for' loop. Failing to correctly name the files will result in an error.
 
@@ -236,31 +236,31 @@ It just ensures that your files are formatted properly.
 
 This block of code will identify all VMS pings (tacsat) within the ICES areas.
 
-## 1.2.2 Clean the tacsatdata
+##### 1.2.2 Clean the tacsatdata
 
 This section will focus on 'cleaning' the data in the tacsatfile. The information in the tacsat(vms) comes from an electronic system that uses GPS information to collect the data on board the vessel and uses a satellite link to send the data to the database. Despite the reliability of this system conditions at sea are not always the best. There are two main opportunities for errors to occur, when receiving or sending data from the GPS and to the database. The code in this section will look to the most common errors and try to identify all of them. The code will not only delete the errors but also keep a record of what was deleted allowing you to keep track of how much data you have lost due to errors.
 
-#- 1.2.2.1 Keep track of removed points
+###### 1.2.2.1 Keep track of removed points
 
 This section will check for five common types of errors. A teach of these checks errors will be removed from the tacsat object. However, the data removed will be kept and saved in the 'Results'folder so you can verify the errors. Also, the volume for each of errors for each of the five checks is recorded the 'remrecsTacsat'object. This object will tell you percentage wise how much you have lost in relation to the original tacsat object.
 
-#- 1.2.2.2 Remove duplicate records
+###### 1.2.2.2 Remove duplicate records
 
-#- 1.2.2.3 Remove points that cannot be possible
+###### 1.2.2.3 Remove points that cannot be possible
 
-#- 1.2.2.4 Remove points which are pseudo duplicates as they have an interval rate < x minutes 
+###### 1.2.2.4 Remove points which are pseudo duplicates as they have an interval rate < x minutes 
 
-#- 1.2.2.5 Remove points inharbour
+###### 1.2.2.5 Remove points inharbour
 
-#- 1.2.2.6 Remove points on land
+###### 1.2.2.6 Remove points on land
 
 All of the above are self-explanatory and each of the five blocks will check for a particular type of error, remove them where they occur and store the removed entries in the 'Results' folder and will quantify the number of values removed.
 
-#- Save the remrecsTacsat file
+###### Save the remrecsTacsat file
 
 The file is now saved and by typing "remrecsTacsat" into the console you will get an overview of how much data was lost due to errors.
 
-#- Save the cleaned tacsat file
+###### Save the cleaned tacsat file
 
 Now you have your file cleaned and saved so no need to repeat the process in future analysis.
 
@@ -268,43 +268,43 @@ Now you have your file cleaned and saved so no need to repeat the process in fut
 
 This section, like the previous one also focuses on "cleaning" the data. This time the target is the eflalo file. The types of errors are of a different nature but once again the code tries to account for the most commons errors. As in the previous section, the code will keep track of what data has been removed and how much. All these files can be found in the 'Results' folder. One should spend a bit of time looking at the data removed as it can be very useful to understand why and where problems occur.
 
-#- 1.2.3.1 Keep track of removed points
+###### 1.2.3.1 Keep track of removed points
 
 The 'remrecsEflalo' object will keep you informed of how much data has been removed.
 
-#- 1.2.3.2 Warn for outlying catch records
+###### 1.2.3.2 Warn for outlying catch records
 
 Basically this block looks for outliers. For each species, it generates a data-driven outlier threshold. If any outliers are found, these will be converted into 'NA' values. You can check in the 'Results' folder for the files containing all the outliers and you can double check if they are correct or not. If they were correct then you can run the code again but the code will need some adjustments.
 
-#- First get the species names in your eflalo dataset
+###### First get the species names in your eflalo dataset
 
-#- Define per species what the maximum allowed catch is
+###### Define per species what the maximum allowed catch is
 
-#- (larger than that value you expect it to be an error / outlier
+###### (larger than that value you expect it to be an error / outlier
 
-#- Make a list of the species names and the cut-off points / error / outlier point
+###### Make a list of the species names and the cut-off points / error / outlier point
 
-#- Put these values to zero
+###### Put these values to zero
 
-#- Get the index (column number) of each of the species
+###### Get the index (column number) of each of the species
 
-#- If landing > cut-off turn it into an 'NA';
+###### If landing > cut-off turn it into an 'NA';
 
-#- Turn all other NAs in the eflalo dataset in KG and EURO columns to zero
+###### Turn all other NAs in the eflalo dataset in KG and EURO columns to zero
 
-#- 1.2.3.3 Remove non-unique trip numbers
+###### 1.2.3.3 Remove non-unique trip numbers
 
-#- 1.2.3.4 Remove impossible time stamp records 
+###### 1.2.3.4 Remove impossible time stamp records 
 
-#- 1.2.3.5 Remove trip starting before 1st Jan
+###### 1.2.3.5 Remove trip starting before 1st Jan
 
-#- 1.2.3.6 Remove trip with overlap with another trip
+###### 1.2.3.6 Remove trip with overlap with another trip
 
-#- 1.2.3.7 Remove records with arrival date before departure date
+###### 1.2.3.7 Remove records with arrival date before departure date
 
 The above block headers are self-explanatory and the code in each of the blocks is just identifying those common errors and removing them from the eflalo object.
 
-#- Save the remrecsEflalo file #- Save the cleaned eflalo file
+###### Save the remrecsEflalo file #- Save the cleaned eflalo file
 
 The 'remrecsEflalo' file is saved for future reference. So is the cleaned eflalo file which, like the tacsat, will be ready to use in the future.
 
@@ -319,15 +319,17 @@ In section four we bring the tacsat and eflalo together by merging to create a n
 
 i.e. VMS (tacsat)
 
-#- Merge eflalo and tacsat
+###### Merge eflalo and tacsat
 
 The files tacsat and eflalo will be combined using some very clever algorithms that use the vessel identifier and date and time in both data sets to relate the landings to the corresponding VMS data for the same trip.
 
-###-Assigngearandlengthtotacsat The new object tacsatp is now a merged version of the cleaned tacsat and eflalo objects. However, the new object hasn't inherited all the fields from eflalo due to reasons of processing speed and work ability. At this point we will extract some data from the eflalo dataset to populate the corresponding tacsatp fields. The data we are interested in are data that will be used later on in the code to populate the final data tables. Things like gear; kw; metiers, etc.
+###### Assign gear and length to tacsat 
 
-#- Assign gear and length to tacsat
+The new object tacsatp is now a merged version of the cleaned tacsat and eflalo objects. However, the new object hasn't inherited all the fields from eflalo due to reasons of processing speed and work ability. At this point we will extract some data from the eflalo dataset to populate the corresponding tacsatp fields. The data we are interested in are data that will be used later on in the code to populate the final data tables. Things like gear; kw; metiers, etc.
 
-#- Save not merged tacsat data
+###### Assign gear and length to tacsat
+
+###### Save not merged tacsat data
 
 Not all vessel activity is associated with fishing events; quite often vessels may be testing equipment or chartered to do jobs other than fishing. So, the merge executed in the previous block only includes VMS data that can be linked to corresponding landings records. As such, it will not be possible to merge all tacsat data for allocation to the tacsatp object. This block will save both the merged and non-merged data into the 'Results' folder.
 
@@ -335,19 +337,19 @@ Not all vessel activity is associated with fishing events; quite often vessels m
 
 This is a crucial section, as vessel activity will be defined here. Also, this is the section that needs the most customization for which some knowledge of fisheries activities will be needed. In this section we will try to explain the steps in more detail and incorporate some reproducible examples as well. The first couple of lines in this section will calculate time interval between points. The time values and the interval threshold will be paramount in identifying vessel activity lateron.
 
-#- Calculate time interval between points
+###### Calculate time interval between points
 
-#- Remove points with NA's in them in critical places
+###### Remove points with NA's in them in critical places
 
 This block gets rid of any rows in the tacsatp for which critical information (vessel reference, latitude, longitude, speed, date and time) is missing. If this data wasn't removed it would most likely lead to errors.
 
-#- Define speed thresholds associated with fishing for gears
+###### Define speed thresholds associated with fishing for gears
 
-#- Investigate speed pattern through visual inspection of histograms #
+###### Investigate speed pattern through visual inspection of histograms #
 
 The code in this block creates a very useful plot of speed frequency by gear. This plot will be saved in the "Results" folder and before you run any further code you should look closely at the output plot.
 
-#- Create speed threshold object
+###### Create speed threshold object
 
 The three last lines of this block will create a threshold object. However, your input and knowledge of the relevant fisheries will be needed at this stage. The threshold object will hold the minimum and maximum speed of fishing for each of the gears (i.e. the minimum and maximum speeds at which the specific fishing activity is thought to occur). To help you with this task you should look at the previous speed frequency plot to help distinguish steaming from fishing events.
 
@@ -375,15 +377,15 @@ So, in the example above you can easily see how each line applies to one gear an
 
 If your data varies from year to year you might want to check if you have different gears in different years. Before running the full code, you should make sure that all gears are included in the code above.
 
-#-Analyse activity automated for common gears only. Use the speedarr for the other gears
+###### Analyse activity automated for common gears only. Use the speedarr for the other gears
 
 This block allows you to select some gears for which the detection can be done automatically. This is another functionality of VMStools which applies for the most common gears. So, in this block you will need to choose which gears to want to apply auto detection. You can add or delete gears in the first line of code in this block.
 
 The remainder of the code in the block will split the tacsatp object in two depending on whether gears will be detected automatically or whether the thresholds need to be user defined according to the code from the previous block. The remaining lines in the block don't need to bechanged.
 
-#- Fill the storeScheme values based on analyses of the pictures
+###### Fill the storeScheme values based on analyses of the pictures
 
-#- Define mean values of the peaks and the number of peaks when they are different from 5 #
+###### Define mean values of the peaks and the number of peaks when they are different from 5 #
 
 In this block the speed histogram plot created previously will be used once more. You will have to identify the peaks in the plot for the gears for which you want the activity to be automatically detected (bear in mind that the algorithm was developed with trawling in mind).
 
@@ -405,17 +407,17 @@ storeScheme$means[which(storeScheme$analyse.by == 'SSC')] <- 3
 
 The second half of the block, checks the results of the auto detection; if they are not satisfactory the analysis is run once more; this time using fixed peaks.However, in this workflow we will not be using fixed peaks so no need to worry about this.
 
-#- Check results, and if results are not satisfactory, run analyses again but now with fixed peaks #
+###### Check results, and if results are not satisfactory, run analyses again but now with fixed peaks #
 
-#- Assign for visually inspected gears a simple speed rule classification
+###### Assign for visually inspected gears a simple speed rule classification
 
 This block deals with all the other gears that are not automatically detected. The code simply applies the upper and lower limits defined previously to define if vessel activity as either steaming orfishing.
 
-#- Combine the two dataset together again
+###### Combine the two dataset together again
 
 Now that all gears have had their activity defined, the code in this block is just putting it all back together in one object. As usual the object will be saved in the "Results" folder.
 
-#- Set fishing sequences with hauling in the middle to "f" ##################
+###### Set fishing sequences with hauling in the middle to "f"  
 
 ### 2.3 Dispatch landings of merged eflalo at the pingscale
 
@@ -444,22 +446,22 @@ Once prepared, the data can be submitted  to  ICES using icesDATSU:([https://cra
 and icesConnect:([https://cran.r-project.org/web/packages/icesConnect/index.html](https://cran.r-project.org/web/packages/icesConnect/index.html)). 
 
 
-#- 3.1 Load TABLE 1 (VMS) and TABLE 2 (LOGBOOK)
+###  3.1 Load TABLE 1 (VMS) and TABLE 2 (LOGBOOK)
 
-#- 3.2 Replace vessel id by an anonymized id column
+### 3.2 Replace vessel id by an anonymized id column
 
-#- New field added for the 2020 datacall including unique vessels id's  #
-#- This vessel id is used to calculate unique vessels in a c-square and  #
+#### New field added for the 2020 datacall including unique vessels id's  #
+#### This vessel id is used to calculate unique vessels in a c-square and  #
 
-#- 3.3 Assign the vessel length category based in DATSU vocabulary
+### 3.3 Assign the vessel length category based in DATSU vocabulary
 
-#- Use of the "icesVocab" ICES developed R package that fetch the DATSU vocabulary values for a given vocabulary theme #
-#- install.packages("icesVocab", repos = "https://ices-tools-prod.r-universe.dev")
+#### Use of the "icesVocab" ICES developed R package that fetch the DATSU vocabulary values for a given vocabulary theme #
+#### install.packages("icesVocab", repos = "https://ices-tools-prod.r-universe.dev")
 
 
-#- 3.4 Aggregate and summarise TABLE 1 and TABLE2
+### 3.4 Aggregate and summarise TABLE 1 and TABLE2
 
-#- 3.5 ICES DATSU VOCABULARY CHECKS BEFORE DATA SUBMISSION
+### 3.5 ICES DATSU VOCABULARY CHECKS BEFORE DATA SUBMISSION
 
 The submission will not progress if the format used does not confirm to the required format and the submitter will be asked to fix the errors in order to proceed (DATSU check). 
 This piece of code performs a DATSU check (c-squares are within ICES ecoregions, vessel length categories are accepted, metier L4 and L5 are valid, country codes are correct,...).
@@ -468,11 +470,11 @@ Running this code will allow you to fix all the format issues ahead of data subm
 
 
 
-#- 3.6 DATA QC REPORT (OPTIONAL)
+### 3.6 DATA QC REPORT (OPTIONAL)
 
 Data submitters are welcome to run a QC report to compare data submitted through the years. 
 
-#- WEB API SUBMISSION (OPTIONAL)
+#### WEB API SUBMISSION (OPTIONAL)
 
 Data submitters can choose to submit data to ICES using icesDATSU:([https://cran.r-project.org/package=icesDatsu](https://cran.r-project.org/package=icesDatsu))
 and icesConnect:([https://cran.r-project.org/web/packages/icesConnect/index.html](https://cran.r-project.org/web/packages/icesConnect/index.html)). 
