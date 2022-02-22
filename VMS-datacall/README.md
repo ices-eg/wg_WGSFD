@@ -1,8 +1,6 @@
-**note**
+# VMS and Logbook datacall 2022
 
 This script has been developed in collaboration with the ICES working group WGSFD (working group on spatial fisheries data) to aid technical personnel with the 2022 ICES Data call for VMS/Log book data for fishing activities in the North East Atlantic and Baltic Sea over the years 2009-2021.
-
-# VMS and Logbook datacall 2022
 
 [This R-script](https://github.com/ices-eg/wg_WGSFD/blob/master/VMS-datacall/VMSdatacall_proposedWorkflow.r "Data Workflow") has been developed incollaboration with the ICES working group [WGSFD](http://www.ices.dk/community/groups/Pages/WGSFD.aspx "Working Group on Spatial Fisheries Data") to aid technical personnel of countries in successfully submitting data to comply with the   [2022 ICES Data call](http://www.ices.dk/sites/pub/Publication%20Reports/Data%20calls/datacall.2020.VMS_LogBook_data.pdf) for VMS/Log book data for fishing activities in the North East Atlantic and Baltic Sea. 
 
