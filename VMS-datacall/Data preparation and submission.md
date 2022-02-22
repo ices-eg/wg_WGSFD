@@ -13,7 +13,7 @@
 ### [2  Data analysis](#2-data-analysis)
 ### [3  Data submission](#3-data-submission)
  
-## [3  Contacts](#3-contacts) 
+## [4  Contacts](#4-contacts) 
 ## [4  Changelog](#4-changelog) 
 
 
@@ -26,6 +26,8 @@ Part 1 of the document provides guidelines for installing all the software neces
 The document is designed to aid all users, regardless of their experience using R. The steps listed cover the installation of R and RStudio and detailed information will be provided to cover all stages of the installation process to ensure success. Depending on your skills you might want to jump some of the steps. To ensure consistency across all users we advise installing VMStoolsversion 0.76. Following these steps should enable quick and simple processing of all data.
 
 All the instructions and code below were tested in windows versions newest than 7 and 8. However, if for any reason something is not working you can contact one of the members of our support team (emails at the end of the document).
+
+Please note that you need administration rights on your computer system to install an encryption software on which icesConnect depends on (Libsodium). You might need to contact your systems administrator in advance to install this software in case you do not have administrator rights.
 
   
 ## Step 1: Installation of R
@@ -467,12 +469,13 @@ and icesConnect:([https://cran.r-project.org/web/packages/icesConnect/index.html
 ### 3.2 Replace vessel id by an anonymized id column
 
 #### New field added since the 2020 datacall including distinct vessels id's  #
-#### This vessel id is used to calculate the number of distinct vessels in a c-square 
+This vessel id is used to calculate the number of distinct vessels in a c-square 
 
 ### 3.3 Assign the vessel length category based in DATSU vocabulary
 
-#### Use of the "icesVocab" ICES developed R package that fetch the DATSU vocabulary values for a given vocabulary theme #
-#### install.packages("icesVocab", repos = "https://ices-tools-prod.r-universe.dev")
+Use of the "icesVocab" ICES developed R package that fetch the DATSU vocabulary values for a given vocabulary theme #
+
+install.packages("icesVocab", repos = "https://ices-tools-prod.r-universe.dev")
 
 
 ### 3.4 Aggregate and summarise TABLE 1 and TABLE2
@@ -484,7 +487,7 @@ This piece of code performs a DATSU check (c-squares are within ICES ecoregions,
 
 Running this code will allow you to fix all the format issues ahead of data submission via an API web service:([https://datsu.ices.dk/web/screen.aspx](https://datsu.ices.dk/web/screen.aspx)) and/or manual data upload in ICES Data portal:([https://data.ices.dk/vms/manage/fileUpload](https://data.ices.dk/vms/manage/fileUpload))
 
-Please note that you need administration rights on your computer system to install an encryption software on which icesConnect depends on (Libsodium). You might need to contact your systems administrator in advance to install this software in case you do not have administrator rights.
+For a description of metiers and workflow for the assignment of metiers please follow:([https://github.com/ices-eg/RCGs/tree/master/Metiers](https://github.com/ices-eg/RCGs/tree/master/Metiers)
 
 ### 3.6 DATA QC REPORT (OPTIONAL)
 
@@ -498,7 +501,7 @@ and icesConnect:([https://cran.r-project.org/web/packages/icesConnect/index.html
 
 
 
-# 3 Contacts
+# 4 Contacts
 
 Lara Salvany:[lara.salvany@ices.dk](mailto:lara.salvany@ices.dk)
 
