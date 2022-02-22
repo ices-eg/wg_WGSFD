@@ -5,6 +5,7 @@
 ### [1.1 Step 1 Installation of r](#step-1-installation-of-r)
 ### [1.2 Step 2 Installation of RStudio](#step-2-installation-of-rstudio)
 ### [1.3 Step 3 Installing VMSTOOLS R package](#step-3-installing-vmstools)
+### [1.4 Step 3 Installing ICES R packages](#step-4-installing-ICES R packages)
 
 ##  [2 Proposed workflow R code](#part-2-proposed-workflow-r-code)
 
@@ -20,7 +21,7 @@
 
 This document is designed to aid analysts streamline the process of extracting VMS data in accordance with requirements of the ICES VMS data call.
 
-Part 1 of the document is provides guidelines for installing all the software necessary for data manipulation and aggregation into the requested format. The software used, R and RStudio, are available as freeware.
+Part 1 of the document provides guidelines for installing all the software necessary for data manipulation and aggregation into the requested format. The software used, R and RStudio, are available as freeware.
 
 The document is designed to aid all users, regardless of their experience using R. The steps listed cover the installation of R and RStudio and detailed information will be provided to cover all stages of the installation process to ensure success. Depending on your skills you might want to jump some of the steps. To ensure consistency across all users we advise installing VMStoolsversion 0.76. Following these steps should enable quick and simple processing of all data.
 
@@ -122,6 +123,19 @@ To install vmstools click on the Tools tab on the main menu in RStudio. Then sel
 
 That's it; you now have all you need to process your data.
 
+## Step 3 Installing ICES R packages 
+
+# R packages required to be installed:
+# install.packages(c("icesVMS", "icesConnect"), repos = "https://ices-tools-prod.r-universe.dev")  
+
+library(icesVMS)
+
+
+##Get vocabulary for mandatory and fields with associated vocabulary using the DATSU API
+# install.packages("icesVocab", repos = "https://ices-tools-prod.r-universe.dev")
+
+library(icesVocab)
+
 
 # Part 2. Proposed workflow R code 
 
@@ -162,7 +176,7 @@ To make it easier to follow the guidelines we will explain the code, referencing
 
 #- Clear workspace
 
-This code will just clear your work space to allow you to start afresh. Also, the three packages that will be needed to run the code will be loaded into the session. If you followed the instructions in part one these should already be installed and loading them shouldn't be a problem.
+This code will just clear your work space to allow you to start afresh. Also, the packages that will be needed to run the code will be loaded into the session. If you followed the instructions in part one these should already be installed and loading them shouldn't be a problem.
 
 #- Settings paths
 
@@ -172,7 +186,7 @@ At this point you need to replace the paths shown in the code with your own ones
 
 The thresholds here defined will be used later in different processes throughout the code. These will include, data cleaning or definition of vessel state (i.e. fishing/not fishing). The values set for the thresholds are considered to be reasonable and unless there are particularities in your data there shouldn't be a need to change these values.
 
-#- Re-run all years as we have new field for no. vessels
+#- Re-run all years as we have new field for no. vessels and anonymization of less than three vessels
 
 #- Set the gear names for which automatic fishing activity is wanted
 
@@ -180,7 +194,7 @@ The thresholds here defined will be used later in different processes throughout
 
 #- Decide if you want to visually analyse speed-histograms to identify fishing activity
 
-#- peaks or have prior knowledge and use the template provided around lines 380 below
+#- peaks or have prior knowledge and use the template provided 
 
 #- Specify how landings should be distributed over the VMS pings: By day, ICES rectangle, trip basis or otherwise
 
@@ -203,7 +217,7 @@ The next line of code has a 'for' loop which means that all the code within the 
 
 In order to ensure that everything is working properly and to have a better understanding of what the code is doing inside the loop we will run one single year as a test. If we are able to run one year of data without coming across errors then we can run the code for all the years at once.
 
-So for the moment we will ignore this block (#-1b) **Looping**** through ****the**** data** and copy the line below into the console:
+So for the moment we will ignore this block (#-1.2) **Looping**** through ****the**** data** and copy the line below into the console:
 
 
 ```{r}
@@ -216,7 +230,7 @@ yearsToSubmit <- sort(2009:2009)
 
 In your 'Data' folder you should have all your tacsat and eflalo files in the .RDATA format. In the code it is expected that your files have the following naming convention 'tacsat\_ XXXX" i.e. tacsat\_2009; tacsat\_2010, etc. The same naming convention is applied to the eflalo files. This will allow the code to load the files as they are needed during the 'for' loop. Failing to correctly name the files will result in an error.
 
-Since we have justcopied **year <-**** 2009** to the console, when we run this block only the 2009 year data will beloaded.
+Since we have just copied **year <-**** 2009** to the console, when we run this block only the 2009 year data will beloaded.
 
 Now that you have just loaded both tacsat and eflalo for 2009 the next two lines will just change the name of your objects to 'tacsat' and 'eflalo'. Depending on what your objects are called you may need to change the code. (tip: If at any stage you don't remember what the names are just type 'ls()' and a list of all objects already loaded will appear). If your object names are not 'tacsat' and 'eflalo' you will need to adapt the code. However, this is a simple process. Below are two examples for changing objects names in this case the names are '2009Tacsat' and another called 'Tac09'
 
@@ -452,8 +466,8 @@ and icesConnect:([https://cran.r-project.org/web/packages/icesConnect/index.html
 
 ### 3.2 Replace vessel id by an anonymized id column
 
-#### New field added for the 2020 datacall including unique vessels id's  #
-#### This vessel id is used to calculate unique vessels in a c-square and  #
+#### New field added since the 2020 datacall including distinct vessels id's  #
+#### This vessel id is used to calculate the number of distinct vessels in a c-square 
 
 ### 3.3 Assign the vessel length category based in DATSU vocabulary
 
@@ -468,9 +482,9 @@ and icesConnect:([https://cran.r-project.org/web/packages/icesConnect/index.html
 The submission will not progress if the format used does not confirm to the required format and the submitter will be asked to fix the errors in order to proceed (DATSU check). 
 This piece of code performs a DATSU check (c-squares are within ICES ecoregions, vessel length categories are accepted, metier L4 and L5 are valid, country codes are correct,...).
 
-Running this code will allow you to fix all the format issues ahead of data submission via an API web service:([https://datsu.ices.dk/web/screen.aspx](https://datsu.ices.dk/web/screen.aspx)) and/or data upload in ICES Data portal:([https://data.ices.dk/vms/manage/fileUpload](https://data.ices.dk/vms/manage/fileUpload))
+Running this code will allow you to fix all the format issues ahead of data submission via an API web service:([https://datsu.ices.dk/web/screen.aspx](https://datsu.ices.dk/web/screen.aspx)) and/or manual data upload in ICES Data portal:([https://data.ices.dk/vms/manage/fileUpload](https://data.ices.dk/vms/manage/fileUpload))
 
-
+Please note that you need administration rights on your computer system to install an encryption software on which icesConnect depends on (Libsodium). You might need to contact your systems administrator in advance to install this software in case you do not have administrator rights.
 
 ### 3.6 DATA QC REPORT (OPTIONAL)
 
@@ -478,7 +492,7 @@ Data submitters are welcome to run a QC report to compare data submitted through
 
 #### WEB API SUBMISSION (OPTIONAL)
 
-Data submitters can choose to submit data to ICES using icesDATSU:([https://cran.r-project.org/package=icesDatsu](https://cran.r-project.org/package=icesDatsu))
+Data submitters can choose to submit data to ICES using functions from the packages icesDATSU:([https://cran.r-project.org/package=icesDatsu](https://cran.r-project.org/package=icesDatsu))
 and icesConnect:([https://cran.r-project.org/web/packages/icesConnect/index.html](https://cran.r-project.org/web/packages/icesConnect/index.html)). 
 
 
@@ -496,7 +510,7 @@ Josefine Egekvist:[jsv@aqua.dtu.dk](mailto:jsv@aqua.dtu.dk)
 
 Niels Hintzen:[niels.hintzen@wur.nl](mailto:niels.hintzen@wur.nl)
 
-Rui Catarino:[rui.catarino@ices.dk](mailto:rui.catarino@ices.dk)
+
 
 
 # 4 Changelog
