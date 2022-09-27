@@ -23,7 +23,23 @@ hab2 <- st_read("//ait-phnas03.win.dtu.dk/aqua$/aqua-q/gis/Dynamisk/GEOdata/Basi
 hab2 <- st_transform(hab2, 4326)
 hab2 <- st_zm(hab2)
 hab2 <- st_make_valid(hab2)
-hab2 <- hab2[,"EUNIScomb"]   
+hab2 <- hab2[,"EUNIScomb"] 
+
+ 
+
+## create polygon bounding box 
+outer = matrix(c(2,50,2,60,10,60,10,50,2,50),ncol=2, byrow=TRUE)
+pts = list(outer )
+pl1 = st_polygon(pts) 
+pl_sfc = st_sfc(pl1)%>% st_set_crs(4326)
+
+## create random sampling locations within bbox polygon
+rp <-st_sample(pl_sfc, 1000)%>%st_sfc()%>%st_set_crs(4326)
+rp_sf<- st_sf (   sequence( length(rp)    ), rp ) 
+colnames(rp_sf)[1] <- "id"
+ 
+  
+
 
 
 #Load you tacsateflalo file
@@ -40,30 +56,39 @@ pts <- tacsatEflalo %>%
   sf::st_set_crs(4326)
 
 #Add habitats from the atlantic/north sea
-  out1 <- st_join(pts, hab, join = st_intersects)
-  setDT(out1)[,geometry := NULL]
-  out1 <- out1[!is.na(EUNIScomb)]
-  
+out1 <- st_join(pts, hab, join = st_intersects)
+setDT(out1)[,geometry := NULL]
+out1 <- out1[!is.na(EUNIScomb)]
+
+
+#Add habitats from the atlantic/north sea using random points (rp_sf)
+
+out1 <- st_join(rp_sf, hab, join = st_intersects)
+
+setDT(out1)[,geometry := NULL]
+out1 <- out1[!is.na(EUNIScomb)]
+
+
 #Add habitats from the baltic sea
-  out2 <- st_join(pts[pts$rowID %!in% out1$rowID,],
-                  hab2, join = st_intersects)
-  
-  setDT(out2)[,geometry := NULL]
-  out2 <- out2[!is.na(EUNIScomb)]
-  
-  #Combine them into a new tacsateflalo file, 
-  #now with eunis habitat (EUNIScomb)
-  tacsatEflalo2 <- rbindlist(list(out1, out2, tacsatEflalo[rowID %!in% c(out1$rowID, out2$rowID)]),
-                   fill = T)
-  
-  tacsatEflalo2[, rowID := NULL]
-  
-  #Make a new tacsatEflalo
-  
-  tacsatEflalo <- data.frame(tacsatEflalo2)
-  
-  #Maybe save it also
-  save(
-    tacsatEflalo,
-    file = file.path(outPath, paste0("tacsatEflalo", year, ".RData"))
-  )
+out2 <- st_join(pts[pts$rowID %!in% out1$rowID,],
+                hab2, join = st_intersects)
+
+setDT(out2)[,geometry := NULL]
+out2 <- out2[!is.na(EUNIScomb)]
+
+#Combine them into a new tacsateflalo file, 
+#now with eunis habitat (EUNIScomb)
+tacsatEflalo2 <- rbindlist(list(out1, out2, tacsatEflalo[rowID %!in% c(out1$rowID, out2$rowID)]),
+                           fill = T)
+
+tacsatEflalo2[, rowID := NULL]
+
+#Make a new tacsatEflalo
+
+tacsatEflalo <- data.frame(tacsatEflalo2)
+
+#Maybe save it also
+save(
+  tacsatEflalo,
+  file = file.path(outPath, paste0("tacsatEflalo", year, ".RData"))
+)
