@@ -1,6 +1,6 @@
 ## 1(a) background task ( only once ) 
 
-1. download the emodnet (link  soruce ) 
+1. download the emodnet (link  source https://www.emodnet-seabedhabitats.eu/access-data/download-data/?linkid=eusm_2021_atlantoarctic,eusm_2021_baltic,eusm_2021_blacksea,eusm_2021_mediterranean ) 
 2. rasterize to MSFDBHT ( QGIS/ ArcGIS ) 
 	- torsten rasterize to 0.001
 	- 
@@ -11,8 +11,9 @@
 
 ## 1 (b) backgroud task ( jeppe approach/  script available  ) 
 
-1. load the eusemap to R . Convert into sf dataframe
-2. clean up the dataset
+1.Dowload the emodnet eusemaP ( https://www.emodnet-seabedhabitats.eu/access-data/download-data/?linkid=eusm_2021_atlantoarctic,eusm_2021_baltic,eusm_2021_blacksea,eusm_2021_mediterranean) 
+2. load the eusemap to R . Convert into sf dataframe
+3. clean up the dataset
 4.Output provided into R polygon format (e.g. 
 
 
