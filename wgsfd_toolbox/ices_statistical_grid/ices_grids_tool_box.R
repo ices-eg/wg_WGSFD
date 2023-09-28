@@ -1,14 +1,9 @@
-36°N and 85°30'N and 44°W and 68°30'E
-
-
-
-
 library(sf)
 library(dplyr)
 library(vmstools)
 
 
-cell_resolution = csquare_resolution/  n_divisions  
+ 
 
 ## bounding box area limits definition
 
@@ -16,51 +11,24 @@ cell_resolution = csquare_resolution/  n_divisions
 ##ICES REctangles boundaries
 lon = c(-44,68.5)
 lat = c(36,85.5)
+ 
+ 
 
-## Testing boudnaries 
+ ices_sq_res= 1
+ ices_sq_res_offset <- ices_sq_res/2
+ 
+ lon_ct = seq(-2 + ices_sq_res_offset, 0,ices_sq_res)
+ lat_ct = seq(40 + ices_sq_res_offset, 45, ices_sq_res)  
 
-lon = c(-2,2)
-lat = c(40,50)
-
-
-coord_bbox = data.frame(lon, lat)
-bbox_aoi =  coord_bbox %>% 
-  st_as_sf(coords = c("lon","lat"), crs = 4326) %>%
-  st_bbox() %>% st_as_sfc() %>% 
-  st_sf( id  = 1, label = 'bbox' ) %>%
-  st_set_crs(4326)
-
-
-## create the grid
-
-grid_1  = st_make_grid( bbox_aoi,  cellsize = cell_resolution, square = TRUE, offset = c(min(lon),min(lat))  ) #%>% as(Class = "Spatial")
+spatial_grid_0p01_ct = expand.grid( lon_ct = lon_ct, lat_ct = lat_ct   )  
 
 
 
-### Calcule grid centroi with no geomtry 
-
-( 85.5 - 35 ) /0.01 
-
-( -44 - 68.5 ) /0.01 
-
-cell_resolution = csquare_resolution/  n_divisions  
-
- lon = seq(-20, 20, 0.01)
- lat = seq(35, 80, 0.01)  
-
- ices_sq_res= 0.5
- lon = seq(-2 + ices_sq_res / 2, 0,0.5)
- lat = seq(40 + ices_sq_res/2 , 45, 0.5)  
-
-spatial_grid_0p01_ct = expand.grid( lon = lon, lat = lat   )  
-
-
-
-csquare_resolution = c(0.01, 0.05)
+csquare_resolution = c(0.01, 0.05, 0.5)
 
 for ( i in unique (csquare_resolution)) {
   print(i)
- cs_code  = CSquare(spatial_grid_0p01_ct$lon, spatial_grid_0p01_ct$lat,degrees =  i ) 
+ cs_code  = CSquare(spatial_grid_0p01_ct$lon_ct, spatial_grid_0p01_ct$lat_ct,degrees =  i ) 
  spatial_grid_0p01_ct = spatial_grid_0p01_ct %>% mutate ( cs_code = cs_code   )
  colnames (spatial_grid_0p01_ct) [ ncol(spatial_grid_0p01_ct) ] = paste0("cs_code", i ) 
     
@@ -69,6 +37,42 @@ for ( i in unique (csquare_resolution)) {
 library ( ggplot2)
 
 
+### Calculate the ICES grid cell area
+
+spatial_grid_0p01_ct = spatial_grid_0p01_ct %>% mutate ( lon_cn_1 = lon_ct - ices_sq_res_offset, lat_cn_1 = lat_ct - ices_sq_res_offset)
+spatial_grid_0p01_ct = spatial_grid_0p01_ct %>% mutate ( lon_cn_2 = lon_ct + ices_sq_res_offset, lat_cn_2 = lat_ct - ices_sq_res_offset)
+spatial_grid_0p01_ct = spatial_grid_0p01_ct %>% mutate ( lon_cn_3 = lon_ct + ices_sq_res_offset, lat_cn_3 = lat_ct + ices_sq_res_offset)
+
+
+ggplot( spatial_grid_0p01_ct) + 
+geom_point( aes(x= lon_ct , y = lat_ct ), color = 'red') + 
+geom_point( aes(x= lon_cn_1 , y = lat_cn_1 ), color = 'green') + 
+geom_point( aes(x= lon_cn_2 , y = lat_cn_2 ), color = 'green') + 
+geom_point( aes(x= lon_cn_3 , y = lat_cn_3 ), color = 'green')  
+
+
+spatial_grid_0p01_ct = spatial_grid_0p01_ct %>% mutate(x_diff =  abs (lon_cn_1 - lon_cn_2  ), y_diff = abs (lat_cn_2 - lat_cn_3 ) ) %>%
+                        mutate ( d =  sqrt( (x_diff^2 + y_diff^2)  ) , d_m =d *  111.139   )
+
+ 
+
+
+
+st_sf(id = 'L1', geom =  st_sfc(st_linestring(outer, dim = "XY"))) %>%
+  st_set_crs(4326) %>% st_transform(9822) %>%
+mutate ( line_dist = st_length(geom))
+ 
+st_linestring(outer) %>% st_as_sf( wkt = "geometry" ) 
+
+?st_linestring
+  
+  st_set_crs(4326) %>% st_transform(., 9822)
+
+
+spatial_grid_0p01_ct %>% summary()
+
+
+ 
 
 
 
@@ -80,7 +84,7 @@ library ( ggplot2)
 
 
 spatial_grid_0p01_geom = spatial_grid_0p01_ct %>% 
-                         sf::st_as_sf(coords = c('lon', 'lat' ))%>%
+                         sf::st_as_sf(coords = c('lon_ct', 'lat_ct' ))%>%
                             st_set_crs(4326)
                           # %>% st_join ()
 
@@ -92,34 +96,24 @@ bbox = spatial_grid_0p01_geom %>% st_bbox()   %>% st_as_sfc() %>%
   st_set_crs(4326)
 
 
+gridp = st_make_grid(bbox, cellsize = ices_sq_res, crs = 4326  , 
+                    offset =  c( min(spatial_grid_0p01_ct$lon_ct) - ices_sq_res_offset,
+                                 min(spatial_grid_0p01_ct$lat_ct)-  ices_sq_res_offset)
+                    ) %>% st_as_sf() 
 
-gridp = st_make_grid(bbox, cellsize = 0.5, crs = 4326  , offset =  c( min(spatial_grid_0p01$lon) - 0.25, min(spatial_grid_0p01$lat)-  0.25)) %>% st_as_sf() 
+        
+## Add table information to the grid 
+
+spatial_grid_0p01_cells = gridp %>% cbind( spatial_grid_0p01_ct)
+
+### Plot the grid   
 
 
-ggplot( ) + geom_sf (data = gridp) +   geom_sf ( data = spatial_grid_0p01_geom)  
+ggplot(spatial_grid_0p01_cells )   + geom_sf () +  geom_sf ( data = spatial_grid_0p01_geom)  +
+  geom_sf_label(aes(label = cs_code0.5) , size = 2)
 
 
-g1 = st_make_grid(bbox, cellsize = 0.5, crs = 4326   ) %>% st_as_sf() %>% st_centroid() 
-
-g1_ct = g1 %>%  st_coordinates()
  
-g1  %>% cbind(  CSquare(g1_ct[,1], g1_ct[,2], degrees = 0.05 )  )
-  
- 
-
-
-
-area_csquare = st_area(st_transform(spatial_grid_0p01, 9822) ) /1000000
-spatial_grid_0p01 %>% mutate( area_km2 = area_csquare)
-
-
-%>%
-ggplot(.) + geom_sf ( (aes(color = largeIntv)) + 
-
-
-grid_1  = st_make_grid( bbox_aoi,  cellsize = cell_resolution, square = TRUE, offset = c(min(lon),min(lat))  ) #%>% as(Class = "Spatial")
-
-
 
 ### Dowsampling 
 
