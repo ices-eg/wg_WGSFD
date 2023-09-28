@@ -54,7 +54,9 @@ geom_point( aes(x= lon_cn_3 , y = lat_cn_3 ), color = 'green')
 spatial_grid_0p01_ct = spatial_grid_0p01_ct %>% mutate(x_diff =  abs (lon_cn_1 - lon_cn_2  ), y_diff = abs (lat_cn_2 - lat_cn_3 ) ) %>%
                         mutate ( d =  sqrt( (x_diff^2 + y_diff^2)  ) , d_m =d *  111.139   )
 
- 
+
+
+outer = matrix(c(-2,40,-1,40),ncol=2, byrow=TRUE)
 
 
 
