@@ -173,9 +173,28 @@ ggplot(spatial_grid_0p01_cells, aes (fill = grid_area_st_area))   + geom_sf () #
 ## Create plot to show points with an equal distribution (in km) of fishing points
 # across a range of different latitudes to show how the 
 
-### Dowsampling 
+### Dowsampling  ##############
 
 spatial_grid_effort_0p05 = spatial_grid_0p01 %>% group_by(cs_code0.05 ) %>% summarise(f_effort = sum ( f_effort))
 
 
-### Multiresolucion 
+### Multiresolucion #############
+
+
+
+
+
+### Areas base bias analysis #################
+
+
+
+lat_south = runif( 100, 36, 36.1)
+lon_south = runif( 100, 0, 0.1)
+
+
+
+plot ( lon_south, lat_south)
+
+
+df = data.frame( lon_south = lon_south, lat_south = lat_south)
+df  %>% sf::st_as_sf(coords = c('lon_south' , 'lat_south' )) %>%st_set_crs(4326)
