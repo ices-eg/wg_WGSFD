@@ -187,16 +187,77 @@ spatial_grid_effort_0p05 = spatial_grid_0p01 %>% group_by(cs_code0.05 ) %>% summ
 ### Areas base bias analysis #################
 
 
+bbox = spatial_grid_0p01_geom %>% st_bbox()   %>% st_as_sfc() %>% 
+  st_sf( id  = 1, label = 'bbox' )  %>%
+  st_set_crs(4326)
+
+gridp = st_make_grid(bbox, cellsize = ices_sq_res, crs = 4326  , 
+                     offset =  c( min(spatial_grid_0p01_ct$lon_ct) - ices_sq_res_offset,
+                                  min(spatial_grid_0p01_ct$lat_ct)-  ices_sq_res_offset)
+) %>% st_as_sf() 
+
+
+
+
+
+
+
+
+
 lat_south = runif( 100, 36, 36.1)
 lon_south = runif( 100, 0, 0.1)
 
 plot ( lon_south, lat_south)
 
-df = data.frame( lon_south = lon_south, lat_south = lat_south)
-points_south = df  %>% sf::st_as_sf(coords = c('lon_south' , 'lat_south' )) %>%st_set_crs(4326) %>% 
+df_south = data.frame( lon = lon_south, lat = lat_south)
+df_south = data.frame( lon = lon_south, lat = lat_south+20)
+df_south = df_south %>% mutate(cs_0p05 = CSquare( lon, lat, 0.05), 
+                           cs_0p01 = CSquare( lon, lat, 0.01), 
+                           effort = 1, SA = 2)
+
+
+
+cs_areas = function( df, res = c ( 0.05, 0.01), f_names  = c( 'cs_0p05', 'cs_0p01') ) { 
+
+
+                df = df  %>% sf::st_as_sf(coords = c('lon' , 'lat' )) %>%st_set_crs(4326) %>% st_drop_geometry()
+                  
+                for ( i in 1:length (f_names) ) { 
+                 
+                
+                ct = CSquare2LonLat(df[f_names[i]]%>%pull() , res[i] ) %>% sf::st_as_sf(coords = c('SI_LONG' , 'SI_LATI' ),remove = FALSE) %>%st_set_crs(4326) 
+                
+                   
+                          bbox = ct %>% st_bbox()   %>% st_as_sfc() %>% 
+                            st_sf( id  = 1, label = 'bbox' )  %>%
+                            st_set_crs(4326)
+                          
+                          gridp = st_make_grid(bbox, cellsize =res[i], crs = 4326  , 
+                                               offset =  c( min(ct$SI_LONG) - ( res[i]/2) ,
+                                                            min(ct$SI_LATI)-  ( res[i]/2))
+                          ) %>% 
+                            st_as_sf() %>%
+                            st_transform(9822)%>%
+                            mutate ( area_km2 = st_area(x) /1000000 ) 
+                          
+                         # browser()
+                          
+                          df[[paste0(f_names[i],'_area_km2')]] = ( gridp%>%st_drop_geometry()%>% select(area_km2)%>%pull())              
+                          
+                } 
+            return(df)    
+                
+    } 
+
+cs_areas ( df_south)
+
+points_south = df_south  %>% sf::st_as_sf(coords = c('lon_south' , 'lat_south' )) %>%st_set_crs(4326) %>% 
   st_transform(9822) %>% mutate (category = "South")
 
-df = data.frame( lon_mid = lon_south, lat_mid = lat_south+20)
+df_mid = data.frame( lon_mid = lon_south, lat_mid = lat_south+20)
+df_mid = df_mid %>% mutate(cs_0p05 = CSquare( lon_north, lat_north, 0.05), 
+                   cs_0p01 = CSquare( lon_north, lat_north, 0.01), 
+                   effort = 1, SA = 2)
 points_mid =df  %>% sf::st_as_sf(coords = c('lon_mid' , 'lat_mid' )) %>%st_set_crs(4326) %>% 
   st_transform(9822)  %>% mutate (category = "Mid")
 
