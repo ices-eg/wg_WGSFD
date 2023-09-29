@@ -12,7 +12,7 @@ lat = c(36,85.5)
 
 # limit boundaries for testing purposes
 lon = c(-4, 2)
-lat = c(40, 70)
+lat = c(35, 80)
 
 # set grid cell resolution and calculate offset value
 ices_sq_res= 0.05
@@ -187,14 +187,40 @@ spatial_grid_effort_0p05 = spatial_grid_0p01 %>% group_by(cs_code0.05 ) %>% summ
 ### Areas base bias analysis #################
 
 
-
 lat_south = runif( 100, 36, 36.1)
 lon_south = runif( 100, 0, 0.1)
 
-
-
 plot ( lon_south, lat_south)
 
-
 df = data.frame( lon_south = lon_south, lat_south = lat_south)
-df  %>% sf::st_as_sf(coords = c('lon_south' , 'lat_south' )) %>%st_set_crs(4326)
+points_south = df  %>% sf::st_as_sf(coords = c('lon_south' , 'lat_south' )) %>%st_set_crs(4326) %>% 
+  st_transform(9822) %>% mutate (category = "South")
+
+df = data.frame( lon_mid = lon_south, lat_mid = lat_south+20)
+points_mid =df  %>% sf::st_as_sf(coords = c('lon_mid' , 'lat_mid' )) %>%st_set_crs(4326) %>% 
+  st_transform(9822)  %>% mutate (category = "Mid")
+
+df = data.frame( lon_north = lon_south, lat_north = lat_south+40)
+df = df %>% mutate(cs_0p05 = CSquare( lon_north, lat_north, 0.05), 
+                   cs_0p01 = CSquare( lon_north, lat_north, 0.01), 
+                   effort = 1, SA = 2) %>% 
+  group_by (cs_0p05) %>% 
+  summarise ()
+points_north =df  %>% sf::st_as_sf(coords = c('lon_north' , 'lat_north' )) %>%st_set_crs(4326) %>% 
+  st_transform(9822) %>% mutate (category = "North")
+
+plot_north <- ggplot (points_north) + geom_sf()
+plot_mid <- ggplot (points_mid) + geom_sf()
+plot_south <- ggplot (points_south) + geom_sf()
+
+ggpubr::ggarrange(plot_north, plot_mid, plot_south)
+
+
+
+
+
+
+
+
+
+
