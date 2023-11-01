@@ -27,9 +27,10 @@
 						( downsampling /upsampling ) 
 			- Decision tree model ( depth gradients, density n vessels ) 
 				
-		- Impact of calcualtion fishing effort in 
-		- Stock assesment models ( ? Elli MCLoud ) 
-		- Equal Area Grids ( Simon J / NOAA grid ) 
+		- Impact of calcualtion fishing activity indicators  at different lat /lon ranges
+  		- Other grids used for fisheries: 
+			- Stock assesment models ( ? Elli MCLoud ) 
+			- Equal Area Grids ( Simon J / NOAA grid ) 
 
 
 	- OWF (Roi - Elli ) : Integrate turbines information - indicators  Point to grid
