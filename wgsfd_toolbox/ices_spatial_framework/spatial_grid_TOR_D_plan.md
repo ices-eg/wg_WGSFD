@@ -1,4 +1,4 @@
-## ICES Stastical Grid Catalogue  : Definition of the  spatial framework
+## ICES Stastical Spatial Grid Catalogue  : Definition of the  spatial framework
 
 	- ICES Regions > ICES rectangles / Subrectangles >  ICES Csquares
 
